@@ -6,10 +6,13 @@ import { defaultCardSize, generateDefault } from './generateDefault';
 import { loadDashboard, saveDashboard } from './storage';
 import { uid } from '../util';
 
+type Route = { kind: 'home' } | { kind: 'room'; id: string };
+
 interface DashboardCtx {
   config: DashboardConfig | null;
-  activeRoomId: string | null;
-  setActiveRoom: (id: string) => void;
+  route: Route;
+  goHome: () => void;
+  openRoom: (id: string) => void;
   editing: boolean;
   setEditing: (v: boolean) => void;
   reorderBlocks: (oldIndex: number, newIndex: number) => void;
@@ -29,7 +32,7 @@ export function useDashboard(): DashboardCtx {
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const source = useHassSource();
   const [config, setConfig] = useState<DashboardConfig | null>(null);
-  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [route, setRoute] = useState<Route>({ kind: 'home' });
   const [editing, setEditing] = useState(false);
   const loaded = useRef(false);
 
@@ -40,7 +43,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const cfg = saved ?? generateDefault(source.getStates());
       if (alive) {
         setConfig(cfg);
-        setActiveRoomId(cfg.rooms[0]?.id ?? null);
         loaded.current = true;
       }
     })();
@@ -54,15 +56,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const mutateBlocks = (fn: (blocks: Block[]) => Block[]) => {
     setConfig((c) => {
-      if (!c) return c;
-      return { ...c, rooms: c.rooms.map((r) => (r.id === activeRoomId ? { ...r, blocks: fn(r.blocks) } : r)) };
+      if (!c || route.kind !== 'room') return c;
+      return { ...c, rooms: c.rooms.map((r) => (r.id === route.id ? { ...r, blocks: fn(r.blocks) } : r)) };
     });
   };
 
   const value: DashboardCtx = {
     config,
-    activeRoomId,
-    setActiveRoom: setActiveRoomId,
+    route,
+    goHome: () => { setEditing(false); setRoute({ kind: 'home' }); window.scrollTo?.(0, 0); },
+    openRoom: (id) => { setEditing(false); setRoute({ kind: 'room', id }); window.scrollTo?.(0, 0); },
     editing,
     setEditing,
     reorderBlocks: (oldIndex, newIndex) => mutateBlocks((b) => arrayMove(b, oldIndex, newIndex)),

@@ -23,5 +23,12 @@ export default defineConfig(({ mode }) => {
       },
     };
   }
-  return { plugins: [react()] };
+  return {
+    plugins: [react()],
+    // esbuild 0.28 (pinned for the dev-only security advisory) can't lower some
+    // dependency destructuring to Vite's default multi-target dev list; pin the
+    // dev transform/prebundle target to esnext (modern browsers only).
+    optimizeDeps: { esbuildOptions: { target: 'esnext' } },
+    esbuild: { target: 'esnext' },
+  };
 });
