@@ -7,11 +7,19 @@ optimized first and foremost for the owner's taste.
 
 ## Status
 
-Working prototype. A React custom-panel framework exists: a Lovelace-style dashboard
-(views → cards) with edit mode, drag-to-reorder (dnd-kit), add/remove/resize, and per-user
-persistence (HA user-data store, localStorage fallback). Widgets: light, sensor, climate,
-media_player, cover, lock + generic fallback. Runs via `npm run dev` (mock data when no
-token) and builds to `dist/simui-panel.js`. Verified end-to-end in a headless browser.
+Working prototype, HACS-installable (see `custom_components/simui/`). The view layer is a
+**composed, per-room** dashboard (not a card grid): a home overview menu of rooms →
+each room is a surface composed of `hero / group / list / card` blocks on a state-reactive
+**ambient canvas**, per [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md). Per-entity
+subscriptions (`useEntity` / `useAggregate`) keep updates surgical. Per-room edit mode
+(drag-reorder / resize / add). Persistence via HA user-data store (localStorage fallback);
+defaults auto-generated per room (never the whole entity registry). Entity widgets: light,
+sensor, climate, media_player, cover, lock + generic fallback. `npm run dev` (mock data
+when no token) → `dist/simui-panel.js`. Verified end-to-end in a headless browser.
+
+Known next steps: use the real HA **area registry** for room assignment (currently a
+name-keyword heuristic); richer in-UI composition (build groups/lists by hand, not just
+add-as-card); a `lightweight-charts` energy/history card.
 
 ## Vision & principles
 
