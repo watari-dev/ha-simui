@@ -22,3 +22,7 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+          # "brands" requires inclusion in the home-assistant/brands repo (a
+          # separate PR) and is only needed for the HACS default store, not for
+          # custom-repository installs. Skip it here.
+          ignore: brands
