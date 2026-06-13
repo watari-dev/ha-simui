@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "simUI",
+        "description": "Add the simUI dashboard to your sidebar."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "simUI is already set up."
+    }
+  }
+}

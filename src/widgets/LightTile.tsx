@@ -1,0 +1,42 @@
+import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
+import { Lightbulb } from 'lucide-react';
+import { Tile } from '../components/Tile';
+import { useHass } from '../hass/context';
+import type { WidgetProps } from '../types';
+import { friendly } from '../util';
+
+export function LightTile({ entity }: WidgetProps) {
+  const { callService } = useHass();
+  const on = entity.state === 'on';
+  const brightness = (entity.attributes.brightness as number | undefined) ?? 0;
+  const pct = on ? Math.max(1, Math.round((brightness / 255) * 100)) : 0;
+
+  const toggle = () => void callService('light', on ? 'turn_off' : 'turn_on', {}, { entity_id: entity.entity_id });
+  const setPct = (e: ChangeEvent<HTMLInputElement>) =>
+    void callService('light', 'turn_on', { brightness_pct: Number(e.target.value) }, { entity_id: entity.entity_id });
+
+  const fill = on ? 'var(--warm)' : 'var(--faint)';
+  const trackStyle: CSSProperties = { background: `linear-gradient(to right, ${fill} ${pct}%, var(--faint) ${pct}%)` };
+
+  return (
+    <Tile onClick={toggle} className={on ? 'is-lit' : ''}>
+      <div className="simui-row">
+        <span className={`simui-ic${on ? ' warm' : ''}`}><Lightbulb size={16} strokeWidth={2} /></span>
+        <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+        <span className="simui-spacer" />
+        <span className={`simui-pct${on ? ' on' : ''}`}>{on ? `${pct}%` : 'Off'}</span>
+      </div>
+      <input
+        className="simui-slider"
+        type="range"
+        min={0}
+        max={100}
+        value={pct}
+        aria-label={`${friendly(entity)} brightness`}
+        style={trackStyle}
+        onClick={(e: MouseEvent) => e.stopPropagation()}
+        onChange={setPct}
+      />
+    </Tile>
+  );
+}

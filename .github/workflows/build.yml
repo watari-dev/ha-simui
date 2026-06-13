@@ -1,0 +1,44 @@
+name: Build panel bundle
+
+# Rebuilds the frontend and commits the refreshed bundle into the integration
+# whenever the React source changes, so HACS always ships a current build.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-bundle
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build:integration
+      - name: Commit refreshed bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- custom_components/simui/simui-panel.js; then
+            git add custom_components/simui/simui-panel.js
+            git commit -m "ci: rebuild simui-panel.js [skip ci]"
+            git push
+          else
+            echo "Bundle unchanged."
+          fi
