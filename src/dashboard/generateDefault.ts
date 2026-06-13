@@ -1,28 +1,72 @@
-import type { CardSize, DashboardConfig } from './types';
-import type { HassEntities } from '../types';
+import type { Block, BlockSize, DashboardConfig, Room } from './types';
+import type { HassEntities, HassEntity } from '../types';
 import { domainOf, friendly, uid } from '../util';
 
-const ALLOW = new Set(['light', 'climate', 'media_player', 'cover', 'lock', 'fan', 'switch', 'sensor']);
-const ORDER = ['light', 'climate', 'media_player', 'cover', 'lock', 'fan', 'switch', 'sensor'];
+// Assign entities to rooms. Real HA area registry is preferred when embedded;
+// absent that (dev/mock), fall back to name-keyword heuristics.
+const ROOM_KEYWORDS: Array<[string, string]> = [
+  ['living', 'Living Room'], ['kitchen', 'Kitchen'], ['bedroom', 'Bedroom'], ['bed_', 'Bedroom'],
+  ['office', 'Office'], ['bath', 'Bathroom'], ['hall', 'Hallway'], ['garage', 'Garage'],
+  ['outside', 'Outdoor'], ['outdoor', 'Outdoor'], ['garden', 'Garden'], ['backyard', 'Outdoor'],
+];
+const ALLOW = new Set(['light', 'climate', 'media_player', 'cover', 'lock', 'fan', 'switch', 'sensor', 'binary_sensor', 'humidifier', 'siren']);
+const ROOM_ORDER = ['Living Room', 'Kitchen', 'Bedroom', 'Office', 'Bathroom', 'Hallway', 'Garage', 'Outdoor', 'Garden', 'Home'];
 
-export function defaultSize(entityId: string): CardSize {
-  return domainOf(entityId) === 'media_player' ? 2 : 1;
+function roomNameFor(e: HassEntity): string {
+  const hay = `${e.entity_id} ${friendly(e)}`.toLowerCase();
+  for (const [kw, name] of ROOM_KEYWORDS) if (hay.includes(kw)) return name;
+  return 'Home';
 }
 
-// First-run dashboard: a sensible default built from whatever the instance has,
-// so simUI is useful before the user edits anything (à la Lovelace auto-gen).
+export function defaultCardSize(entityId: string): BlockSize {
+  const d = domainOf(entityId);
+  return d === 'media_player' || d === 'sensor' ? 2 : 1;
+}
+
 export function generateDefault(states: HassEntities): DashboardConfig {
-  const entities = Object.values(states).filter((e) => {
+  const byRoom = new Map<string, HassEntity[]>();
+  for (const e of Object.values(states)) {
     const d = domainOf(e.entity_id);
-    if (!ALLOW.has(d)) return false;
-    if (d === 'sensor' && !e.attributes.unit_of_measurement) return false; // skip noisy non-numeric sensors
-    return true;
+    if (!ALLOW.has(d)) continue;
+    if (d === 'sensor' && !e.attributes.unit_of_measurement) continue;
+    const name = roomNameFor(e);
+    let arr = byRoom.get(name);
+    if (!arr) { arr = []; byRoom.set(name, arr); }
+    arr.push(e);
+  }
+
+  const rooms: Room[] = [];
+  for (const [name, ents] of byRoom) {
+    const ofDomain = (d: string) =>
+      ents.filter((e) => domainOf(e.entity_id) === d).sort((a, b) => friendly(a).localeCompare(friendly(b)));
+    const lights = ofDomain('light');
+    const climates = ofDomain('climate');
+    const medias = ofDomain('media_player');
+    const covers = ofDomain('cover');
+    const locks = ofDomain('lock');
+    const switches = [...ofDomain('switch'), ...ofDomain('fan'), ...ofDomain('humidifier'), ...ofDomain('siren')];
+    const sensors = [...ofDomain('sensor'), ...ofDomain('binary_sensor')];
+
+    const blocks: Block[] = [];
+    const add = (type: Block['type'], ids: string[], size: BlockSize, title?: string) => {
+      if (ids.length) blocks.push({ id: uid(), type, title, entityIds: ids, size });
+    };
+
+    if (climates.length) add('hero', [climates[0].entity_id], 2);
+    add('group', lights.map((e) => e.entity_id), 2, 'Lighting');
+    for (const m of medias) add('card', [m.entity_id], 2);
+    if (climates.length > 1) add('list', climates.slice(1).map((e) => e.entity_id), 1, 'Climate');
+    add('list', [...locks, ...covers].map((e) => e.entity_id), 1, 'Security & doors');
+    add('group', switches.map((e) => e.entity_id), 1, 'Switches & fans');
+    add('list', sensors.map((e) => e.entity_id), 1, 'Sensors');
+
+    if (blocks.length) rooms.push({ id: uid(), name, areaId: null, blocks });
+  }
+
+  rooms.sort((a, b) => {
+    const ia = ROOM_ORDER.indexOf(a.name);
+    const ib = ROOM_ORDER.indexOf(b.name);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name);
   });
-  entities.sort((a, b) => {
-    const da = ORDER.indexOf(domainOf(a.entity_id));
-    const db = ORDER.indexOf(domainOf(b.entity_id));
-    return da - db || friendly(a).localeCompare(friendly(b));
-  });
-  const cards = entities.map((e) => ({ id: uid(), entityId: e.entity_id, size: defaultSize(e.entity_id) }));
-  return { version: 1, views: [{ id: uid(), title: 'Home', cards }] };
+  return { version: 2, rooms };
 }

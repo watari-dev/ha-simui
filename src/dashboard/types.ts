@@ -1,21 +1,24 @@
-// The dashboard config — this is what gets persisted (per-user in HA, or
-// localStorage in dev). A card is, for now, an entity rendered by the widget
-// registered for its domain; `size` is a column span.
-export type CardSize = 1 | 2;
+// Dashboard config v2 — composed rooms, not a flat list of cards.
+// A room is a surface; blocks are the vocabulary you compose it from.
+export type BlockType = 'hero' | 'group' | 'list' | 'card';
+export type BlockSize = 1 | 2;
 
-export interface CardConfig {
+export interface Block {
   id: string;
-  entityId: string;
-  size: CardSize;
+  type: BlockType;
+  title?: string;
+  entityIds: string[];
+  size: BlockSize;
 }
 
-export interface ViewConfig {
+export interface Room {
   id: string;
-  title: string;
-  cards: CardConfig[];
+  name: string;
+  areaId: string | null;
+  blocks: Block[];
 }
 
 export interface DashboardConfig {
-  version: 1;
-  views: ViewConfig[];
+  version: 2;
+  rooms: Room[];
 }

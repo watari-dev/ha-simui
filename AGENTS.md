@@ -61,7 +61,11 @@ Minimalist, clean, modern — show *the right* information, not the most. Refere
 
 Principles: dark-first; monochrome base + a single accent (color reserved for state/active);
 generous-but-purposeful spacing; tabular figures for all values; glanceable tiles with detail
-on interaction (progressive disclosure). Full spec lives in `DESIGN.md` (generated).
+on interaction (progressive disclosure).
+
+**The binding spec is [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md)** — read it before any
+UI work. Core rule: *compose, don't tile* (the card is a primitive, not the layout); the
+room is the surface; the background is a living ambient canvas; minimize chrome.
 
 ## Open decisions (resolve during brainstorm)
 

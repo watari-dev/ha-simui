@@ -115,3 +115,58 @@
 .simui-add-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
 .simui-add-row:hover { background: var(--surface-2); }
 .simui-add-dom { margin-left: auto; font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+
+/* ---- rooms, ambient canvas & blocks (v2 composed layout) ---- */
+.simui-topbar { display: flex; align-items: center; gap: 8px; padding: 6px 2px 10px; }
+.simui-pills { display: flex; gap: 6px; overflow-x: auto; min-width: 0; scrollbar-width: none; }
+.simui-pills::-webkit-scrollbar { display: none; }
+.simui-pill { flex: none; padding: 6px 13px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: color 0.12s ease, background 0.12s ease; }
+.simui-pill:hover { color: var(--text); }
+.simui-pill.active { color: var(--text); background: var(--surface); border-color: var(--faint); }
+
+.simui-room { position: relative; }
+.simui-ambient { position: absolute; inset: -20px -16px auto -16px; height: 340px; z-index: 0; pointer-events: none; opacity: var(--amb, 0.06); background: radial-gradient(120% 80% at 26% 0%, var(--warm), transparent 62%); }
+.simui-room > .simui-room-head, .simui-room > .simui-grid { position: relative; z-index: 1; }
+.simui-room-head { display: flex; align-items: baseline; gap: 12px; padding: 8px 2px 16px; }
+.simui-room-name { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+.simui-room-glance { font-size: 12px; color: var(--muted); }
+
+.simui-block { position: relative; }
+.simui-block.span-2 { grid-column: span 2; }
+.simui-block.editing .simui-surface, .simui-block.editing .simui-tile, .simui-block.editing .simui-hero { outline: 1px dashed color-mix(in srgb, var(--text) 22%, transparent); outline-offset: -1px; border-radius: var(--radius); }
+.simui-block.dragging { opacity: 0.55; }
+
+/* hero — borderless, on the ambient canvas */
+.simui-hero { padding: 2px 6px 18px; }
+.simui-hero-temp { font-size: 46px; font-weight: 300; letter-spacing: -1.5px; line-height: 0.9; }
+.simui-hero-temp small { font-size: 20px; color: var(--muted); font-weight: 400; }
+.simui-hero-sub { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+/* soft group/list surfaces */
+.simui-surface { background: var(--group, rgba(255, 255, 255, 0.035)); border: 1px solid var(--faint); border-radius: 18px; padding: 14px 15px; }
+.simui-surface-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 11px; font-weight: 500; }
+.simui-rows { display: flex; flex-direction: column; }
+.simui-rows.divided .simui-erow + .simui-erow { border-top: 1px solid var(--faint); }
+
+.simui-master { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.simui-master-label { font-size: 12px; color: var(--muted); width: 26px; }
+.simui-master-val { font-size: 12px; color: var(--text); min-width: 34px; text-align: right; }
+
+/* entity row — the workhorse */
+.simui-erow { display: flex; align-items: center; gap: 10px; padding: 8px 0; min-width: 0; width: 100%; background: none; border: none; color: inherit; font: inherit; text-align: left; }
+button.simui-erow, .simui-erow.as-row { cursor: pointer; }
+.simui-erow-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-erow-name.as-btn { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; text-align: left; min-width: 0; }
+.simui-erow-name.muted { color: var(--muted); }
+.simui-erow-ic { display: inline-flex; flex: none; color: var(--muted); }
+.simui-erow-ic.amber { color: var(--warn); }
+.simui-erow-ic.cool { color: var(--accent); }
+.simui-erow-dot { flex: none; width: 9px; height: 9px; padding: 0; border: none; border-radius: 50%; background: #4b4f57; cursor: pointer; }
+.simui-erow-dot[data-on="true"] { background: var(--warm); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warm) 20%, transparent); }
+.simui-erow-state { font-size: 12px; color: var(--muted); }
+.simui-erow-state.warn { color: var(--warn); }
+.simui-erow-state.on { color: var(--accent); }
+.simui-erow-val { font-size: 13px; color: var(--text); }
+.simui-slider.mini { max-width: 96px; }
+.simui-rbtn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; border-radius: 7px; border: 1px solid var(--faint); background: transparent; color: var(--text); cursor: pointer; }
+.simui-rbtn:hover { border-color: var(--accent); color: var(--accent); }

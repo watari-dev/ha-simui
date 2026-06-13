@@ -1,37 +1,32 @@
 import { useState } from 'react';
-import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Check, Pencil, Plus } from 'lucide-react';
-import { useHass } from '../hass/context';
 import { useDashboard } from './store';
-import { CardChrome } from './CardChrome';
+import { RoomView } from './RoomView';
 import { AddCardPanel } from './AddCardPanel';
 
 export function DashboardView() {
-  const { states } = useHass();
-  const { config, editing, setEditing, reorder, addCard, removeCard, setCardSize } = useDashboard();
+  const { config, activeRoomId, setActiveRoom, editing, setEditing, addCard } = useDashboard();
   const [adding, setAdding] = useState(false);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   if (!config) return <div className="simui-msg">Loading dashboard…</div>;
+  if (!config.rooms.length) return <div className="simui-msg">No rooms to show yet.</div>;
 
-  const view = config.views[0];
-  const ids = view.cards.map((c) => c.id);
-  const total = Object.keys(states).length;
-
-  const onDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    const oldIndex = ids.indexOf(String(active.id));
-    const newIndex = ids.indexOf(String(over.id));
-    if (oldIndex >= 0 && newIndex >= 0) reorder(oldIndex, newIndex);
-  };
+  const room = config.rooms.find((r) => r.id === activeRoomId) ?? config.rooms[0];
 
   return (
     <div className="simui-app">
-      <header className="simui-header">
-        <h1>{view.title}</h1>
-        <span className="simui-sub">{view.cards.length} cards · {total} entities</span>
+      <div className="simui-topbar">
+        <div className="simui-pills">
+          {config.rooms.map((r) => (
+            <button
+              key={r.id}
+              className={`simui-pill${r.id === room.id ? ' active' : ''}`}
+              onClick={() => setActiveRoom(r.id)}
+            >
+              {r.name}
+            </button>
+          ))}
+        </div>
         <span className="simui-spacer" />
         {editing && (
           <button className="simui-iconbtn-h" onClick={() => setAdding(true)} aria-label="Add card"><Plus size={16} /></button>
@@ -43,27 +38,13 @@ export function DashboardView() {
         >
           {editing ? <Check size={16} /> : <Pencil size={15} />}
         </button>
-      </header>
+      </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={ids} strategy={rectSortingStrategy}>
-          <div className="simui-grid">
-            {view.cards.map((card) => (
-              <CardChrome
-                key={card.id}
-                card={card}
-                editing={editing}
-                onRemove={() => removeCard(card.id)}
-                onResize={() => setCardSize(card.id, card.size === 2 ? 1 : 2)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <RoomView key={room.id} room={room} />
 
       {adding && (
         <AddCardPanel
-          existing={view.cards.map((c) => c.entityId)}
+          existing={room.blocks.flatMap((b) => b.entityIds)}
           onAdd={addCard}
           onClose={() => setAdding(false)}
         />

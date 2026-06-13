@@ -1,19 +1,21 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
-import { useHass } from '../hass/context';
-import type { CardConfig, CardSize, DashboardConfig } from './types';
-import { defaultSize, generateDefault } from './generateDefault';
+import { useHassSource } from '../hass/context';
+import type { Block, BlockSize, DashboardConfig } from './types';
+import { defaultCardSize, generateDefault } from './generateDefault';
 import { loadDashboard, saveDashboard } from './storage';
 import { uid } from '../util';
 
 interface DashboardCtx {
   config: DashboardConfig | null;
+  activeRoomId: string | null;
+  setActiveRoom: (id: string) => void;
   editing: boolean;
   setEditing: (v: boolean) => void;
-  reorder: (oldIndex: number, newIndex: number) => void;
+  reorderBlocks: (oldIndex: number, newIndex: number) => void;
+  removeBlock: (blockId: string) => void;
+  setBlockSize: (blockId: string, size: BlockSize) => void;
   addCard: (entityId: string) => void;
-  removeCard: (cardId: string) => void;
-  setCardSize: (cardId: string, size: CardSize) => void;
 }
 
 const Ctx = createContext<DashboardCtx | null>(null);
@@ -25,50 +27,48 @@ export function useDashboard(): DashboardCtx {
 }
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const hass = useHass();
-  const hassRef = useRef(hass);
-  hassRef.current = hass;
-
+  const source = useHassSource();
   const [config, setConfig] = useState<DashboardConfig | null>(null);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const loaded = useRef(false);
 
-  // load once; generate a default if nothing is stored
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const saved = await loadDashboard(hassRef.current);
-      const cfg = saved ?? generateDefault(hassRef.current.states);
+      const saved = await loadDashboard(source);
+      const cfg = saved ?? generateDefault(source.getStates());
       if (alive) {
         setConfig(cfg);
+        setActiveRoomId(cfg.rooms[0]?.id ?? null);
         loaded.current = true;
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [source]);
 
-  // autosave after load
   useEffect(() => {
     if (!loaded.current || !config) return;
-    void saveDashboard(hassRef.current, config);
-  }, [config]);
+    void saveDashboard(source, config);
+  }, [config, source]);
 
-  const mutateCards = (fn: (cards: CardConfig[]) => CardConfig[]) => {
+  const mutateBlocks = (fn: (blocks: Block[]) => Block[]) => {
     setConfig((c) => {
       if (!c) return c;
-      const [view, ...rest] = c.views;
-      return { ...c, views: [{ ...view, cards: fn(view.cards) }, ...rest] };
+      return { ...c, rooms: c.rooms.map((r) => (r.id === activeRoomId ? { ...r, blocks: fn(r.blocks) } : r)) };
     });
   };
 
   const value: DashboardCtx = {
     config,
+    activeRoomId,
+    setActiveRoom: setActiveRoomId,
     editing,
     setEditing,
-    reorder: (oldIndex, newIndex) => mutateCards((cards) => arrayMove(cards, oldIndex, newIndex)),
-    addCard: (entityId) => mutateCards((cards) => [...cards, { id: uid(), entityId, size: defaultSize(entityId) }]),
-    removeCard: (cardId) => mutateCards((cards) => cards.filter((c) => c.id !== cardId)),
-    setCardSize: (cardId, size) => mutateCards((cards) => cards.map((c) => (c.id === cardId ? { ...c, size } : c))),
+    reorderBlocks: (oldIndex, newIndex) => mutateBlocks((b) => arrayMove(b, oldIndex, newIndex)),
+    removeBlock: (id) => mutateBlocks((b) => b.filter((x) => x.id !== id)),
+    setBlockSize: (id, size) => mutateBlocks((b) => b.map((x) => (x.id === id ? { ...x, size } : x))),
+    addCard: (entityId) => mutateBlocks((b) => [...b, { id: uid(), type: 'card', entityIds: [entityId], size: defaultCardSize(entityId) }]),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

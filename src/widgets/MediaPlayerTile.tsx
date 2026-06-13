@@ -1,13 +1,13 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
 const FEAT = { PREV: 16, NEXT: 32 };
 
 export function MediaPlayerTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const a = entity.attributes;
   const st = entity.state;
   const playing = st === 'playing';

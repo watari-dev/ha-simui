@@ -1,14 +1,14 @@
 import type { ChangeEvent, CSSProperties } from 'react';
 import { ChevronDown, ChevronUp, Square } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
 const FEAT = { OPEN: 1, CLOSE: 2, SET_POSITION: 4, STOP: 8 };
 
 export function CoverTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const position = entity.attributes.current_position as number | undefined;
   const open = entity.state === 'open' || (position != null && position > 0);
   const canSet = supportsFeature(entity, FEAT.SET_POSITION) && position != null;

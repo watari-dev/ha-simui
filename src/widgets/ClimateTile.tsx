@@ -1,6 +1,6 @@
 import { Minus, Plus, Thermometer } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { clamp, friendly } from '../util';
 
@@ -9,7 +9,7 @@ const ACTION_CLASS: Record<string, string> = { heating: 'warm', cooling: 'cool',
 const MODE_CLASS: Record<string, string> = { heat: 'warm', cool: 'cool', heat_cool: 'cool', auto: 'cool' };
 
 export function ClimateTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const a = entity.attributes;
   const action = a.hvac_action as string | undefined;
   const current = a.current_temperature as number | undefined;

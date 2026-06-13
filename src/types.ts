@@ -2,21 +2,22 @@ import type { Connection, HassEntities, HassEntity } from 'home-assistant-js-web
 
 export type { HassEntities, HassEntity };
 
+export type CallService = (
+  domain: string,
+  service: string,
+  serviceData?: Record<string, unknown>,
+  target?: { entity_id?: string | string[] },
+) => Promise<unknown>;
+
 /**
- * The minimal surface simUI needs from Home Assistant. It is satisfied two ways:
- *  - Embedded: the `hass` object HA injects into the panel already has `states`
- *    and `callService`, so we adapt it directly (see panel.tsx).
- *  - Dev: synthesized from home-assistant-js-websocket + a long-lived token
- *    (see hass/connectDev.ts).
+ * A stable, subscribable view of Home Assistant. The object identity never
+ * changes, so components subscribe to a single entity (useEntity) and re-render
+ * only when *that* entity changes — not on every state tick.
  */
-export interface Hass {
-  states: HassEntities;
-  callService: (
-    domain: string,
-    service: string,
-    serviceData?: Record<string, unknown>,
-    target?: { entity_id?: string | string[] },
-  ) => Promise<unknown>;
+export interface HassSource {
+  subscribe: (listener: () => void) => () => void;
+  getStates: () => HassEntities;
+  callService: CallService;
   connection?: Connection;
 }
 

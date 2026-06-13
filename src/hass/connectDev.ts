@@ -1,50 +1,34 @@
 import {
-  callService,
+  callService as callServiceRaw,
   createConnection,
   createLongLivedTokenAuth,
   subscribeEntities,
   type HassEntities,
 } from 'home-assistant-js-websocket';
-import type { Hass } from '../types';
+import type { HassSource } from '../types';
 
-/**
- * An external store (for useSyncExternalStore) backed by a live HA websocket
- * connection authenticated with a long-lived token. Dev/standalone only.
- */
-export interface DevStore {
-  subscribe: (onChange: () => void) => () => void;
-  getSnapshot: () => Hass;
-}
-
-export async function connectDev(hassUrl: string, token: string): Promise<DevStore> {
+/** Standalone dev source: a live HA websocket authenticated with a token. */
+export async function connectDev(hassUrl: string, token: string): Promise<HassSource> {
   const auth = createLongLivedTokenAuth(hassUrl, token);
   const connection = await createConnection({ auth });
 
   let states: HassEntities = {};
   const listeners = new Set<() => void>();
 
-  const build = (): Hass => ({
-    states,
-    connection,
-    callService: (domain, service, serviceData, target) =>
-      callService(connection, domain, service, serviceData, target),
-  });
-
-  let snapshot = build();
-
-  subscribeEntities(connection, (newStates) => {
-    states = newStates;
-    snapshot = build();
+  // subscribeEntities preserves referential identity of unchanged entities,
+  // which is what makes useEntity's per-entity bail-out work.
+  subscribeEntities(connection, (next) => {
+    states = next;
     listeners.forEach((l) => l());
   });
 
   return {
-    subscribe(onChange) {
-      listeners.add(onChange);
-      return () => listeners.delete(onChange);
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
-    getSnapshot() {
-      return snapshot;
-    },
+    getStates: () => states,
+    callService: (domain, service, data, target) => callServiceRaw(connection, domain, service, data, target),
+    connection,
   };
 }

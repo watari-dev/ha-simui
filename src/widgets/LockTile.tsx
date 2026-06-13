@@ -1,11 +1,11 @@
 import { Lock, LockOpen } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly } from '../util';
 
 export function LockTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const locked = entity.state === 'locked';
   const toggle = () => void callService('lock', locked ? 'unlock' : 'lock', {}, { entity_id: entity.entity_id });
 

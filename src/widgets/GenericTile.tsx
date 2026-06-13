@@ -1,13 +1,13 @@
 import { Power } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { domainOf, friendly, prettyState } from '../util';
 
 const TOGGLEABLE = new Set(['switch', 'fan', 'input_boolean', 'siren', 'humidifier', 'automation']);
 
 export function GenericTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const domain = domainOf(entity.entity_id);
   const isOnOff = entity.state === 'on' || entity.state === 'off';
   const on = entity.state === 'on';

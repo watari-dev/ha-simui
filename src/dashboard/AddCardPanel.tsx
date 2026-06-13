@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { useHass } from '../hass/context';
+import { useAllStates } from '../hass/context';
 import { domainOf, friendly } from '../util';
 
 interface Props {
@@ -9,8 +9,10 @@ interface Props {
   onClose: () => void;
 }
 
+// Adds an entity to the active room as a card block. Composing groups/lists by
+// hand is a later step; this keeps quick "add this entity" available.
 export function AddCardPanel({ existing, onAdd, onClose }: Props) {
-  const { states } = useHass();
+  const states = useAllStates();
   const [q, setQ] = useState('');
   const existingSet = new Set(existing);
   const query = q.toLowerCase();

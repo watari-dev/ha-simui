@@ -1,12 +1,12 @@
 import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { Tile } from '../components/Tile';
-import { useHass } from '../hass/context';
+import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly } from '../util';
 
 export function LightTile({ entity }: WidgetProps) {
-  const { callService } = useHass();
+  const callService = useCallService();
   const on = entity.state === 'on';
   const brightness = (entity.attributes.brightness as number | undefined) ?? 0;
   const pct = on ? Math.max(1, Math.round((brightness / 255) * 100)) : 0;
