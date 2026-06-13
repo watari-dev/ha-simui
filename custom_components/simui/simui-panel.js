@@ -18,7 +18,7 @@ var Bh;
 function Wg() {
   if (Bh) return mu;
   Bh = 1;
-  var i = Symbol.for("react.transitional.element"), s = Symbol.for("react.fragment");
+  var i = /* @__PURE__ */ Symbol.for("react.transitional.element"), s = /* @__PURE__ */ Symbol.for("react.fragment");
   function f(o, d, m) {
     var S = null;
     if (m !== void 0 && (S = "" + m), d.key !== void 0 && (S = "" + d.key), "key" in d) {
@@ -288,7 +288,7 @@ var Lh;
 function t0() {
   if (Lh) return tt;
   Lh = 1;
-  var i = Symbol.for("react.transitional.element"), s = Symbol.for("react.portal"), f = Symbol.for("react.fragment"), o = Symbol.for("react.strict_mode"), d = Symbol.for("react.profiler"), m = Symbol.for("react.consumer"), S = Symbol.for("react.context"), z = Symbol.for("react.forward_ref"), b = Symbol.for("react.suspense"), h = Symbol.for("react.memo"), M = Symbol.for("react.lazy"), _ = Symbol.for("react.activity"), H = Symbol.iterator;
+  var i = /* @__PURE__ */ Symbol.for("react.transitional.element"), s = /* @__PURE__ */ Symbol.for("react.portal"), f = /* @__PURE__ */ Symbol.for("react.fragment"), o = /* @__PURE__ */ Symbol.for("react.strict_mode"), d = /* @__PURE__ */ Symbol.for("react.profiler"), m = /* @__PURE__ */ Symbol.for("react.consumer"), S = /* @__PURE__ */ Symbol.for("react.context"), z = /* @__PURE__ */ Symbol.for("react.forward_ref"), b = /* @__PURE__ */ Symbol.for("react.suspense"), h = /* @__PURE__ */ Symbol.for("react.memo"), M = /* @__PURE__ */ Symbol.for("react.lazy"), _ = /* @__PURE__ */ Symbol.for("react.activity"), H = Symbol.iterator;
   function B(y) {
     return y === null || typeof y != "object" ? null : (y = H && y[H] || y["@@iterator"], typeof y == "function" ? y : null);
   }
@@ -689,7 +689,7 @@ function e0() {
     },
     p: 0,
     findDOMNode: null
-  }, d = Symbol.for("react.portal");
+  }, d = /* @__PURE__ */ Symbol.for("react.portal");
   function m(b, h, M) {
     var _ = 3 < arguments.length && arguments[3] !== void 0 ? arguments[3] : null;
     return {
@@ -926,11 +926,11 @@ function l0() {
     }
     return null;
   }
-  var _ = Object.assign, H = Symbol.for("react.element"), B = Symbol.for("react.transitional.element"), k = Symbol.for("react.portal"), Y = Symbol.for("react.fragment"), Z = Symbol.for("react.strict_mode"), W = Symbol.for("react.profiler"), et = Symbol.for("react.consumer"), K = Symbol.for("react.context"), nt = Symbol.for("react.forward_ref"), it = Symbol.for("react.suspense"), lt = Symbol.for("react.suspense_list"), L = Symbol.for("react.memo"), I = Symbol.for("react.lazy"), pt = Symbol.for("react.activity"), Ct = Symbol.for("react.memo_cache_sentinel"), dt = Symbol.iterator;
+  var _ = Object.assign, H = /* @__PURE__ */ Symbol.for("react.element"), B = /* @__PURE__ */ Symbol.for("react.transitional.element"), k = /* @__PURE__ */ Symbol.for("react.portal"), Y = /* @__PURE__ */ Symbol.for("react.fragment"), Z = /* @__PURE__ */ Symbol.for("react.strict_mode"), W = /* @__PURE__ */ Symbol.for("react.profiler"), et = /* @__PURE__ */ Symbol.for("react.consumer"), K = /* @__PURE__ */ Symbol.for("react.context"), nt = /* @__PURE__ */ Symbol.for("react.forward_ref"), it = /* @__PURE__ */ Symbol.for("react.suspense"), lt = /* @__PURE__ */ Symbol.for("react.suspense_list"), L = /* @__PURE__ */ Symbol.for("react.memo"), I = /* @__PURE__ */ Symbol.for("react.lazy"), pt = /* @__PURE__ */ Symbol.for("react.activity"), Ct = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel"), dt = Symbol.iterator;
   function Ot(t) {
     return t === null || typeof t != "object" ? null : (t = dt && t[dt] || t["@@iterator"], typeof t == "function" ? t : null);
   }
-  var Jt = Symbol.for("react.client.reference");
+  var Jt = /* @__PURE__ */ Symbol.for("react.client.reference");
   function Gt(t) {
     if (t == null) return null;
     if (typeof t == "function")
@@ -3255,7 +3255,6 @@ Error generating stack: ` + n.message + `
         if (Q === ea || Q === Fu) throw Q;
         var yt = Ce(29, Q, null, p.mode);
         return yt.lanes = U, yt.return = p, yt;
-      } finally {
       }
     };
   }
@@ -4162,7 +4161,6 @@ Error generating stack: ` + n.message + `
           if (a.hasEagerState = !0, a.eagerState = r, Oe(r, c))
             return Zu(t, e, a, 0), Mt === null && Qu(), !1;
         } catch {
-        } finally {
         }
       if (l = Oc(t, e, a, n), l !== null)
         return _e(l, t, n), qr(l, e, n), !0;
@@ -5340,22 +5338,14 @@ Error generating stack: ` + n.message + `
                 l
               );
               break t;
-            } else {
-              switch (t = e.stateNode.containerInfo, t.nodeType) {
-                case 9:
-                  t = t.body;
-                  break;
-                default:
-                  t = t.nodeName === "HTML" ? t.ownerDocument.body : t;
-              }
-              for (Nt = $e(t.firstChild), ae = e, vt = !0, Ll = null, Je = !0, l = Io(
+            } else
+              for (t = e.stateNode.containerInfo, t.nodeType === 9 ? t = t.body : t = t.nodeName === "HTML" ? t.ownerDocument.body : t, Nt = $e(t.firstChild), ae = e, vt = !0, Ll = null, Je = !0, l = Io(
                 e,
                 null,
                 n,
                 l
               ), e.child = l; l; )
                 l.flags = l.flags & -3 | 4096, l = l.sibling;
-            }
           else {
             if (Sn(), n === a) {
               e = Ml(
@@ -8986,14 +8976,7 @@ Error generating stack: ` + n.message + `
         return;
       case "option":
         for (v in l)
-          if (l.hasOwnProperty(v) && (n = l[v], n != null))
-            switch (v) {
-              case "selected":
-                t.selected = n && typeof n != "function" && typeof n != "symbol";
-                break;
-              default:
-                At(t, e, v, n, l, null);
-            }
+          l.hasOwnProperty(v) && (n = l[v], n != null) && (v === "selected" ? t.selected = n && typeof n != "function" && typeof n != "symbol" : At(t, e, v, n, l, null));
         return;
       case "dialog":
         ft("beforetoggle", t), ft("toggle", t), ft("cancel", t), ft("close", t);
@@ -9206,37 +9189,23 @@ Error generating stack: ` + n.message + `
         return;
       case "option":
         for (var G in l)
-          if (T = l[G], l.hasOwnProperty(G) && T != null && !n.hasOwnProperty(G))
-            switch (G) {
-              case "selected":
-                t.selected = !1;
-                break;
-              default:
-                At(
-                  t,
-                  e,
-                  G,
-                  null,
-                  n,
-                  T
-                );
-            }
+          T = l[G], l.hasOwnProperty(G) && T != null && !n.hasOwnProperty(G) && (G === "selected" ? t.selected = !1 : At(
+            t,
+            e,
+            G,
+            null,
+            n,
+            T
+          ));
         for (v in n)
-          if (T = n[v], D = l[v], n.hasOwnProperty(v) && T !== D && (T != null || D != null))
-            switch (v) {
-              case "selected":
-                t.selected = T && typeof T != "function" && typeof T != "symbol";
-                break;
-              default:
-                At(
-                  t,
-                  e,
-                  v,
-                  T,
-                  n,
-                  D
-                );
-            }
+          T = n[v], D = l[v], n.hasOwnProperty(v) && T !== D && (T != null || D != null) && (v === "selected" ? t.selected = T && typeof T != "function" && typeof T != "symbol" : At(
+            t,
+            e,
+            v,
+            T,
+            n,
+            D
+          ));
         return;
       case "img":
       case "link":
@@ -9910,12 +9879,7 @@ Error generating stack: ` + n.message + `
       case "link":
         if (typeof e.rel != "string" || typeof e.href != "string" || e.href === "" || e.onLoad || e.onError)
           break;
-        switch (e.rel) {
-          case "stylesheet":
-            return t = e.disabled, typeof e.precedence == "string" && t == null;
-          default:
-            return !0;
-        }
+        return e.rel === "stylesheet" ? (t = e.disabled, typeof e.precedence == "string" && t == null) : !0;
       case "script":
         if (e.async && typeof e.async != "function" && typeof e.async != "symbol" && !e.onLoad && !e.onError && e.src && typeof e.src == "string")
           return !0;
@@ -13912,7 +13876,9 @@ function Af(i) {
 }
 const Ki = { OPEN: 1, CLOSE: 2, SET_POSITION: 4, STOP: 8 };
 function q1({ entity: i }) {
-  const { callService: s } = vl(), f = i.attributes.current_position, o = i.state === "open" || f != null && f > 0, d = pa(i, Ki.SET_POSITION) && f != null, m = (z, b) => void s("cover", z, b, { entity_id: i.entity_id }), S = d ? { background: `linear-gradient(to right, var(--accent) ${f}%, var(--faint) ${f}%)` } : void 0;
+  const { callService: s } = vl(), f = i.attributes.current_position, o = i.state === "open" || f != null && f > 0, d = pa(i, Ki.SET_POSITION) && f != null, m = (z, b) => {
+    s("cover", z, b, { entity_id: i.entity_id });
+  }, S = d ? { background: `linear-gradient(to right, var(--accent) ${f}%, var(--faint) ${f}%)` } : void 0;
   return /* @__PURE__ */ O.jsxs(on, { className: o ? "is-on" : "", children: [
     /* @__PURE__ */ O.jsxs("div", { className: "simui-row", children: [
       /* @__PURE__ */ O.jsx("span", { className: "simui-name", title: Lt(i), children: Lt(i) }),
@@ -13940,7 +13906,9 @@ function q1({ entity: i }) {
 }
 const Y1 = /* @__PURE__ */ new Set(["switch", "fan", "input_boolean", "siren", "humidifier", "automation"]);
 function X1({ entity: i }) {
-  const { callService: s } = vl(), f = Nn(i.entity_id), o = i.state === "on" || i.state === "off", d = i.state === "on", m = Y1.has(f) && o, S = i.attributes.unit_of_measurement ?? "", z = m ? () => void s("homeassistant", d ? "turn_off" : "turn_on", {}, { entity_id: i.entity_id }) : void 0;
+  const { callService: s } = vl(), f = Nn(i.entity_id), o = i.state === "on" || i.state === "off", d = i.state === "on", m = Y1.has(f) && o, S = i.attributes.unit_of_measurement ?? "", z = m ? () => {
+    s("homeassistant", d ? "turn_off" : "turn_on", {}, { entity_id: i.entity_id });
+  } : void 0;
   return /* @__PURE__ */ O.jsxs(on, { onClick: z, className: m && d ? "is-on" : "", children: [
     /* @__PURE__ */ O.jsxs("div", { className: "simui-row", children: [
       m && /* @__PURE__ */ O.jsx("span", { className: `simui-ic${d ? " cool" : ""}`, children: /* @__PURE__ */ O.jsx(_1, { size: 15, strokeWidth: 2 }) }),
@@ -13953,7 +13921,11 @@ function X1({ entity: i }) {
   ] });
 }
 function L1({ entity: i }) {
-  const { callService: s } = vl(), f = i.state === "on", o = i.attributes.brightness ?? 0, d = f ? Math.max(1, Math.round(o / 255 * 100)) : 0, m = () => void s("light", f ? "turn_off" : "turn_on", {}, { entity_id: i.entity_id }), S = (h) => void s("light", "turn_on", { brightness_pct: Number(h.target.value) }, { entity_id: i.entity_id }), b = { background: `linear-gradient(to right, ${f ? "var(--warm)" : "var(--faint)"} ${d}%, var(--faint) ${d}%)` };
+  const { callService: s } = vl(), f = i.state === "on", o = i.attributes.brightness ?? 0, d = f ? Math.max(1, Math.round(o / 255 * 100)) : 0, m = () => {
+    s("light", f ? "turn_off" : "turn_on", {}, { entity_id: i.entity_id });
+  }, S = (h) => {
+    s("light", "turn_on", { brightness_pct: Number(h.target.value) }, { entity_id: i.entity_id });
+  }, b = { background: `linear-gradient(to right, ${f ? "var(--warm)" : "var(--faint)"} ${d}%, var(--faint) ${d}%)` };
   return /* @__PURE__ */ O.jsxs(on, { onClick: m, className: f ? "is-lit" : "", children: [
     /* @__PURE__ */ O.jsxs("div", { className: "simui-row", children: [
       /* @__PURE__ */ O.jsx("span", { className: `simui-ic${f ? " warm" : ""}`, children: /* @__PURE__ */ O.jsx(r1, { size: 16, strokeWidth: 2 }) }),
@@ -13978,7 +13950,9 @@ function L1({ entity: i }) {
   ] });
 }
 function G1({ entity: i }) {
-  const { callService: s } = vl(), f = i.state === "locked", o = () => void s("lock", f ? "unlock" : "lock", {}, { entity_id: i.entity_id });
+  const { callService: s } = vl(), f = i.state === "locked", o = () => {
+    s("lock", f ? "unlock" : "lock", {}, { entity_id: i.entity_id });
+  };
   return /* @__PURE__ */ O.jsxs(on, { onClick: o, className: f ? "" : "is-unlocked", children: [
     /* @__PURE__ */ O.jsxs("div", { className: "simui-row", children: [
       /* @__PURE__ */ O.jsx("span", { className: `simui-ic${f ? "" : " amber"}`, children: f ? /* @__PURE__ */ O.jsx(m1, { size: 15, strokeWidth: 2 }) : /* @__PURE__ */ O.jsx(h1, { size: 15, strokeWidth: 2 }) }),
@@ -13989,7 +13963,9 @@ function G1({ entity: i }) {
 }
 const fv = { PREV: 16, NEXT: 32 };
 function Q1({ entity: i }) {
-  const { callService: s } = vl(), f = i.attributes, o = i.state, d = o === "playing", m = f.media_title, S = f.media_artist ?? f.media_album_name ?? f.app_name, z = f.entity_picture, b = !!m, h = (M) => void s("media_player", M, void 0, { entity_id: i.entity_id });
+  const { callService: s } = vl(), f = i.attributes, o = i.state, d = o === "playing", m = f.media_title, S = f.media_artist ?? f.media_album_name ?? f.app_name, z = f.entity_picture, b = !!m, h = (M) => {
+    s("media_player", M, void 0, { entity_id: i.entity_id });
+  };
   return b ? /* @__PURE__ */ O.jsx(on, { children: /* @__PURE__ */ O.jsxs("div", { className: "simui-np", children: [
     z ? /* @__PURE__ */ O.jsx("img", { className: "simui-art", src: z, alt: "" }) : /* @__PURE__ */ O.jsx("div", { className: "simui-art" }),
     /* @__PURE__ */ O.jsxs("div", { className: "simui-np-body", children: [
