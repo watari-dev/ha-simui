@@ -132,7 +132,7 @@ function GalleryCard({
   const populated = (previewBlock.entityIds?.length ?? 0) > 0;
   const draggable = Boolean(onBeginPlace);
 
-  const onDragStart = (e: DragEvent<HTMLButtonElement>) => {
+  const onDragStart = (e: DragEvent<HTMLDivElement>) => {
     onBeginPlace?.(kind);
     // A lightweight payload so a native drop target (the surface) can identify the
     // kind; the editor's dnd layer is the source of truth, this is just a hint.
@@ -144,14 +144,25 @@ function GalleryCard({
     }
   };
 
+  // NB: the card is a role="button" DIV, not a real <button> — its live preview is
+  // the real BlockBody, which contains its own <button>s (tile controls). Nesting a
+  // button inside a button is invalid HTML, so we use a focusable div with explicit
+  // keyboard handling instead. The preview layer is inert (pointer-events:none), so
+  // those inner controls never receive events.
   return (
-    <button
-      type="button"
+    <div
       role="listitem"
       className="simui-gallery-card"
+      tabIndex={0}
       draggable={draggable}
       onDragStart={draggable ? onDragStart : undefined}
       onClick={() => onPick(kind)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPick(kind);
+        }
+      }}
       aria-label={`Add ${kind.label} — ${kind.description}`}
     >
       <div className="simui-gallery-preview" aria-hidden>
@@ -172,7 +183,7 @@ function GalleryCard({
         <span className="simui-gallery-card-label">{kind.label}</span>
         <span className="simui-gallery-card-desc">{kind.description}</span>
       </div>
-    </button>
+    </div>
   );
 }
 
