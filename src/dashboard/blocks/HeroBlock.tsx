@@ -1,14 +1,32 @@
 import { useEntity } from '../../hass/context';
 import { TileFeatures } from '../../components/TileFeatures';
+import { useTapHandler } from '../../runtime/actions';
 import { domainOf, friendly, prettyState } from '../../util';
 import type { TileFeature } from '../../widgets/tileContract';
+import type { ActionMap, TileConfig } from '../../editor/types';
 import type { Block } from '../types';
+
+/**
+ * Resolve the hero's lead-entity tap: a per-tile `tap` override wins over a
+ * block-level one. Read structurally off `Block` (the persisted object is a
+ * `BlockConfig` carrying optional `tiles` / `actions`). Absent ⇒ undefined ⇒
+ * the hero stays display-only, unchanged.
+ */
+function heroActions(block: Block, leadId: string): ActionMap | undefined {
+  const cfg = block as { tiles?: Record<string, TileConfig>; actions?: ActionMap };
+  const tileTap = cfg.tiles?.[leadId]?.actions?.tap;
+  if (tileTap) return cfg.tiles?.[leadId]?.actions;
+  return cfg.actions;
+}
 
 // Borderless headline that sits on the ambient canvas. The room's climate as a
 // big, quiet temperature readout — but it also degrades to a generic state hero
 // (alarm panel, garage alert) when the preset surfaces a non-climate entity.
 export function HeroBlock({ block }: { block: Block }) {
-  const entity = useEntity(block.entityIds[0]);
+  const leadId = block.entityIds[0];
+  const entity = useEntity(leadId);
+  // Display-only by default (no fallback) ⇒ inert unless a `tap` is authored.
+  const onTap = useTapHandler(leadId ?? '', heroActions(block, leadId ?? ''));
   if (!entity) return null;
 
   const a = entity.attributes;
@@ -39,7 +57,7 @@ export function HeroBlock({ block }: { block: Block }) {
   const features = heroFeatures(domain, entity.state);
   return (
     <div className="simui-hero is-state">
-      <div className="simui-hero-state num">{prettyState(entity.state)}</div>
+      <div className="simui-hero-state num" onClick={onTap}>{prettyState(entity.state)}</div>
       <div className="simui-hero-sub">{block.title ?? friendly(entity)}</div>
       {features.length > 0 && <TileFeatures entity={entity} features={features} />}
     </div>

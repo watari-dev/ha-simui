@@ -265,13 +265,16 @@ function MetricWall({ block }: { block: Block }) {
 // ── Security status board (Worker 2) ──────────────────────────────────────────
 
 function StatusBoard({ block }: { block: Block }) {
+  const tiles = tilesOf(block);
   return (
     <div className="simui-surface">
       {block.title && (
         <div className="simui-surface-head"><span>{block.title}</span></div>
       )}
       <div className="simui-statusboard-grid">
-        {block.entityIds.map((id) => <StatusBoardTile key={id} entity={id} />)}
+        {block.entityIds.map((id) => (
+          <StatusBoardTile key={id} entity={id} actions={tiles?.[id]?.actions} />
+        ))}
       </div>
     </div>
   );
@@ -281,6 +284,7 @@ function StatusBoard({ block }: { block: Block }) {
 // Covers/fans read nicer with a coarser drag step; lights stay at 1%.
 
 function SliderWall({ block }: { block: Block }) {
+  const tiles = tilesOf(block);
   return (
     <div className="simui-surface">
       {block.title && (
@@ -288,7 +292,12 @@ function SliderWall({ block }: { block: Block }) {
       )}
       <div className="simui-slider-wall">
         {block.entityIds.map((id) => (
-          <SliderTile key={id} entity={id} step={domainOf(id) === 'light' ? 1 : 5} />
+          <SliderTile
+            key={id}
+            entity={id}
+            step={domainOf(id) === 'light' ? 1 : 5}
+            actions={tiles?.[id]?.actions}
+          />
         ))}
       </div>
     </div>

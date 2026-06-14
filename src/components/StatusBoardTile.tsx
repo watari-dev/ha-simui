@@ -19,7 +19,9 @@ import { StateLine } from './StateLine';
 import { useContextMenu, ContextMenu, type ContextMenuItem } from './ContextMenu';
 import { QuickControls, isControllable } from './QuickControls';
 import { useActions } from '../dashboard/useActions';
+import { useTapHandler } from '../runtime/actions';
 import type { HassEntities, HassEntity } from '../types';
+import type { ActionMap } from '../editor/types';
 import { domainOf, friendly, prettyState } from '../util';
 
 /**
@@ -134,12 +136,16 @@ export interface StatusBoardTileProps {
   name?: string;
   /** Extra right-click / long-press items appended after the defaults. */
   menuItems?: ContextMenuItem[];
+  /** Authored interaction overrides. An explicit `tap` makes the body tappable. */
+  actions?: ActionMap;
 }
 
-export function StatusBoardTile({ entity, name, menuItems }: StatusBoardTileProps) {
+export function StatusBoardTile({ entity, name, menuItems, actions }: StatusBoardTileProps) {
   const e = useEntity(entity);
   const menu = useContextMenu();
   const run = useActions();
+  // Display-only by default (no fallback) ⇒ inert unless a `tap` is authored.
+  const onTap = useTapHandler(entity, actions);
   if (!e) return null;
 
   const label = name ?? friendly(e);
@@ -159,6 +165,7 @@ export function StatusBoardTile({ entity, name, menuItems }: StatusBoardTileProp
           className="simui-statusboard tone-idle is-unavailable"
           role="group"
           aria-label={`${label}: Unavailable`}
+          onClick={onTap}
           {...menu.menuProps}
         >
           <span className="simui-statusboard-ic" aria-hidden="true">
@@ -190,6 +197,7 @@ export function StatusBoardTile({ entity, name, menuItems }: StatusBoardTileProp
         className={`simui-statusboard tone-${st.tone}${st.attention ? ' is-attn' : ''}`}
         role="group"
         aria-label={`${label}: ${st.word}`}
+        onClick={onTap}
         {...menu.menuProps}
       >
         <span className="simui-statusboard-ic" aria-hidden="true">

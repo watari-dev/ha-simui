@@ -5,7 +5,9 @@ import { useContextMenu, ContextMenu, type ContextMenuItem } from './ContextMenu
 import { QuickControls, isControllable } from './QuickControls';
 import { useDragValue } from './useDragValue';
 import { useActions } from '../dashboard/useActions';
+import { useTapHandler } from '../runtime/actions';
 import type { HassEntity } from '../types';
+import type { ActionMap } from '../editor/types';
 import { domainOf, friendly } from '../util';
 
 /**
@@ -103,9 +105,11 @@ export interface SliderTileProps {
   step?: number;
   /** Extra right-click / long-press items appended after the defaults. */
   menuItems?: ContextMenuItem[];
+  /** Authored interaction overrides. An explicit `tap` replaces the body toggle. */
+  actions?: ActionMap;
 }
 
-export function SliderTile({ entity, name, step = 1, menuItems }: SliderTileProps) {
+export function SliderTile({ entity, name, step = 1, menuItems, actions }: SliderTileProps) {
   const e = useEntity(entity);
   const rawCall = useCallService();
   const menu = useContextMenu();
@@ -138,6 +142,13 @@ export function SliderTile({ entity, name, step = 1, menuItems }: SliderTileProp
   // Suppress the synthetic click that follows a drag (so a drag never toggles).
   const suppressClick = useRef(false);
 
+  // Body tap: an authored `tap` action overrides the toggle; absence ⇒ toggle
+  // (today's behaviour, unchanged). The drag-suppress + unavailable guards still
+  // gate it via `onTileClick` below — neither a drag nor a dead entity fires it.
+  const tap = useTapHandler(entity, actions, () => {
+    if (e && spec) spec.toggle(call, e, on);
+  });
+
   if (!e || !spec) return null;
 
   const label = name ?? friendly(e);
@@ -150,7 +161,7 @@ export function SliderTile({ entity, name, step = 1, menuItems }: SliderTileProp
       return;
     }
     if (unavailable) return;
-    spec.toggle(call, e, on);
+    tap?.();
   };
 
   const onPointerUpCapture = () => {
