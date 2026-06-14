@@ -537,9 +537,12 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-slider-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .simui-slidertile {
   --slider-tint: var(--warm);
+  /* A whitened, less-saturated tint for the fill so brightness reads as a warm
+     glow (Apple-Home) instead of a muddy orange-brown band over the dark surface. */
+  --slider-glow: color-mix(in srgb, var(--slider-tint), #ffffff 18%);
   position: relative; display: flex; min-height: 92px; padding: 0; overflow: hidden;
-  border-radius: 18px; background: color-mix(in srgb, var(--text) 4%, var(--surface));
-  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.06); cursor: pointer;
+  border-radius: var(--r-surface); background: var(--surface-raised);
+  box-shadow: var(--bezel); cursor: pointer;
   touch-action: none; user-select: none; -webkit-user-select: none;
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -557,12 +560,12 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
    not the flat muddy block it used to be. */
 .simui-slidertile-fill {
   position: absolute; left: 0; right: 0; bottom: 0; height: 0;
-  background: linear-gradient(to top, var(--slider-tint), color-mix(in srgb, var(--slider-tint) 35%, transparent));
-  opacity: 0.14; pointer-events: none;
+  background: linear-gradient(to top, color-mix(in srgb, var(--slider-glow) 78%, transparent), color-mix(in srgb, var(--slider-glow) 26%, transparent));
+  opacity: 0.2; pointer-events: none;
   transition: height 0.04s linear, opacity 0.2s ease;
 }
-.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.18; }
-.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; opacity: 0.26; }
+.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.24; }
+.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; opacity: 0.32; }
 .simui-slidertile-body { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; width: 100%; padding: 12px; }
 .simui-slidertile-head { display: flex; align-items: center; gap: 8px; }
 /* Round icon disc (Apple/Mushroom): neutral grey when idle, tinted when active. */
