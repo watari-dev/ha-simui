@@ -119,6 +119,26 @@ Smoothness is part of "premium." Lag breaks the ambient illusion.
 
 ---
 
+## 14. Navigation & interaction
+
+- **No in-app sidebar.** simUI is an HA panel; HA already owns the left sidebar — a
+  second one is wrong. Navigation lives in the panel's top / summary chrome.
+- **Land on a Home summary, not a card grid.** Status strip → scenes/favorites →
+  a rooms strip → an "Everything" categories list. The menu is integrated chrome
+  (lists / chips), never a grid of tiles.
+- **Two axes:** by room, and by device category — Lights, Climate, Media, Security,
+  Sensors, Energy, Power & outlets, System, Scenes. Each category is a *composed*
+  view ("all your lights, grouped by room"), not a card grid.
+- **Tap = a native Sheet** (bottom sheet on phone, popover on desktop) with the
+  entity's full controls. Glance on the surface; depth in the sheet.
+- **Right-click / long-press = a context menu** of relevant actions; **smart-click
+  expands** (a chart → a full detailed chart). Disclosure is layered:
+  glance → tap (sheet) → context / expand.
+- **Adaptive:** one tree re-flows — top nav ⇄ tab bar, popover ⇄ bottom sheet,
+  multi-column ⇄ single.
+
+---
+
 ## Do / Don't
 
 **Do**
