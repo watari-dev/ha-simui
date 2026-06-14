@@ -7,8 +7,11 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-14
+
 The no-YAML editor lands end-to-end — the make-or-break feature for "a framework
-for other people" — plus a live-tick performance pass for large real homes.
+for other people" — plus a live-tick performance pass for large real homes, an
+adaptive shell with URL/route persistence, and release hygiene (LICENSE + docs).
 
 ### Added
 - **In-app editor** — enter edit mode on any surface to add, reorder, resize, and
@@ -33,6 +36,12 @@ for other people" — plus a live-tick performance pass for large real homes.
   "select all".
 - **Drag-to-resize** — a resize handle on the block edit chrome snapping to
   1 / 2 / full columns, alongside the existing drag-to-reorder.
+- **URL / route persistence** — the active surface lives in the location hash
+  (`#/category/lights`, `#/room/<id>`); Back, forward, and reload restore the view.
+- **Adaptive shell** — the panel consumes HA's `narrow` flag, and the home packs
+  rooms two-up on phone-width (the surfaces, editor panels, and detail sheet were
+  already responsive).
+- **LICENSE (MIT)** + a rewritten README covering the framework, editor, and presets.
 
 ### Changed
 - **All three surfaces are editable** — Home, room, and category surfaces now share

@@ -14,5 +14,5 @@
   "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/watari-dev/ha-simui/issues",
-  "version": "0.2.0"
+  "version": "0.3.0"
 }
