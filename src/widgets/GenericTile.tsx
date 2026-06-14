@@ -10,6 +10,20 @@ const TOGGLEABLE = new Set(['switch', 'fan', 'input_boolean', 'siren', 'humidifi
 export function GenericTile({ entity }: WidgetProps) {
   const callService = useCallService();
   const domain = domainOf(entity.entity_id);
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+
+  // Dead device — dim, no toggle, clear placeholder instead of a faked state.
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+        </div>
+        <StateLine value="Unavailable" />
+      </Tile>
+    );
+  }
+
   const isOnOff = entity.state === 'on' || entity.state === 'off';
   const on = entity.state === 'on';
   const canToggle = TOGGLEABLE.has(domain) && isOnOff;

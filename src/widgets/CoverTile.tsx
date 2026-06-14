@@ -9,6 +9,21 @@ const FEAT = { OPEN: 1, CLOSE: 2, SET_POSITION: 4, STOP: 8 };
 
 export function CoverTile({ entity }: WidgetProps) {
   const callService = useCallService();
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+
+  // Dead device — dim, no slider / transport buttons (it can't be moved).
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+          <span className="simui-spacer" />
+          <span className="simui-value">Unavailable</span>
+        </div>
+      </Tile>
+    );
+  }
+
   const position = entity.attributes.current_position as number | undefined;
   const open = entity.state === 'open' || (position != null && position > 0);
   const canSet = supportsFeature(entity, FEAT.SET_POSITION) && position != null;

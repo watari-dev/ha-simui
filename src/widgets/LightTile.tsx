@@ -7,6 +7,23 @@ import { friendly } from '../util';
 
 export function LightTile({ entity }: WidgetProps) {
   const callService = useCallService();
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+
+  // Dead device — dim, no toggle, no slider (a dead light showing a live dimmer
+  // reads as broken / controllable when it isn't).
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-ic"><Lightbulb size={16} strokeWidth={2} /></span>
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+          <span className="simui-spacer" />
+          <span className="simui-pct">Unavailable</span>
+        </div>
+      </Tile>
+    );
+  }
+
   const on = entity.state === 'on';
   const brightness = (entity.attributes.brightness as number | undefined) ?? 0;
   const pct = on ? Math.max(1, Math.round((brightness / 255) * 100)) : 0;

@@ -50,13 +50,15 @@ const SPARK_H = 40;
 export function MetricSpark({ entityId, band, window, name, accent, onExpand }: MetricSparkProps) {
   const entity = useEntity(entityId);
   const win = window ?? DEFAULT_WINDOW;
-  const series = useHistory([entityId], win);
+  const dead = !!entity && (entity.state === 'unavailable' || entity.state === 'unknown');
+  // When dead, request no history so the cell can't draw or record a trend.
+  const series = useHistory(dead ? [] : [entityId], win);
   const points = series[entityId];
 
   const unit = entity?.attributes.unit_of_measurement as string | undefined;
   const raw = entity?.state;
   const cur = raw != null ? Number.parseFloat(raw) : NaN;
-  const hasValue = Number.isFinite(cur);
+  const hasValue = !dead && Number.isFinite(cur);
 
   const label = name ?? (entity ? friendly(entity) : entityId);
 
@@ -77,6 +79,20 @@ export function MetricSpark({ entityId, band, window, name, accent, onExpand }: 
 
   const stroke = outOfBand ? 'var(--warn)' : accent ?? 'var(--muted)';
   const valueClass = `simui-metric-val num${outOfBand ? ' oob' : ''}`;
+
+  // Dead device — dim, "—" placeholder, no delta / sparkline / expand affordance.
+  if (dead) {
+    return (
+      <div className="simui-metric is-unavailable">
+        <div className="simui-metric-head">
+          <span className="simui-metric-name" title={label}>{label}</span>
+        </div>
+        <div className="simui-metric-value">
+          <span className="simui-metric-val num">—</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleClick = (e: MouseEvent) => {
     if (!onExpand) return;

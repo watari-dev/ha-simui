@@ -11,6 +11,21 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
   const callService = useCallService();
   const a = entity.attributes;
   const st = entity.state;
+  const dead = st === 'unavailable' || st === 'unknown';
+
+  // Dead device — dim, no transport (play/pause/skip) so it can't look playable.
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+          <span className="simui-spacer" />
+          <span className="simui-state">Unavailable</span>
+        </div>
+      </Tile>
+    );
+  }
+
   const playing = st === 'playing';
   const title = a.media_title as string | undefined;
   const artist = (a.media_artist ?? a.media_album_name ?? a.app_name) as string | undefined;

@@ -7,6 +7,21 @@ import { friendly } from '../util';
 
 export function LockTile({ entity }: WidgetProps) {
   const callService = useCallService();
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+
+  // Dead device — dim, no toggle (a dead lock must not look operable).
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-ic"><Lock size={15} strokeWidth={2} /></span>
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+        </div>
+        <StateLine value="Unavailable" tone="muted" />
+      </Tile>
+    );
+  }
+
   const locked = entity.state === 'locked';
   const toggle = () => void callService('lock', locked ? 'unlock' : 'lock', {}, { entity_id: entity.entity_id });
 
