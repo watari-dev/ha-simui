@@ -7,6 +7,21 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.5.0-beta.1] - 2026-06-15
+
+Preview of the room-first Minimalist redesign — grounded in the actual
+[UI-Lovelace-Minimalist](https://github.com/UI-Lovelace-Minimalist/UI) theme tokens.
+
+### Changed
+- **Room-first Home** (Apple-Home gestalt) — the landing page is no longer a
+  category-launcher list + room-overview cards; each room is now a section of its own
+  device tiles (lights, climate, media, covers, locks…) rendered inline, with a quiet
+  tappable room header. The category launcher + security drop below as secondary nav.
+- **Minimalist visual language** — soft pastel state palette (yellow `#fcd663`, blue
+  `#89b3f8`, green `#80c994`, coral `#f18b82`); `#1d1d1d` cards that FLOAT on a soft
+  drop shadow (`0 2px 4px rgba(0,0,0,.16)`); 20px radius; a barely-there ~12% active
+  tint on a round icon disc. Reverses the flat "depth from light" look.
+
 ## [0.4.1] - 2026-06-15
 
 ### Fixed
