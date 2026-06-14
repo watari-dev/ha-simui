@@ -39,11 +39,13 @@ The must-have checklist (ROADMAP §2), by tier.
 
 ### Tier B — the editor + preset gallery (the flagged edit-suite gap)
 *Largely SHIPPED via the decoupled editor store (`src/editor/store.tsx`) + wave-3 fan-out.*
-- [~] **Editable surfaces** — category surfaces are editable via the editor store: enter →
-      snapshot to **override** → optimistic `dirtyBlocks` → debounced commit through the atomic
-      `mutateBlocks` seam; drag/resize/remove/add + Reset-to-preset. TODO: generalize the loop to
-      **Room/Home** surfaces (they still run the legacy dashboard-editing path + don't mount
-      `EditorOverlay`); then the **`{ surfaces }` unification** + a shared `SurfaceCanvas`.
+- [x] **Editable surfaces — all three** — Home / Room / Category all drive the editor store:
+      enter → (snapshot to **override** for home/category; rooms edit `room.blocks` directly with
+      no snapshot) → optimistic `dirtyBlocks` → debounced commit via the atomic `mutateBlocks`
+      seam; drag/resize/remove/add + Reset (home/category). `EditorOverlay` is mounted ONCE at
+      `DashboardView` and self-gates on `editor.active`. TODO (nice-to-have): the formal
+      **`{ surfaces }` unification** + a shared `SurfaceCanvas`/`useEditableSurface` to retire the
+      per-view duplication.
 - [x] **Add-block flow** — `CardGallery` (live `BlockBody` previews) with **23 kinds**; pick →
       insert → auto-select → inspector. (`ResizeHandle` + 1×/2×/Full cycle for sizing.)
 - [x] **Block / Tile Inspector (no YAML)** — `BlockSettings` (title/width/axis) · `EntityMembers`
@@ -56,15 +58,18 @@ The must-have checklist (ROADMAP §2), by tier.
       templates with **live previews from the user's own entities**; picking snapshots onto the
       surface. `OnboardingHint` one-time coachmark + `EmptyState`.
 
-#### Tier B follow-ups (built + type-clean on disk, NOT yet wired)
-- [ ] **Action execution** — the `ActionEditor` authors `TileConfig.actions` (persisted) but they
-      don't run yet. Thread `useTileAction` (`src/runtime/actions.ts`) through the real render
-      leaves — the domain widgets (`widgetFor`) + `EntityRow` + the block renderers passing
-      `block.tiles?.[id]?.actions` / `block.actions` down. (`EntityTile` is currently unused.)
-- [ ] **Area-grouped EntityPicker** — wire the polished `src/editor/picker/` (SearchBox / FacetBar /
-      AreaGroupedList + `rowsFromIndex`) into `EntityPicker.tsx`. Needs the area-aware `EntityIndex`
-      threaded in (pass `areas`/`registry` or the built `index` down). Current picker is already
-      faceted + virtualized + fuzzy — this adds per-area grouping + select-all-area.
+#### Tier B follow-ups
+- [x] **Action execution (rows)** — `useTileAction` (`src/runtime/actions.ts`) is threaded through
+      `EntityRow`; `GroupBlock`/`ListBlock` pass `block.tiles?.[id]?.actions` down. A leaf's handler
+      is overridden ONLY when its ActionMap slot is explicitly set, so every domain default is
+      preserved (verified: a no-actions tap still opens the sheet / toggles). TODO: the
+      single-entity **CardBlock** path (needs `actions?` on `WidgetProps` + ~20 widgets honoring it)
+      and the non-row GroupBlock variants (slider/status/metric walls) + HeroBlock.
+- [x] **Area-grouped EntityPicker** — `EntityPicker.tsx` now composes the `src/editor/picker/`
+      module (SearchBox / FacetBar / AreaGroupedList + `rowsFromIndex`) over the area-aware
+      `EntityIndex` (`areas`/`registry` threaded through `EntityPickerProps` ← `EditorOverlay`).
+      Domain + area facets with counts, per-area "All" select, EmptyState. Verified grouping by
+      real areas (Bedroom / Kitchen / Living Room …).
 
 ### Tier C — structure + widget parity
 - [ ] **Multi-dashboard / named views** — evolve the model to multiple named dashboards/views with

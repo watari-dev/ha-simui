@@ -245,6 +245,23 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
     renderers — since `EntityTile` is unused); generalizing the editor loop to **Room/Home**
     surfaces (today only Category surfaces drive the editor store).
 
+- **Editor wave-3 follow-ups integrated (3-way parallel worktree fan-out)** — the deferred items
+  shipped via three isolated worktree builders (disjoint files → clean cherry-pick), verified
+  in-browser:
+  - **Tap-actions execute** — `useTileAction` (`src/runtime/actions.ts`) threaded through
+    `EntityRow`; `GroupBlock`/`ListBlock` pass `block.tiles?.[id]?.actions`. A leaf's handler is
+    overridden ONLY when its slot is explicitly set, so all domain defaults are byte-for-byte
+    preserved (no-regress verified: a default tap still opens the Sheet).
+  - **Area-grouped EntityPicker** — composes the `picker/` module (SearchBox / FacetBar /
+    AreaGroupedList over the area-aware `EntityIndex`); domain + area facets with live counts,
+    per-area "All" select, EmptyState. `areas`/`registry` threaded `EditorOverlay → EntityPicker`.
+  - **All three surfaces editable** — Home / Room / Category now drive the editor store
+    identically; `EditorOverlay` hoisted to a single mount in `DashboardView`; rooms enter with no
+    snapshot, home via `createHomeOverride`. Removed the now-unused `AddCardPanel`.
+  - Gotcha (logged to memory): the first fan-out's worktrees branched from a STALE pre-wave-3
+    commit — fixed by forcing `git reset --hard <HEAD>` in each agent's setup before building.
+  - tsc + panel build + runtime console all clean on the combined main.
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);
