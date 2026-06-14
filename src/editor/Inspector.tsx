@@ -17,16 +17,16 @@
 
 import { Copy, Trash2, X } from 'lucide-react';
 import './Inspector.css';
-// NB: explicit `/index` — this file is `Inspector.tsx` and the barrel dir is
-// `inspector/`; on a case-insensitive filesystem a bare `./inspector` resolves back
-// to THIS file (a circular self-import). The `/index` suffix forces the directory.
+// NB: the sub-editor barrel lives in `inspectors/` (plural) — deliberately NOT
+// `inspector/`, which would collide with this file (`Inspector.tsx`) on a
+// case-insensitive filesystem and break Vite's dev module resolution.
 import {
   BlockSettings,
   TileSettings,
   ConditionEditor,
   ChartEditor,
   EntityMembers,
-} from './inspector/index';
+} from './inspectors';
 import type { InspectorProps } from './types';
 import type { HassEntities } from '../types';
 

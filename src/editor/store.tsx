@@ -411,6 +411,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const openGallery = useCallback(() => setPanel('gallery'), []);
   const openInspector = useCallback(() => setPanel('inspector'), []);
   const openEntityPicker = useCallback(() => setPanel('entity-picker'), []);
+  const openTemplates = useCallback(() => setPanel('templates'), []);
   const closePanel = useCallback(() => {
     setPanel('none');
     setPlacing(null);
@@ -740,6 +741,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     openGallery,
     openInspector,
     openEntityPicker,
+    openTemplates,
     closePanel,
     beginPlacing,
     dropCard,

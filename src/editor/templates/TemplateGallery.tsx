@@ -168,12 +168,21 @@ function TemplateCard({
   const previewBlocks = blocks.slice(0, 4);
   const populated = previewBlocks.length > 0;
 
+  // role=button DIV, not a real <button>: the live preview is the real BlockBody,
+  // which contains its own tile <button>s — a button-in-button is invalid HTML. The
+  // preview layer is inert (pointer-events:none) so those inner controls never fire.
   return (
-    <button
-      type="button"
+    <div
       role="listitem"
+      tabIndex={0}
       className="simui-tmpl-card"
       onClick={() => onPick(template)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPick(template);
+        }
+      }}
       aria-label={`Use the ${template.name} template — ${template.description}`}
     >
       <div className="simui-tmpl-preview" aria-hidden>
@@ -202,7 +211,7 @@ function TemplateCard({
         </span>
         <span className="simui-tmpl-card-desc">{template.description}</span>
       </div>
-    </button>
+    </div>
   );
 }
 

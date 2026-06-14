@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, ChevronLeft, Pencil, Plus, RotateCcw } from 'lucide-react';
+import { Check, ChevronLeft, Pencil, RotateCcw } from 'lucide-react';
 import { useAllStates } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { useEditor } from '../editor/store';
 import { EditorOverlay } from '../editor/EditorOverlay';
+import { EmptyState } from '../editor/chrome';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
 import { AmbientCanvas } from '../components/AmbientCanvas';
@@ -120,9 +121,8 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
         {editor.active && override && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset to preset"><RotateCcw size={15} /></button>
         )}
-        {editor.active && (
-          <button className="simui-iconbtn-h" onClick={() => editor.openGallery()} aria-label="Add card"><Plus size={16} /></button>
-        )}
+        {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
+            (mounted by EditorOverlay) — keep the header chrome minimal. */}
         <button
           className={`simui-iconbtn-h${editor.active ? ' active' : ''}`}
           onClick={onEditToggle}
@@ -151,10 +151,14 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
                 {blocks.map((b) => <StaticBlock key={b.id} block={b} />)}
               </div>
             )
+          ) : editor.active ? (
+            <EmptyState
+              title={`${title} is empty`}
+              onAddCard={() => editor.openGallery()}
+              onPickTemplate={() => editor.openTemplates()}
+            />
           ) : (
-            <div className="simui-msg">
-              {editor.active ? `Tap + to add a card.` : `Nothing in ${title.toLowerCase()} yet.`}
-            </div>
+            <div className="simui-msg">Nothing in {title.toLowerCase()} yet.</div>
           )}
         </div>
       </div>

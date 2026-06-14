@@ -1,6 +1,6 @@
 // Action runtime — resolve a tile/block ActionMap to live behaviours.
 //
-// Companion to the ActionEditor (src/editor/inspector/actions/ActionEditor.tsx):
+// Companion to the ActionEditor (src/editor/inspectors/actions/ActionEditor.tsx):
 // the editor AUTHORS an `ActionMap`, this module RUNS it. It is the single seam
 // between "what the user configured a tap to do" and "what actually happens",
 // so every surface (tile, row, pill, card) behaves identically (FRAMEWORK.md §1,

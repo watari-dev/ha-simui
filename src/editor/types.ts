@@ -235,7 +235,7 @@ export type Selection =
   | { kind: 'tile'; blockId: string; entityId: string };
 
 /** Which transient editor panel is mounted over the surface. */
-export type EditorPanel = 'none' | 'gallery' | 'inspector' | 'entity-picker';
+export type EditorPanel = 'none' | 'gallery' | 'inspector' | 'entity-picker' | 'templates';
 
 /**
  * One snapshot on the undo/redo stack: the full block list of the surface being
@@ -301,6 +301,8 @@ export interface EditorActions {
   openGallery: () => void;
   openInspector: () => void;
   openEntityPicker: () => void;
+  /** Open the page-template gallery (the "start from a template" affordance). */
+  openTemplates: () => void;
   closePanel: () => void;
   // gallery → drop
   beginPlacing: (kind: CardKind) => void;
