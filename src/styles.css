@@ -108,6 +108,19 @@
 .simui-ic.cool { color: var(--cool); }
 .simui-ic.amber { color: var(--warn); }
 
+/* Minimalist round icon disc on every tile (UI-Lovelace-Minimalist's signature: a
+   circular icon cell that fills with the soft state colour when active). Scoped to
+   tiles so list rows keep their bare inline icon. */
+.simui-tile .simui-ic {
+  width: 34px; height: 34px; align-items: center; justify-content: center;
+  border-radius: 50%; background: color-mix(in srgb, var(--text) 6%, transparent);
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.simui-tile .simui-ic.warm { background: color-mix(in srgb, var(--warm) 18%, transparent); }
+.simui-tile .simui-ic.cool { background: color-mix(in srgb, var(--cool) 18%, transparent); }
+.simui-tile .simui-ic.amber { background: color-mix(in srgb, var(--warn) 18%, transparent); }
+.simui-tile .simui-ic.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+
 .simui-big { font-size: 22px; font-weight: 600; line-height: 1; letter-spacing: -0.4px; }
 .simui-unit { font-size: 12px; color: var(--muted); font-weight: 500; }
 .simui-pct { font-size: 13px; color: var(--muted); }

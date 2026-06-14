@@ -1,5 +1,5 @@
 import type { ChangeEvent, CSSProperties } from 'react';
-import { ChevronDown, ChevronUp, Square } from 'lucide-react';
+import { Blinds, ChevronDown, ChevronUp, Square } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
 import { useTapHandler } from '../runtime';
@@ -42,6 +42,7 @@ export function CoverTile({ entity, actions }: WidgetProps) {
   return (
     <Tile onClick={onTap} className={open ? 'is-on' : ''}>
       <div className="simui-row">
+        <span className={`simui-ic${open ? ' on' : ''}`}><Blinds size={16} strokeWidth={2} /></span>
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
         <span className="simui-spacer" />
         <span className="simui-value">{position != null ? `${position}%` : prettyState(entity.state)}</span>
