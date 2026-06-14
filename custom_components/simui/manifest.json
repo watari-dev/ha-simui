@@ -1,12 +1,18 @@
 {
   "domain": "simui",
   "name": "simUI",
-  "codeowners": ["@watari-dev"],
+  "codeowners": [
+    "@watari-dev"
+  ],
   "config_flow": true,
-  "dependencies": ["http", "frontend", "panel_custom"],
+  "dependencies": [
+    "http",
+    "frontend",
+    "panel_custom"
+  ],
   "documentation": "https://github.com/watari-dev/ha-simui",
   "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/watari-dev/ha-simui/issues",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
