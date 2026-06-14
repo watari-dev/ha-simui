@@ -14,6 +14,19 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Framework fixes — editable Home + no horizontal scroll** (refocus on the editor per
+  owner feedback). (1) **Horizontal scroll killed** — the living `.simui-ambient-canvas`
+  had negative *horizontal* insets (`-16px`) that overflowed the viewport (the side-to-side
+  drift); now `inset: -16px 0 auto 0`. Verified `overflowX: 0`. (2) **Home is now editable** —
+  it landed read-only (no edit affordance), so it *felt* like nothing was editable. Added the
+  same override mechanism categories use: the Edit pencil snapshots `buildHome`'s summary into
+  a persisted `home` override (`store.createHomeOverride`/`resetHomeOverride`; `mutateBlocks`
+  now handles `route.kind==='home'`) → drag-reorder / resize / remove / add / **Reset to
+  preset**. Verified headless (home override persists; block chrome present). **Next editor
+  focus:** typed *add-block* (real card-type choice, not entity-only), right-click + long-press
+  everywhere, the block/tile **Inspector**, and the `{ surfaces }` unification so every surface
+  shares one edit shell.
+
 - **Competitiveness batch — 6-agent fan-out (worktree-isolated, merged onto `design-overhaul`)** —
   one parallel sweep across the backlog; `tsc --noEmit` clean and `npm run build` green (897 kB / 214 kB
   gzip), verified headless (Home + category nav + Living Room + the new light detail Sheet, zero console

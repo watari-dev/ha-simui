@@ -32,6 +32,9 @@ interface DashboardCtx {
   createOverride: (categoryId: string, blocks: Block[]) => void;
   /** Drop a category override → back to the live preset. */
   resetOverride: (categoryId: string) => void;
+  /** Snapshot the generated Home summary into an editable override, and drop it. */
+  createHomeOverride: (blocks: Block[]) => void;
+  resetHomeOverride: () => void;
   // Native detail Sheet (tap = more-info). One sheet host at the app root.
   sheetEntityId: string | null;
   openSheet: (entityId: string) => void;
@@ -93,6 +96,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const mutateBlocks = (fn: (blocks: Block[]) => Block[]) => {
     setConfig((c) => {
       if (!c) return c;
+      if (route.kind === 'home') {
+        const ov = c.overrides?.['home'];
+        if (!ov) return c;
+        return { ...c, overrides: { ...c.overrides, home: { blocks: fn(ov.blocks) } } };
+      }
       if (route.kind === 'room') {
         return { ...c, rooms: c.rooms.map((r) => (r.id === route.id ? { ...r, blocks: fn(r.blocks) } : r)) };
       }
@@ -140,6 +148,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (!c?.overrides) return c;
         const next = { ...c.overrides };
         delete next[`category:${categoryId}`];
+        return { ...c, overrides: next };
+      }),
+    createHomeOverride: (blocks) =>
+      setConfig((c) =>
+        c
+          ? { ...c, overrides: { ...(c.overrides ?? {}), home: { blocks: blocks.map((b) => ({ ...b, id: uid() })) } } }
+          : c,
+      ),
+    resetHomeOverride: () =>
+      setConfig((c) => {
+        if (!c?.overrides) return c;
+        const next = { ...c.overrides };
+        delete next['home'];
         return { ...c, overrides: next };
       }),
     sheetEntityId,
