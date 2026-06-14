@@ -8,7 +8,7 @@ import { useDashboard } from './store';
 import { useKioskOptional } from './kioskMode';
 import { useEditableSurface } from './useEditableSurface';
 import { EditorToolbar, EmptyState } from '../editor/chrome';
-import { RoomCard } from './RoomCard';
+import { RoomSection } from './RoomSection';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
 import { AmbientCanvas } from '../components/AmbientCanvas';
@@ -102,6 +102,20 @@ export function HomeView() {
           {surface.statusStrip && surface.statusStrip.length > 0 && (
             <SurfaceStrip pills={surface.statusStrip} />
           )}
+
+          {/* Room-first (Apple-Home gestalt): each room's own devices as big tiles,
+              right on the landing page. The section header taps into the full room. */}
+          {!active && (
+            <div className="simui-rooms">
+              {config.rooms.map((r) => (
+                <RoomSection key={r.id} room={r} onOpen={() => openRoom(r.id)} />
+              ))}
+            </div>
+          )}
+
+          {/* The editable home summary — category launcher / security / scenes — is the
+              secondary nav and the drag-to-edit surface; it sits below the rooms (or
+              takes over while editing). */}
           {blocks.length > 0 ? (
             active ? (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -123,12 +137,6 @@ export function HomeView() {
               onPickTemplate={() => openTemplates()}
             />
           ) : null}
-          <div className="simui-rooms-head">Rooms</div>
-          <div className="simui-home-grid">
-            {config.rooms.map((r) => (
-              <RoomCard key={r.id} room={r} onOpen={() => openRoom(r.id)} />
-            ))}
-          </div>
         </div>
       </div>
     </div>
