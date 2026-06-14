@@ -1,6 +1,7 @@
-import { useAggregate } from '../../hass/context';
+import { useMemo } from 'react';
+import { useAggregate, useEntityKeys, useHassSource } from '../../hass/context';
 import { useAreas } from '../areas';
-import { resolveSource } from '../presets/index';
+import { resolveSource, sourceDomains, keysOfDomains } from '../presets/index';
 import { EntityRow } from '../EntityRow';
 import type { Block } from '../types';
 import type { TileConfig } from '../../editor/types';
@@ -22,11 +23,22 @@ export function ListBlock({ block }: { block: Block }) {
 
 function DynamicList({ block }: { block: Block }) {
   const areas = useAreas();
+  const hassSource = useHassSource();
+  const keysVersion = useEntityKeys();
   const source = block.source!;
   // Resolve to a stable, sorted, joined id string so the component repaints only
-  // when the membership set actually changes (the primitive-snapshot trick).
-  const joined = useAggregate((states) =>
-    resolveSource(source, states, (id) => areas?.[id]?.areaName).join(','),
+  // when the membership set actually changes (the primitive-snapshot trick). The
+  // resolve scans EVERY entity, so scope the aggregate to the source's candidate
+  // domains (recomputed only on set-change) — it re-scans only when a relevant-domain
+  // entity changed, not every tick. Cross-domain sources fall back to every-tick.
+  const candidates = useMemo(() => {
+    const doms = sourceDomains(source);
+    return doms ? keysOfDomains(hassSource.getStates(), doms) : undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keysVersion, source]);
+  const joined = useAggregate(
+    (states) => resolveSource(source, states, (id) => areas?.[id]?.areaName).join(','),
+    candidates,
   );
   const ids = joined ? joined.split(',') : [];
 

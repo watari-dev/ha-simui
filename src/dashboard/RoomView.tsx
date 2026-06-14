@@ -82,7 +82,10 @@ export function RoomView({ room }: { room: Room }) {
 }
 
 function RoomGlance({ room, lightIds }: { room: Room; lightIds: string[] }) {
-  const summary = useAggregate((states) => summarizeRoom(room, lightIds, states));
+  // deps = the room's entities (a superset of what summarizeRoom reads) so an
+  // unrelated tick skips the string build.
+  const roomIds = useMemo(() => room.blocks.flatMap((b) => b.entityIds), [room]);
+  const summary = useAggregate((states) => summarizeRoom(room, lightIds, states), roomIds);
   return summary ? <span className="simui-head-glance num">{summary}</span> : null;
 }
 

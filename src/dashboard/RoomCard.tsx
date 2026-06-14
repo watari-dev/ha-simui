@@ -21,13 +21,16 @@ function iconFor(name: string): LucideIcon {
 // regardless of state (so the grid is alive even when everything's off); it
 // warms when a light is on and goes amber when something's unlocked.
 export function RoomCard({ room, onOpen }: { room: Room; onOpen: () => void }) {
+  const allIds = useMemo(() => room.blocks.flatMap((b) => b.entityIds), [room]);
   const lightIds = useMemo(() => lightIdsOf(room), [room]);
-  const lockIds = useMemo(() => room.blocks.flatMap((b) => b.entityIds).filter((id) => id.startsWith('lock.')), [room]);
-  const deviceCount = useMemo(() => new Set(room.blocks.flatMap((b) => b.entityIds)).size, [room]);
+  const lockIds = useMemo(() => allIds.filter((id) => id.startsWith('lock.')), [allIds]);
+  const deviceCount = useMemo(() => new Set(allIds).size, [allIds]);
 
   const lit = useAggregate((s) => lightIds.some((id) => s[id]?.state === 'on'));
   const unlocked = useAggregate((s) => lockIds.some((id) => s[id]?.state === 'unlocked'));
-  const glance = useAggregate((s) => summarizeRoom(room, lightIds, s));
+  // summarizeRoom builds a string from hero-temp + lights + locks → deps-scope to the
+  // room's entities so an unrelated tick skips it (the string work, not just a scan).
+  const glance = useAggregate((s) => summarizeRoom(room, lightIds, s), allIds);
 
   const Icon = iconFor(room.name);
   const mood = lit ? 'warm' : unlocked ? 'amber' : 'accent';

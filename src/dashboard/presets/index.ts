@@ -197,6 +197,30 @@ export function resolveSource(
 }
 
 /**
+ * The domains a source's include matchers constrain to, or `null` when ANY matcher
+ * is cross-domain (no `domain`) — then the candidate set can't be narrowed. Used to
+ * scope a `useAggregate(resolveSource…, deps)` so it only re-scans when an entity of
+ * a relevant domain changed, not on every tick (TODO Tier A de-jank).
+ */
+export function sourceDomains(source: ListSource): string[] | null {
+  if (!source.include.length) return null;
+  const doms = new Set<string>();
+  for (const m of source.include) {
+    if (!m.domain) return null;
+    doms.add(m.domain);
+  }
+  return [...doms];
+}
+
+/** Entity ids whose domain is one of `domains` — the candidate dep set for a domain-scoped source. */
+export function keysOfDomains(states: HassEntities, domains: string[]): string[] {
+  const set = new Set(domains);
+  const out: string[] = [];
+  for (const id of Object.keys(states)) if (set.has(domainOf(id))) out.push(id);
+  return out;
+}
+
+/**
  * All PRIMARY entities of a domain, friendly-name sorted. The curation gate (TODO
  * Tier A) excludes diagnostic/config/hidden/disabled (when `meta` is supplied) and
  * entity_id pattern noise (always), so every builder that scans by domain is noise-

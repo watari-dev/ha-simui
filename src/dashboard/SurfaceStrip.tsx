@@ -1,4 +1,5 @@
-import { useAggregate } from '../hass/context';
+import { useMemo } from 'react';
+import { useAggregate, useEntityKeys, useHassSource } from '../hass/context';
 import { useActions } from './useActions';
 import {
   ActionPill,
@@ -10,7 +11,7 @@ import {
   StatusTile,
 } from '../components/StatusStrip';
 import { iconNode } from '../components/icons';
-import { resolveSource } from './presets/index';
+import { resolveSource, sourceDomains, keysOfDomains } from './presets/index';
 import type { StripPill } from './presets/index';
 
 /**
@@ -71,7 +72,18 @@ function PillView({ pill }: { pill: StripPill }) {
 }
 
 function CountPillBound({ pill }: { pill: Extract<StripPill, { kind: 'count' }> }) {
-  const count = useAggregate((states) => resolveSource(pill.source, states).length);
+  // `resolveSource` scans EVERY entity. Scope the aggregate to the source's candidate
+  // domains (recomputed only on set-change) so the O(all) scan re-runs only when an
+  // entity of a relevant domain changed — not on every tick. Cross-domain sources
+  // (no domain filter) get `undefined` deps → compute every tick, as before.
+  const source = useHassSource();
+  const keysVersion = useEntityKeys();
+  const candidates = useMemo(() => {
+    const doms = sourceDomains(pill.source);
+    return doms ? keysOfDomains(source.getStates(), doms) : undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keysVersion, pill.source]);
+  const count = useAggregate((states) => resolveSource(pill.source, states).length, candidates);
   return (
     <CountPill
       label={pill.label}

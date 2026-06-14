@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import type { CallService, HassEntities, HassEntity, HassSource } from '../types';
 
 const Ctx = createContext<HassSource | null>(null);
@@ -97,10 +97,41 @@ export function useEntityKeys(): number {
  * A derived primitive (number / string / boolean). Because the snapshot is a
  * primitive, the component re-renders only when the derived VALUE changes —
  * ideal for ambient aggregates (e.g. "how many lights are on").
+ *
+ * `deps` (optional) — the entity ids this aggregate reads. When given, `compute`
+ * is SKIPPED on ticks where none of those entities changed identity (HA preserves
+ * the object for an unchanged entity), returning the cached value instead. This
+ * keeps an expensive aggregate (string-building, a full `resolveSource` scan) off
+ * the critical path when an UNRELATED entity ticks — the common case on a big home.
+ * Omit `deps` for a cheap aggregate (the skip-check would cost as much as the
+ * compute) — then it computes every tick exactly as before.
  */
-export function useAggregate<T extends string | number | boolean>(compute: (states: HassEntities) => T): T {
+export function useAggregate<T extends string | number | boolean>(
+  compute: (states: HassEntities) => T,
+  deps?: readonly (string | undefined)[],
+): T {
   const source = useHassSource();
-  return useSyncExternalStore(source.subscribe, () => compute(source.getStates()));
+  const cache = useRef<{ refs: (HassEntity | undefined)[]; value: T } | null>(null);
+
+  const getSnapshot = (): T => {
+    const states = source.getStates();
+    if (!deps) return compute(states);
+    const prev = cache.current;
+    let changed = !prev || prev.refs.length !== deps.length;
+    if (!changed && prev) {
+      for (let i = 0; i < deps.length; i++) {
+        const id = deps[i];
+        if ((id ? states[id] : undefined) !== prev.refs[i]) { changed = true; break; }
+      }
+    }
+    if (!changed && prev) return prev.value;
+    const refs = deps.map((id) => (id ? states[id] : undefined));
+    const value = compute(states);
+    cache.current = { refs, value };
+    return value;
+  };
+
+  return useSyncExternalStore(source.subscribe, getSnapshot);
 }
 
 export function useCallService(): CallService {

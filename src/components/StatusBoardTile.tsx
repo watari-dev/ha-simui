@@ -240,7 +240,8 @@ export interface AttentionStripProps {
  */
 export function AttentionStrip({ entities, clearLabel }: AttentionStripProps) {
   // Aggregate to a primitive key so the component only re-renders on real change.
-  const key = useAggregate((states) => attentionIds(states, entities).join(','));
+  // `entities` are the only inputs → deps-scope so an unrelated tick skips the scan+join.
+  const key = useAggregate((states) => attentionIds(states, entities).join(','), entities);
   const attn = useMemo(() => (key ? key.split(',') : []), [key]);
   const total = entities.length;
 

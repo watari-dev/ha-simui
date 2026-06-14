@@ -128,11 +128,17 @@ export function HomeView() {
 }
 
 function HouseGlance({ config }: { config: DashboardConfig }) {
+  // The home's light ids are the only entity inputs → deps-scope the count + string
+  // build so an unrelated tick (sensors, energy) skips it. `config` is stable; a
+  // rooms change re-renders this and rebuilds `lightIds`.
+  const lightIds = useMemo(
+    () => config.rooms.flatMap((r) => r.blocks.flatMap((b) => b.entityIds)).filter((id) => id.startsWith('light.')),
+    [config],
+  );
   const summary = useAggregate((states) => {
-    const lightIds = config.rooms.flatMap((r) => r.blocks.flatMap((b) => b.entityIds)).filter((id) => id.startsWith('light.'));
     const on = lightIds.filter((id) => states[id]?.state === 'on').length;
     const rooms = config.rooms.length;
     return `${rooms} ${rooms === 1 ? 'room' : 'rooms'}${on ? ` · ${on} lights on` : ''}`;
-  });
+  }, lightIds);
   return <span className="simui-head-glance num">{summary}</span>;
 }
