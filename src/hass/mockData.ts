@@ -42,6 +42,7 @@ const ENTITIES: HassEntity[] = [
   // Hallway / Garage
   ent('cover.hall_window', 'open', { friendly_name: 'Hall Window', current_position: 100, supported_features: 15 }),
   ent('cover.garage_door', 'closed', { friendly_name: 'Garage Door', supported_features: 11 }),
+  ent('light.garage_strip', 'unavailable', { friendly_name: 'Garage Strip' }),
 
   // Outdoor
   ent('sensor.outside_temperature', '15.6', { friendly_name: 'Outside Temperature', unit_of_measurement: '°C', device_class: 'temperature' }),

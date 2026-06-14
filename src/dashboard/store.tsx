@@ -1,25 +1,40 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useHassSource } from '../hass/context';
-import type { Block, BlockSize, DashboardConfig } from './types';
-import { defaultCardSize, generateDefault } from './generateDefault';
+import type { Block, BlockSpan, DashboardConfig } from './types';
+import { defaultCardSpan, generateDefault } from './generateDefault';
+import { resolveAreas } from './areas';
 import { loadDashboard, saveDashboard } from './storage';
 import { uid } from '../util';
 
-type Route = { kind: 'home' } | { kind: 'room'; id: string };
+// The navigation shell's three surfaces (DESIGN_PRINCIPLES §14): the Home
+// summary, a composed room, and a cross-room device category.
+export type Route =
+  | { kind: 'home' }
+  | { kind: 'room'; id: string }
+  | { kind: 'category'; id: string };
 
 interface DashboardCtx {
   config: DashboardConfig | null;
   route: Route;
   goHome: () => void;
   openRoom: (id: string) => void;
+  openCategory: (id: string) => void;
+  /** Internal-route entry point used by tile/pill `navigate` actions ("room/<id>", "category/<id>", "home"). */
+  navigate: (path: string) => void;
   editing: boolean;
   setEditing: (v: boolean) => void;
   reorderBlocks: (oldIndex: number, newIndex: number) => void;
   removeBlock: (blockId: string) => void;
-  setBlockSize: (blockId: string, size: BlockSize) => void;
+  cycleBlockSpan: (blockId: string) => void;
   addCard: (entityId: string) => void;
+  // Native detail Sheet (tap = more-info). One sheet host at the app root.
+  sheetEntityId: string | null;
+  openSheet: (entityId: string) => void;
+  closeSheet: () => void;
 }
+
+const nextSpan = (s: BlockSpan): BlockSpan => (s === 1 ? 2 : s === 2 ? 'full' : 1);
 
 const Ctx = createContext<DashboardCtx | null>(null);
 
@@ -29,18 +44,30 @@ export function useDashboard(): DashboardCtx {
   return v;
 }
 
+/** Parse an internal `navigate` path into a Route. `category/lights`, `room/<id>`, `home`. */
+function parseRoute(path: string): Route {
+  const clean = path.replace(/^\/+/, '');
+  const [kind, id] = clean.split('/');
+  if (kind === 'category' && id) return { kind: 'category', id };
+  if (kind === 'room' && id) return { kind: 'room', id };
+  return { kind: 'home' };
+}
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const source = useHassSource();
   const [config, setConfig] = useState<DashboardConfig | null>(null);
   const [route, setRoute] = useState<Route>({ kind: 'home' });
   const [editing, setEditing] = useState(false);
+  const [sheetEntityId, setSheetEntityId] = useState<string | null>(null);
   const loaded = useRef(false);
 
   useEffect(() => {
     let alive = true;
     void (async () => {
       const saved = await loadDashboard(source);
-      const cfg = saved ?? generateDefault(source.getStates());
+      // Real area registry (when embedded) drives room assignment; heuristic in dev.
+      const areas = saved ? undefined : await resolveAreas(source);
+      const cfg = saved ?? generateDefault(source.getStates(), areas);
       if (alive) {
         setConfig(cfg);
         loaded.current = true;
@@ -61,17 +88,24 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const goTo = (r: Route) => { setEditing(false); setRoute(r); window.scrollTo?.(0, 0); };
+
   const value: DashboardCtx = {
     config,
     route,
-    goHome: () => { setEditing(false); setRoute({ kind: 'home' }); window.scrollTo?.(0, 0); },
-    openRoom: (id) => { setEditing(false); setRoute({ kind: 'room', id }); window.scrollTo?.(0, 0); },
+    goHome: () => goTo({ kind: 'home' }),
+    openRoom: (id) => goTo({ kind: 'room', id }),
+    openCategory: (id) => goTo({ kind: 'category', id }),
+    navigate: (path) => goTo(parseRoute(path)),
     editing,
     setEditing,
     reorderBlocks: (oldIndex, newIndex) => mutateBlocks((b) => arrayMove(b, oldIndex, newIndex)),
     removeBlock: (id) => mutateBlocks((b) => b.filter((x) => x.id !== id)),
-    setBlockSize: (id, size) => mutateBlocks((b) => b.map((x) => (x.id === id ? { ...x, size } : x))),
-    addCard: (entityId) => mutateBlocks((b) => [...b, { id: uid(), type: 'card', entityIds: [entityId], size: defaultCardSize(entityId) }]),
+    cycleBlockSpan: (id) => mutateBlocks((b) => b.map((x) => (x.id === id ? { ...x, span: nextSpan(x.span) } : x))),
+    addCard: (entityId) => mutateBlocks((b) => [...b, { id: uid(), type: 'card', entityIds: [entityId], span: defaultCardSpan(entityId) }]),
+    sheetEntityId,
+    openSheet: (entityId) => setSheetEntityId(entityId),
+    closeSheet: () => setSheetEntityId(null),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -1,5 +1,6 @@
 import { Lock, LockOpen } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { StateLine } from '../components/StateLine';
 import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly } from '../util';
@@ -17,7 +18,7 @@ export function LockTile({ entity }: WidgetProps) {
         </span>
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
       </div>
-      <span className={`simui-state${locked ? '' : ' warn'}`}>{locked ? 'Locked' : 'Unlocked'}</span>
+      <StateLine value={locked ? 'Locked' : 'Unlocked'} since={entity.last_changed} tone={locked ? 'muted' : 'warn'} />
     </Tile>
   );
 }

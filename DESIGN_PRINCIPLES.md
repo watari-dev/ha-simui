@@ -20,6 +20,10 @@ not premium.
   player, a chart, a camera. Then a card *means* something.
 - Everything else is composed from quieter elements: heroes, groups, lists, and the
   ambient canvas. **Reserve the card treatment; don't default to it.**
+- **The compose mechanism, validated on a real dashboard:** a *section heading* followed by a
+  run of quiet rows *is* a group — no panel, no border; the structure is typography. The one
+  legitimate exception is a **camera video wall**, where the stream content *is* the card. See
+  [`INSPIRATION.md`](INSPIRATION.md) and the block contracts in [`FRAMEWORK.md`](FRAMEWORK.md).
 
 ## 2. The room is the surface
 
@@ -74,6 +78,9 @@ meaning*, never decoration.
   `amber` = attention (e.g. a door unlocked). `up`/`down` = positive/negative deltas.
 - When embedded, inherit Home Assistant's theme variables; the palette below is the
   fallback / standalone default.
+- Two reserved roles: a **state accent** (the single accent, applied *only* when an entity is
+  on/active — the Apple-Home tint) and a **categorical accent** (a fixed per-category color for
+  navigation only). Static color elsewhere is decoration — avoid it. Detail: [`FRAMEWORK.md`](FRAMEWORK.md) §7.
 
 ## 8. Typography
 
@@ -90,6 +97,12 @@ Charts are first-class, not afterthoughts: thin precise lines, a subtle area fil
 gridlines, a crosshair value readout, tabular axes. Use TradingView's open-source
 `lightweight-charts` for history/energy. A chart *is* an object → it earns a card.
 
+- The current value, colorized, belongs in the chart **header** — a glance readout, not
+  decoration; it is **required**, not optional. A compact sparkline is the glance tier; the
+  full chart is the smart-click *expand* tier (selectable 24h/7d/30d range).
+- Generation and consumption share **one merged Power chart** (dual-axis), not separate views.
+  Contract: [`FRAMEWORK.md`](FRAMEWORK.md) §5.
+
 ## 10. Iconography
 
 **Lucide** — clean, SF-adjacent, consistent stroke width, inline (not boxed). Icons inherit
@@ -103,11 +116,15 @@ attention-seeking animation. Transitions ~120–180ms, eased.
 
 ## 12. Defaults & customization
 
-- **Never dump the entity registry.** Defaults are generated **per room** with a curated set
-  of key entities — useful and quiet out of the box.
+- **Never dump the entity registry.** Defaults are generated **per room and per category**
+  with a curated set of key entities — preferring group/aggregate entities — useful and quiet
+  out of the box. Presets are editable starting points: [`PRESETS.md`](PRESETS.md).
 - Customization uses a richer vocabulary than "card": **hero / group / list / card /
   ambient-layer**. The user composes and arranges *regions*; the system keeps it cohesive.
 - Bias toward curated composition over infinite freeform; premium beats maximally-fiddly.
+- **Graceful degradation is a design rule:** every surface must look right whether a domain
+  has 3 entities or 280 (auto column count; aggregate when many). A layout that only works on
+  a huge home is a bug — simUI is a framework for *other people*, not one home.
 
 ## 13. Performance is a design property
 
@@ -185,5 +202,6 @@ type:    label 11px (uppercase, +0.6 tracking) · meta 12px · body 13px ·
 icons:   Lucide, 15–18px, stroke 2
 ```
 
-*These principles are the source of truth. `AGENTS.md` summarizes the project; this file
-governs the look and feel.*
+*These principles are the source of truth for look and feel. `AGENTS.md` summarizes the
+project; [`FRAMEWORK.md`](FRAMEWORK.md) specifies the primitive contracts; [`PRESETS.md`](PRESETS.md)
+the template gallery; [`INSPIRATION.md`](INSPIRATION.md) the real-world evidence behind them.*

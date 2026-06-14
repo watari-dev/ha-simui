@@ -1,5 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { useAlbumTint, albumTintStyle } from '../components/useAlbumTint';
 import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
@@ -15,6 +16,7 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
   const artist = (a.media_artist ?? a.media_album_name ?? a.app_name) as string | undefined;
   const pic = a.entity_picture as string | undefined;
   const hasMedia = Boolean(title);
+  const tint = useAlbumTint(pic);
 
   const call = (service: string) => void callService('media_player', service, undefined, { entity_id: entity.entity_id });
 
@@ -34,7 +36,7 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
   }
 
   return (
-    <Tile>
+    <Tile style={albumTintStyle(tint)} className={tint ? 'is-album-tinted' : ''}>
       <div className="simui-np">
         {pic ? <img className="simui-art" src={pic} alt="" /> : <div className="simui-art" />}
         <div className="simui-np-body">

@@ -9,10 +9,18 @@
   --muted: var(--secondary-text-color, #838996);
   --faint: var(--divider-color, #23262e);
   --accent: var(--primary-color, #5b8cff);
-  --warm: #ffb267;
-  --up: #3fd08a;
-  --down: #f0735e;
-  --warn: #f0a84b;
+  --warm: #ffb267;   /* on / heating */
+  --cool: #5ec8e6;   /* cooling / active */
+  --up: #3fd08a;     /* good / generating / secure */
+  --down: #f0735e;   /* alert / importing */
+  --warn: #f0a84b;   /* attention (unlocked / out-of-band) */
+  /* categorical accents — fixed per-category identity hues for the launcher/nav */
+  --violet: #a78bfa; /* media */
+  --cyan: #5ec8e6;   /* sensors */
+  --pink: #ec8fb8;   /* scenes */
+  --teal: #34c0a8;   /* climate */
+  --slate: #7c93c8;  /* system */
+  --hairline: var(--divider-color, rgba(255,255,255,0.06));
   --radius: 14px;
 
   font-family: var(--paper-font-body1_-_font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
@@ -37,13 +45,20 @@
 
 .simui-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 
-.simui-tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 72px; padding: 11px 12px; background: var(--surface); border: 1px solid var(--faint); border-radius: var(--radius); transition: border-color 0.15s ease, background 0.15s ease; }
+.simui-tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 72px; padding: 11px 12px; background: color-mix(in srgb, var(--text) 4%, var(--surface)); border: 1px solid transparent; border-radius: 16px; box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05); transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
 .simui-tile.is-clickable { cursor: pointer; }
-.simui-tile.is-clickable:hover { border-color: color-mix(in srgb, var(--text) 18%, var(--faint)); }
+.simui-tile.is-clickable:hover { background: color-mix(in srgb, var(--text) 7.5%, var(--surface)); }
 .simui-tile.is-lit { background: color-mix(in srgb, var(--warm) 7%, var(--surface)); border-color: color-mix(in srgb, var(--warm) 22%, var(--faint)); }
 .simui-tile.is-unlocked { background: color-mix(in srgb, var(--warn) 8%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 22%, var(--faint)); }
 .simui-tile.is-on { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 22%, var(--faint)); }
 .simui-tile.span-2 { grid-column: span 2; }
+
+/* unavailable / unknown — dimmed + non-interactive. A dead device must never look
+   live (on a real home most sensors are unavailable at any moment). */
+.simui-erow.is-unavailable, .simui-slidertile.is-unavailable, .simui-tile.is-unavailable,
+.simui-statusboard.is-unavailable, .simui-metric.is-unavailable { opacity: 0.4; }
+.simui-slidertile.is-unavailable { cursor: default; }
+.simui-slidertile.is-unavailable .simui-slidertile-fill { display: none; }
 
 .simui-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .simui-spacer { flex: 1; }
@@ -60,6 +75,9 @@
 .simui-pct.on { color: var(--warm); }
 .simui-state { font-size: 13px; color: var(--muted); }
 .simui-state.warn { color: var(--warn); }
+.simui-state.on { color: var(--accent); }
+/* dimmed "· 2m ago" recency suffix (stateContent) — value stays primary */
+.simui-since { color: var(--muted); opacity: 0.62; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
 .simui-value { font-size: 13px; color: var(--muted); }
 .simui-delta { font-size: 11px; color: var(--muted); }
 .simui-delta.up { color: var(--up); }
@@ -133,6 +151,7 @@
 
 .simui-block { position: relative; }
 .simui-block.span-2 { grid-column: span 2; }
+.simui-block.span-full { grid-column: 1 / -1; }
 .simui-block.editing .simui-surface, .simui-block.editing .simui-tile, .simui-block.editing .simui-hero { outline: 1px dashed color-mix(in srgb, var(--text) 22%, transparent); outline-offset: -1px; border-radius: var(--radius); }
 .simui-block.dragging { opacity: 0.55; }
 
@@ -141,9 +160,11 @@
 .simui-hero-temp { font-size: 46px; font-weight: 300; letter-spacing: -1.5px; line-height: 0.9; }
 .simui-hero-temp small { font-size: 20px; color: var(--muted); font-weight: 400; }
 .simui-hero-sub { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.simui-hero-state { font-size: 30px; font-weight: 400; letter-spacing: -0.8px; line-height: 1; }
+.simui-hero.is-state .simui-feats { margin-top: 14px; }
 
 /* soft group/list surfaces */
-.simui-surface { background: var(--group, rgba(255, 255, 255, 0.035)); border: 1px solid var(--faint); border-radius: 20px; padding: 15px 16px; }
+.simui-surface { background: var(--group, rgba(255, 255, 255, 0.035)); border: none; border-radius: 20px; padding: 15px 16px; }
 .simui-surface-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 11px; font-weight: 500; }
 .simui-rows { display: flex; flex-direction: column; }
 .simui-rows.divided .simui-erow + .simui-erow { border-top: 1px solid var(--faint); }
@@ -179,16 +200,404 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-back:hover { color: var(--text); background: var(--surface); }
 .simui-content { padding: 16px; }
 
-.simui-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 12px; }
-.simui-roomcard { display: flex; flex-direction: column; gap: 11px; min-height: 120px; padding: 15px 16px; text-align: left; background: var(--surface); border: 1px solid var(--faint); border-radius: 18px; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease; }
-.simui-roomcard:hover { border-color: color-mix(in srgb, var(--text) 20%, var(--faint)); }
-.simui-roomcard:active { transform: scale(0.99); }
-.simui-roomcard.lit { background: color-mix(in srgb, var(--warm) 10%, var(--surface)); border-color: color-mix(in srgb, var(--warm) 30%, var(--faint)); }
+.simui-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+/* Room entry — quiet, borderless, integrated. Defines itself by a soft elevated
+   surface + radius, not a hard box; lit rooms get a warm corner GLOW (not a flat
+   wash that kills text). Text is always var(--text) — fixes the button UA black. */
+.simui-roomcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 122px; padding: 15px 16px; text-align: left; color: var(--text); background: color-mix(in srgb, var(--text) 3.5%, var(--surface)); border: 1px solid transparent; border-radius: 20px; cursor: pointer; overflow: hidden; transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease; }
+.simui-roomcard:hover { background: color-mix(in srgb, var(--text) 6.5%, var(--surface)); transform: translateY(-1px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22); }
+.simui-roomcard:active { transform: translateY(0) scale(0.995); }
+.simui-roomcard.lit { background:
+    radial-gradient(125% 105% at 100% 0%, color-mix(in srgb, var(--warm) 20%, transparent), transparent 58%),
+    color-mix(in srgb, var(--warm) 5%, var(--surface)); }
+.simui-roomcard.lit:hover { background:
+    radial-gradient(125% 105% at 100% 0%, color-mix(in srgb, var(--warm) 26%, transparent), transparent 58%),
+    color-mix(in srgb, var(--warm) 7%, var(--surface)); }
 .simui-roomcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.simui-roomcard-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 38px; height: 38px; border-radius: 11px; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, var(--surface-2)); }
-.simui-roomcard-icon.warm { color: var(--warm); background: color-mix(in srgb, var(--warm) 18%, var(--surface-2)); }
-.simui-roomcard-icon.amber { color: var(--warn); background: color-mix(in srgb, var(--warn) 18%, var(--surface-2)); }
-.simui-roomcard-icon.accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, var(--surface-2)); }
-.simui-roomcard-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.simui-roomcard-go { color: var(--muted); flex: none; }
+.simui-roomcard-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; border-radius: 13px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.simui-roomcard-icon.warm { color: var(--warm); background: color-mix(in srgb, var(--warm) 16%, transparent); }
+.simui-roomcard-icon.amber { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.simui-roomcard-icon.accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.simui-roomcard-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-roomcard-go { color: var(--muted); flex: none; opacity: 0.5; }
 .simui-roomcard-glance { font-size: 12px; color: var(--muted); margin-top: auto; }
+
+/* ============================================================================
+   Navigation shell modules (StatusStrip, Sheet, ContextMenu, TileFeatures,
+   Chart) + integrator surfaces (launcher, subgroups, detail). All scoped via
+   the simui- prefix under .simui-root; tokens reused, no new palette.
+   ========================================================================== */
+
+/* ---- TileFeatures: inline control strip (FRAMEWORK.md §1) ---- */
+.simui-feats { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.simui-feats:empty { display: none; }
+.simui-seg { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--faint); }
+.simui-segbtn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 26px; height: 24px; padding: 0 8px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: color 0.12s ease, background 0.12s ease; }
+.simui-segbtn:hover:not(:disabled) { color: var(--text); }
+.simui-segbtn.is-active { background: var(--surface); color: var(--accent); }
+.simui-segbtn:disabled { opacity: 0.45; cursor: default; }
+.simui-ftoggle { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--faint); background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: color 0.12s ease, border-color 0.12s ease; }
+.simui-ftoggle.is-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--faint)); }
+.simui-fsel-wrap { position: relative; display: inline-flex; align-items: center; }
+.simui-fsel { appearance: none; -webkit-appearance: none; height: 26px; padding: 0 26px 0 10px; border-radius: 8px; border: 1px solid var(--faint); background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; outline: none; }
+.simui-fsel:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--faint)); }
+.simui-fsel-caret { position: absolute; right: 8px; pointer-events: none; color: var(--muted); }
+
+/* ---- StatusStrip: top chrome pills (FRAMEWORK.md §6) ---- */
+.simui-strip { display: flex; align-items: stretch; gap: 8px; overflow-x: auto; min-width: 0; margin-bottom: 14px; padding-bottom: 2px; scrollbar-width: none; }
+.simui-strip::-webkit-scrollbar { display: none; }
+.simui-pill-count, .simui-pill-nav, .simui-pill-action, .simui-pill-badge, .simui-pill-status, .simui-pill-select {
+  --pill-accent: var(--muted);
+  flex: none; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--faint); background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.simui-pill-count:disabled, .simui-pill-nav:disabled, .simui-pill-action:disabled, .simui-pill-select:disabled { cursor: default; }
+.simui-pill-count:hover:not(:disabled), .simui-pill-nav:hover:not(:disabled), .simui-pill-action:hover:not(:disabled), .simui-pill-status.is-clickable:hover, .simui-pill-select:hover:not(:disabled) { color: var(--text); border-color: color-mix(in srgb, var(--text) 18%, var(--faint)); }
+.simui-pill-ic { display: inline-flex; align-items: center; color: var(--muted); }
+.simui-pill-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; font-weight: 600; color: var(--text); }
+.simui-pill-label { color: var(--muted); }
+.simui-pill-count.is-active { color: var(--text); border-color: color-mix(in srgb, var(--pill-accent) 40%, var(--faint)); background: color-mix(in srgb, var(--pill-accent) 9%, var(--surface)); }
+.simui-pill-count.is-active .simui-pill-ic { color: var(--pill-accent); }
+.simui-pill-nav .simui-pill-ic { color: var(--pill-accent); }
+.simui-pill-action { width: 36px; padding: 0; justify-content: center; }
+.simui-pill-action .simui-pill-ic { color: var(--pill-accent); }
+.simui-pill-badge { cursor: default; color: var(--text); border-color: color-mix(in srgb, var(--pill-accent) 40%, var(--faint)); background: color-mix(in srgb, var(--pill-accent) 10%, var(--surface)); }
+.simui-pill-badge .simui-pill-ic { color: var(--pill-accent); }
+.simui-pill-status { cursor: default; align-items: center; }
+.simui-pill-status.is-clickable { cursor: pointer; }
+.simui-pill-status.is-active { border-color: color-mix(in srgb, var(--pill-accent) 35%, var(--faint)); }
+.simui-pill-ic.is-on { color: var(--pill-accent); }
+.simui-pill-status-body { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.simui-pill-status-primary { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.simui-pill-status-secondary { color: var(--muted); font-size: 11px; }
+.simui-pill-select { gap: 6px; }
+.simui-pill-select-name { color: var(--muted); }
+.simui-pill-select-value { color: var(--text); font-weight: 600; }
+.simui-pill-select-caret { display: inline-flex; color: var(--muted); }
+
+/* ---- Sheet: native detail (DESIGN_PRINCIPLES §14) ---- */
+.simui-sheet-backdrop { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.5); }
+.simui-sheet { display: flex; flex-direction: column; width: 100%; max-width: 540px; max-height: 88vh; background: var(--surface); border: 1px solid var(--faint); border-radius: 20px 20px 0 0; overflow: hidden; box-shadow: 0 -8px 40px rgba(0,0,0,0.4); }
+.simui-sheet-head { position: sticky; top: 0; flex: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--faint); background: var(--surface); }
+.simui-sheet-title { flex: 1; font-size: 16px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-sheet-body { overflow: auto; padding: 16px; }
+@media (min-width: 720px) {
+  .simui-sheet-backdrop { align-items: center; padding: 24px; }
+  .simui-sheet { border-radius: 18px; max-width: 480px; }
+}
+
+/* ---- detail Sheet content ---- */
+.simui-detail { display: flex; flex-direction: column; gap: 16px; }
+.simui-detail-widget .simui-tile { background: var(--surface-2); }
+.simui-detail-empty { color: var(--muted); font-size: 14px; }
+.simui-detail-attrs { display: flex; flex-direction: column; gap: 1px; border-top: 1px solid var(--faint); }
+.simui-detail-attr { display: flex; align-items: baseline; gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--faint); }
+.simui-detail-key { flex: none; min-width: 120px; color: var(--muted); font-size: 12px; text-transform: capitalize; }
+.simui-detail-val { flex: 1; text-align: right; font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums; word-break: break-word; }
+.simui-detail-val.muted { color: var(--muted); }
+
+/* ---- QuickControls: the unified per-type control rack (menu header + Sheet) ---- */
+.simui-qc { display: flex; flex-direction: column; gap: 11px; }
+.simui-qc.compact { gap: 9px; }
+.simui-qc-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.simui-qc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 500; }
+.simui-qc-val { font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-qc-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.simui-qc-swatch { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--hairline); cursor: pointer; transition: transform 0.1s ease, box-shadow 0.12s ease; }
+.simui-qc-swatch:hover { transform: scale(1.12); box-shadow: 0 0 0 2px color-mix(in srgb, var(--text) 18%, transparent); }
+.simui-qc.compact .simui-qc-swatch { width: 22px; height: 22px; }
+/* warm↔cool colour-temperature ribbon */
+.simui-temp-ribbon { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 999px; cursor: pointer; outline: none; background: linear-gradient(to right, #ffb46b, #fff4e6, #cfe0ff); }
+.simui-temp-ribbon::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,0.28); box-shadow: 0 1px 4px rgba(0,0,0,0.45); }
+.simui-temp-ribbon::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2px solid rgba(0,0,0,0.28); }
+/* climate row: keep the inline stepper from crowding the value */
+.simui-erow.climate .simui-feats { flex: none; margin-left: 10px; }
+
+/* ---- ContextMenu (DESIGN_PRINCIPLES §14) ---- */
+/* width:max-content + a hard cap fixes the "infinite box": items are width:100%
+   and the group is display:contents, so a shrink-to-fit menu resolved against the
+   viewport and ballooned. Now the menu sizes to its widest (ellipsized) label. */
+/* `min-height:0` overrides the `.simui-root min-height:100%` the menu inherits for
+   CSS-var scoping — without it the portaled menu stretched to the full viewport
+   (the other half of the "infinite box"). max-height keeps long menus scrollable. */
+.simui-ctxmenu { position: fixed; z-index: 200; box-sizing: border-box; display: flex; flex-direction: column; width: max-content; min-width: 200px; max-width: min(280px, calc(100vw - 16px)); min-height: 0; max-height: calc(100vh - 16px); overflow-y: auto; padding: 6px; background: var(--surface-2); border: 1px solid var(--hairline); border-radius: 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.5); outline: none; }
+.simui-ctxgroup { display: contents; }
+.simui-ctxhead { padding: 4px 6px 8px; }
+.simui-ctxhead + .simui-ctxitem { margin-top: 0; }
+.simui-ctxsep { height: 1px; margin: 5px 6px; background: var(--hairline); }
+.simui-ctxitem { display: flex; align-items: center; gap: 9px; width: 100%; min-width: 0; padding: 8px 9px; border: none; border-radius: 9px; background: transparent; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; }
+.simui-ctxitem:hover:not(:disabled), .simui-ctxitem.is-active { background: var(--surface); }
+.simui-ctxitem:disabled { opacity: 0.4; cursor: default; }
+.simui-ctxitem.danger { color: var(--down); }
+.simui-ctxic { display: inline-flex; flex: none; color: var(--muted); }
+.simui-ctxitem.danger .simui-ctxic { color: var(--down); }
+.simui-ctxlabel { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Chart (FRAMEWORK.md §5) ---- */
+.simui-chart { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.simui-chart-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
+.simui-chart-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.simui-chart-readout { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-left: auto; }
+.simui-chart-cur { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.simui-chart-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.simui-chart-cur-name { color: var(--muted); }
+.simui-chart-cur-val { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-chart-cur-val small { color: var(--muted); font-weight: 500; }
+.simui-chart-canvas { width: 100%; height: 220px; }
+.simui-chart-fallback { padding: 18px 4px; color: var(--muted); font-size: 13px; }
+
+/* ---- integrator: blocks shared by category/home surfaces ---- */
+/* (.simui-block + span classes already defined in the room layout section above) */
+.simui-surface-grid { align-items: start; }
+.simui-surface.card { padding: 12px; background: var(--surface); border: 1px solid var(--faint); border-radius: var(--radius); }
+
+/* sub-grouped GroupBlock (axis: room/floor/device-class) */
+.simui-subgroups { display: flex; flex-direction: column; gap: 12px; }
+.simui-subhead { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 2px 0 6px; }
+.simui-list-empty { padding: 4px 2px; font-size: 13px; color: var(--muted); }
+
+/* category launcher + scene tiles */
+.simui-launcher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.simui-tile.is-vertical { align-items: center; justify-content: center; text-align: center; gap: 8px; min-height: 84px; }
+.simui-tile.is-launcher { cursor: pointer; }
+.simui-tile.is-launcher.is-tinted { background: color-mix(in srgb, var(--tile-accent) 10%, var(--surface)); border-color: color-mix(in srgb, var(--tile-accent) 28%, var(--faint)); }
+.simui-launch-ic { display: inline-flex; align-items: center; justify-content: center; color: var(--tile-accent, var(--accent)); }
+.simui-launch-name { font-size: 12px; font-weight: 600; max-width: 100%; }
+.simui-scene-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; min-height: 84px; padding: 11px 12px; background: var(--surface); border: 1px solid var(--faint); border-radius: var(--radius); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+.simui-scene-tile:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--faint)); }
+.simui-scene-tile .simui-launch-ic { color: var(--accent); }
+
+/* EntityTile icon affordance + active tint */
+.simui-ic.on { color: var(--accent); }
+.simui-tile.is-tinted { background: color-mix(in srgb, var(--tile-accent) 8%, var(--surface)); border-color: color-mix(in srgb, var(--tile-accent) 22%, var(--faint)); }
+
+/* home: rooms heading below the summary */
+.simui-rooms-head { margin: 18px 2px 10px; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.simui-home-summary { margin-bottom: 4px; }
+
+/* ============================================================================
+   Home — an integrated, layered surface (DESIGN_PRINCIPLES §1/§3/§4/§14).
+   No box-upon-box: the ambient canvas carries mood; sections are borderless and
+   separated by typography + whitespace; the launcher is a clean icon rail.
+   ========================================================================== */
+.simui-home-content { position: relative; }
+.simui-home-layer { position: relative; z-index: 1; }
+
+/* de-box the home summary: a full-width vertical feed (not a grid of panels), so
+   launcher + security sit ON the canvas and breathe — the layered "page" feel. */
+.simui-home-summary { display: flex; flex-direction: column; align-items: stretch; gap: 22px; margin-bottom: 10px; }
+.simui-home-summary > .simui-block { min-width: 0; width: 100%; }
+.simui-home-summary .simui-surface,
+.simui-home-summary .simui-surface.list,
+.simui-home-summary .simui-surface.card { background: transparent; border: none; padding: 0; border-radius: 0; }
+.simui-home-summary .simui-surface-head { margin: 0 2px 10px; }
+
+/* category launcher → a clean rail: soft halo icon + label, no card chrome */
+.simui-home-summary .simui-launcher-grid { gap: 4px; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+.simui-home-summary .simui-tile.is-launcher,
+.simui-home-summary .simui-tile.is-launcher.is-tinted,
+.simui-home-summary .simui-tile.is-launcher.is-active {
+  background: transparent; border: none; min-height: 80px; gap: 9px; padding: 8px 4px; border-radius: 16px;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.simui-home-summary .simui-tile.is-launcher:hover { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.simui-home-summary .simui-tile.is-launcher:active { transform: scale(0.97); }
+.simui-home-summary .simui-launch-ic {
+  width: 48px; height: 48px; border-radius: 16px;
+  color: var(--tile-accent, var(--accent));
+  background: color-mix(in srgb, var(--tile-accent, var(--accent)) 15%, transparent);
+}
+.simui-home-summary .simui-launch-name { color: var(--text); font-size: 12px; font-weight: 500; }
+
+/* security on home: borderless rows on the canvas with hairline dividers */
+.simui-home-summary .simui-rows .simui-erow + .simui-erow { border-top: 1px solid var(--faint); }
+
+/* quieter status strip on home — reads as glance, not buttons */
+.simui-home-layer .simui-pill-count,
+.simui-home-layer .simui-pill-nav,
+.simui-home-layer .simui-pill-action,
+.simui-home-layer .simui-pill-select { background: color-mix(in srgb, var(--text) 3%, transparent); border-color: color-mix(in srgb, var(--text) 9%, transparent); }
+
+/* rooms label sits quietly above the grid */
+.simui-rooms-head { margin: 26px 2px 12px; }
+
+/* ============================================================================
+   PHASE 2 + 3 — data-viz walls, drag-to-set tiles, security board, ambient
+   canvas, bloom studio (DESIGN_DIRECTIONS "C-base + A-touch"). All scoped under
+   .simui-root; tokens reused (--warm/--cool/--up/--down/--warn + categoricals),
+   no new palette. Minimal motion — state changes appear, slow tints only.
+   ========================================================================== */
+
+/* ---- Worker 1 · MetricSpark data-viz wall (I6/I7) ---- */
+.simui-metric-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.simui-metric {
+  --metric-accent: var(--muted);
+  display: flex; flex-direction: column; gap: 5px; padding: 11px 12px;
+  background: color-mix(in srgb, var(--text) 3.5%, var(--surface)); border-radius: 14px;
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.simui-metric.is-clickable { cursor: pointer; }
+.simui-metric.is-clickable:hover { background: color-mix(in srgb, var(--text) 6.5%, var(--surface)); }
+.simui-metric.is-clickable:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 1px; }
+.simui-metric-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; }
+.simui-metric-name { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.simui-metric-delta { flex: none; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-metric-delta.up { color: var(--up); }
+.simui-metric-delta.down { color: var(--down); }
+.simui-metric-value { display: flex; align-items: baseline; gap: 4px; }
+.simui-metric-val { font-size: 22px; font-weight: 300; letter-spacing: -0.5px; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-metric-val.oob { color: var(--warn); }
+.simui-metric-unit { font-size: 11px; color: var(--muted); }
+.simui-metric-spark { display: block; width: 100%; margin-top: 2px; color: var(--metric-accent); }
+.simui-metric-spark.is-empty { background: linear-gradient(var(--hairline), var(--hairline)) center / 100% 1px no-repeat; }
+.simui-metric-band { fill: color-mix(in srgb, var(--up) 12%, transparent); }
+
+/* smart-click → full Chart in a Sheet, with a 24h/7d/30d range toggle */
+.simui-expand-glance.is-clickable { cursor: pointer; }
+.simui-expand-glance.is-clickable:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; border-radius: 14px; }
+.simui-expand-sheet { display: flex; flex-direction: column; gap: 14px; }
+.simui-expand-chart { width: 100%; }
+.simui-range-toggle { display: inline-flex; align-self: flex-start; gap: 2px; padding: 2px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--faint); }
+.simui-range-btn { min-width: 44px; height: 26px; padding: 0 10px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; transition: color 0.12s ease, background 0.12s ease; }
+.simui-range-btn:hover { color: var(--text); }
+.simui-range-btn.active { background: var(--surface); color: var(--accent); }
+
+/* ---- Worker 2 · SliderTile (the tile IS the slider) ---- */
+.simui-slider-wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.simui-slidertile {
+  --slider-tint: var(--warm);
+  position: relative; display: flex; min-height: 92px; padding: 0; overflow: hidden;
+  border-radius: 16px; background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.06); cursor: pointer;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  transition: box-shadow 0.15s ease;
+}
+.simui-slidertile.is-on { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 24%, transparent); }
+.simui-slidertile.is-dragging { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 42%, transparent); }
+.simui-slidertile.is-static { cursor: default; touch-action: auto; }
+.simui-slidertile:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 1px; }
+/* the tinted fill rises from the bottom; its height/width IS the value */
+.simui-slidertile-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; opacity: 0.18; pointer-events: none; transition: height 0.04s linear, opacity 0.15s ease; }
+.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.28; }
+.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; }
+.simui-slidertile-body { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; width: 100%; padding: 11px 12px; }
+.simui-slidertile-head { display: flex; align-items: center; gap: 8px; }
+.simui-slidertile-ic { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; padding: 0; border: none; border-radius: 9px; background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--muted); cursor: pointer; transition: color 0.12s ease, background 0.12s ease; }
+.simui-slidertile-ic.on { color: var(--slider-tint); background: color-mix(in srgb, var(--slider-tint) 16%, transparent); }
+.simui-slidertile-pct { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-slidertile-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Worker 2 · Security status board (I5) ---- */
+.simui-statusboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+.simui-statusboard {
+  --board-tint: var(--muted);
+  display: flex; flex-direction: column; gap: 6px; min-height: 96px; padding: 13px 14px;
+  border-radius: 18px; background: color-mix(in srgb, var(--text) 3.5%, var(--surface));
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05); cursor: default;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.simui-statusboard.tone-secure { --board-tint: var(--up); }
+.simui-statusboard.tone-warn { --board-tint: var(--warn); }
+.simui-statusboard.tone-alert { --board-tint: var(--down); }
+.simui-statusboard.tone-idle { --board-tint: var(--muted); }
+/* secure stays calm/monochrome; only unsecured/tripped tiles ignite + halo */
+.simui-statusboard.is-attn {
+  background: color-mix(in srgb, var(--board-tint) 10%, var(--surface));
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px color-mix(in srgb, var(--board-tint) 30%, transparent), 0 4px 18px color-mix(in srgb, var(--board-tint) 16%, transparent);
+}
+.simui-statusboard-ic { display: inline-flex; color: var(--muted); }
+.simui-statusboard.is-attn .simui-statusboard-ic { color: var(--board-tint); }
+.simui-statusboard-word { font-size: 17px; font-weight: 500; letter-spacing: -0.2px; color: var(--text); }
+.simui-statusboard.is-attn .simui-statusboard-word { color: var(--board-tint); }
+.simui-statusboard-name { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-statusboard .simui-state { font-size: 11px; }
+
+/* ---- Worker 2 · Attention escalation strip ---- */
+.simui-attn { margin-bottom: 2px; }
+.simui-attn.is-clear { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 14px; background: color-mix(in srgb, var(--text) 3%, var(--surface)); }
+.simui-attn-ic { display: inline-flex; color: var(--up); }
+.simui-attn-ic.warn { color: var(--warn); }
+.simui-attn-clear { font-size: 13px; color: var(--muted); }
+.simui-attn.is-active { display: flex; flex-direction: column; gap: 10px; padding: 13px 14px; border-radius: 18px; background: color-mix(in srgb, var(--warn) 8%, var(--surface)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 26%, transparent); }
+.simui-attn-head { display: flex; align-items: center; gap: 8px; }
+.simui-attn-title { font-size: 13px; font-weight: 600; color: var(--warn); }
+.simui-attn-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+
+/* ---- Worker 3 · AmbientCanvas — the living colour field ---- */
+.simui-ambient-canvas {
+  position: absolute; inset: -16px -16px auto -16px; height: 460px; z-index: 0; pointer-events: none;
+  opacity: var(--amb-opacity, 0.12);
+  transition: opacity 0.6s ease, background 0.6s ease;
+}
+.simui-ambient-canvas.is-field {
+  background:
+    radial-gradient(120% 80% at 18% -10%, color-mix(in srgb, var(--warm) 70%, transparent), transparent 56%) ,
+    radial-gradient(130% 90% at 84% -4%, var(--amb-phase, var(--slate)), transparent 60%);
+}
+/* warm bloom strength tracks how many lights are on (--amb-warm 0..1) */
+.simui-ambient-canvas.is-field::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  opacity: var(--amb-warm, 0);
+  background: radial-gradient(120% 80% at 30% 0%, var(--warm), transparent 58%);
+}
+/* cool wash ignites only while a climate entity is actively cooling (--amb-cool) */
+.simui-ambient-canvas.is-field::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  opacity: calc(var(--amb-cool, 0) * 0.7);
+  background: radial-gradient(120% 90% at 80% 6%, var(--cool), transparent 60%);
+}
+/* dot-matrix flourish (wall-tablet) — pure CSS radial dots, top-masked, 60fps */
+.simui-ambient-canvas.is-dots {
+  inset: 0; height: auto;
+  background-image: radial-gradient(color-mix(in srgb, var(--amb-phase, var(--warm)) 80%, transparent) 0.9px, transparent 1px);
+  background-size: 5px 5px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.4) 40%, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.4) 40%, transparent 78%);
+}
+.simui-ambient-canvas.is-dots::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  opacity: var(--amb-warm, 0);
+  background-image: radial-gradient(var(--warm) 1px, transparent 1.4px);
+  background-size: 5px 5px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
+}
+
+/* category surface ambient layering (CategoryView opt-in) */
+.simui-cat-content { position: relative; }
+.simui-cat-layer { position: relative; z-index: 1; }
+
+/* ---- Worker 4 · BloomStudio (ColorWheel + TempDial) ---- */
+.simui-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.simui-bloom { display: flex; flex-direction: column; gap: 18px; align-items: stretch; }
+.simui-bloom.light .simui-bloom-wheelwrap, .simui-bloom-dialwrap { display: flex; justify-content: center; }
+.simui-bloom-sliders { display: flex; flex-direction: column; gap: 9px; }
+.simui-bloom-modes { align-self: stretch; flex-wrap: wrap; }
+.simui-bloom-dialpair { display: flex; gap: 18px; justify-content: center; }
+.simui-bloom-dialcol { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.simui-bloom-readonly { font-size: 30px; font-weight: 300; color: var(--text); text-align: center; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+/* HSV colour wheel */
+.simui-wheel { position: relative; flex: none; border-radius: 50%; cursor: pointer; touch-action: none; outline: none; }
+.simui-wheel:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+.simui-wheel-disc {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #fff 0%, rgba(255,255,255,0) 70%),
+    conic-gradient(from 90deg, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.simui-wheel-thumb { position: absolute; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.5); pointer-events: none; }
+
+/* climate ring dial */
+.simui-dial { flex: none; cursor: pointer; touch-action: none; outline: none; }
+.simui-dial:focus-visible { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 70%, transparent)); }
+.simui-dial-track { stroke: var(--faint); }
+.simui-dial-knob { stroke: var(--surface); stroke-width: 2; }
+.simui-dial-value { font-size: 40px; font-weight: 300; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-dial-unit { font-size: 20px; }
+.simui-dial-current { font-size: 12px; }
+
+/* ---- Worker 4 · album-art-aware media tile (DESIGN_DIRECTIONS §2.9) ---- */
+.simui-tile.is-album-tinted { background: color-mix(in srgb, var(--album-tint) 12%, var(--surface)); box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 1px color-mix(in srgb, var(--album-tint) 22%, transparent); }
+.simui-tile.is-album-tinted .simui-art { box-shadow: 0 2px 16px color-mix(in srgb, var(--album-tint) 38%, transparent); }

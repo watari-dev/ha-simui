@@ -1,5 +1,6 @@
 import { Power } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { StateLine } from '../components/StateLine';
 import { useCallService } from '../hass/context';
 import type { WidgetProps } from '../types';
 import { domainOf, friendly, prettyState } from '../util';
@@ -24,7 +25,10 @@ export function GenericTile({ entity }: WidgetProps) {
         {canToggle && <span className={`simui-ic${on ? ' cool' : ''}`}><Power size={15} strokeWidth={2} /></span>}
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
       </div>
-      <span className="simui-state">{prettyState(entity.state)}{unit ? ` ${unit}` : ''}</span>
+      <StateLine
+        value={`${prettyState(entity.state)}${unit ? ` ${unit}` : ''}`}
+        since={isOnOff ? entity.last_changed : undefined}
+      />
     </Tile>
   );
 }

@@ -1,6 +1,8 @@
 import { Minus, Plus, Thermometer } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { TileFeatures } from '../components/TileFeatures';
 import { useCallService } from '../hass/context';
+import type { TileFeature } from '../widgets/tileContract';
 import type { WidgetProps } from '../types';
 import { clamp, friendly } from '../util';
 
@@ -27,6 +29,12 @@ export function ClimateTile({ entity }: WidgetProps) {
     void callService('climate', 'set_temperature', { temperature: next }, { entity_id: entity.entity_id });
   };
 
+  // Inline HVAC-mode control strip (FRAMEWORK.md §1) — a curated subset of the
+  // entity's own modes, icon-only to stay dense. Renders nothing without modes.
+  const hvacModes = (a.hvac_modes as string[] | undefined) ?? [];
+  const features: TileFeature[] =
+    hvacModes.length > 1 ? [{ type: 'climate-hvac-modes', modes: hvacModes, style: 'icons' }] : [];
+
   return (
     <Tile>
       <div className="simui-row">
@@ -46,6 +54,7 @@ export function ClimateTile({ entity }: WidgetProps) {
           <span className="simui-target">{fmt(tLow)}–{fmt(tHigh)}°</span>
         ) : null}
       </div>
+      <TileFeatures entity={entity} features={features} />
     </Tile>
   );
 }

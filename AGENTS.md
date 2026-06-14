@@ -2,8 +2,17 @@
 
 A custom, beautiful, **information-dense** UI layer for Home Assistant — built in React,
 adaptive across phone, desktop, and an installable/native form factor. The goal is
-aesthetics and density that stock Lovelace doesn't deliver. This is a personal project,
-optimized first and foremost for the owner's taste.
+aesthetics and density that stock Lovelace doesn't deliver.
+
+**This is not a personal project — it is a framework and template gallery for other
+people.** The real deliverable is the underlying framework (a small, legible block/widget
+model + binding system) plus a gallery of editable presets, so anyone can build a dashboard
+like this. The owner's taste is the **quality bar** the framework is built to — the design
+north star, not the scope. Every preset must be **user-editable** (no YAML) and
+**approachable** to non-power users: sensible auto-defaults, progressive disclosure
+(glance → tweak → deep edit), graceful degradation (a Lights surface looks right with 3
+lights or 280), and never an exposed wall of the full entity registry. Build for
+generalizability, not fidelity to any one home.
 
 ## Status
 
@@ -18,10 +27,12 @@ sensor, climate, media_player, cover, lock + generic fallback. `npm run dev` (mo
 when no token) → `dist/simui-panel.js`. Verified end-to-end in a headless browser.
 
 **Current pivot:** from the per-room dashboard to a navigation **shell** — a Home summary,
-device-type category views, native detail sheets, and preset templates (see "Navigation &
-interaction" below, and [`TODO.md`](TODO.md) / [`PROGRESS.md`](PROGRESS.md)). Smaller known
-gaps: real HA **area registry** for rooms (currently a name heuristic); richer in-UI
-composition; a `lightweight-charts` history card.
+device-type category views, native detail sheets, and preset templates. The shell, primitive
+contracts, and first presets are now specified: [`INSPIRATION.md`](INSPIRATION.md) (real-world
+evidence), [`FRAMEWORK.md`](FRAMEWORK.md) (Tile / Block / Chart / StatusStrip contracts),
+[`PRESETS.md`](PRESETS.md) (the gallery). See also [`TODO.md`](TODO.md) / [`PROGRESS.md`](PROGRESS.md).
+Smaller known gaps: real HA **area registry** for rooms (currently a name heuristic); richer
+in-UI composition; the `lightweight-charts` history card.
 
 ## Vision & principles
 
@@ -39,14 +50,14 @@ composition; a `lightweight-charts` history card.
   authenticated `hass` object (connection + live states) — no token, no separate login,
   works identically in every Companion app. A long-lived access token is used *only* for
   standalone local dev (Vite HMR).
-- **A Home Assistant MCP server is connected in this environment.** Use the
-  `mcp__Home_Assistant__*` tools to inspect the live instance (entities, areas, devices,
-  dashboards, history) when designing — don't guess at what exists.
-- **⚠️ The connected MCP currently points at a public *demo* sandbox**
-  (`ha-mcp-demo-server.qc-h.net` — HA's demo integration: "Bed Light", "Ecobee", "Paulus",
-  demo vacuums), **not the owner's real home.** All work so far is validated against demo
-  data. To work against the real instance, re-point the HA MCP at it **and restart the
-  session** (MCP servers load at session start), then verify `base_url` is the owner's domain.
+- **Two Home Assistant MCP servers are connected.** `mcp__simbas-home-assistant__*` points at
+  the **owner's real home** ("Simba's Home", `Australia/Sydney`, HA 2026.6.3, ~6,257 entities,
+  3 floors, 20 areas) — use it to inspect entities, areas, devices, dashboards, history when
+  designing; don't guess at what exists. `mcp__Home_Assistant__*` is the older HA **demo**
+  sandbox (`ha-mcp-demo-server.qc-h.net` — "Bed Light / Ecobee / Paulus"); ignore it for real work.
+- **The real dashboard has been analyzed** for inspiration — see [`INSPIRATION.md`](INSPIRATION.md).
+  It is category-organized + tile-first (317 native `tile` cards, surgical custom cards), which
+  strongly validates the navigation-shell pivot.
 
 ## Architecture (decided)
 
@@ -109,12 +120,23 @@ Full spec: [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md) §14.
 - **Config-driven**, composed blocks, drag-to-edit, persisted per user.
 - **Stack:** Vite + React 19 + TypeScript, `home-assistant-js-websocket`, dnd-kit,
   lucide-react; plain CSS with HA-theme-aware variables.
+- **Inspiration ≠ replication** — patterns are generalized for other people, built for
+  editability + approachability, not cloned from the owner's home ([`INSPIRATION.md`](INSPIRATION.md)).
+- **Block owns layout; tile owns the entity** — one Tile leaf flexed by props; blocks own
+  placement + grouping ([`FRAMEWORK.md`](FRAMEWORK.md)).
+- **Energy + Power = one merged surface** — the real config already merges generation +
+  consumption in a single chart.
+- **Server / Homelab preset = native controls only** — no embedded Proxmox / Portainer /
+  Cockpit iframes; deep-links open the real console in a new tab.
 
 ## Open questions
 
-- **Energy vs. Power** — separate category views, or merged into one?
-- Which **presets** ship by default (Minimal / Information-dense / Family hub / Wall tablet…).
-- Real **area registry** integration (replace the name-keyword room heuristic).
+- Beyond the first presets (Home summary · Lights / Climate / Sensors / Power · Server),
+  which *role/density variants* ship by default (Minimal / Family hub / Wall tablet…).
+- Real **area registry** integration (replace the name-keyword room heuristic) — needed to
+  drive per-category auto-grouping.
+- *Resolved this session:* Energy + Power **merged** into one surface (see Decisions); the
+  real HA is now connected (`simbas-home-assistant`) and its dashboard analyzed.
 
 ## Conventions
 
