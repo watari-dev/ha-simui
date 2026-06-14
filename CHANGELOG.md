@@ -7,7 +7,20 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-15
+
+An Apple-Home design pass over the whole shell — a redesigned light tile, a glanceable
+top-of-home highlights band, a dedicated Media surface, and a Powerwall-style energy-flow
+object — alongside a sweep of UX bug fixes (editing, the add-card gallery, the context
+menu) and a real design-token layer.
+
 ### Added
+- **Apple-Home top highlights** — an always-present, tappable band on the Home summary
+  (Lights / Climate / Security / Media / Fans), each a live aggregate that taps through to its
+  filtered category view; Security reads a calm "Secure" when everything is locked.
+- **Media category surface** — "Now playing" rich transport cards (album · title · prev/play/next)
+  over a compact speaker & display list, with mirror-entity dedup + curation so a large real home
+  isn't a wall of unavailable ghosts.
 - **Wall-tablet / kiosk mode** — a chrome-off, screen-awake display mode (enter from the Home
   header or `?kiosk=1`): hides the header, switches the ambient to the dot-matrix field, holds a
   Screen Wake Lock, suppresses the editor (tap-to-control kept), with a floating exit button.
@@ -16,6 +29,34 @@ All notable changes to simUI are documented here. Versions follow
   active wires. Emitted by the Power preset when a real solar + battery/grid system is detected.
 - **Range toggle (24h / 7d / 30d)** on the always-on Power flow chart (previously only in the
   expand sheet).
+- **Design-token layer** — a 4px spacing scale, two radius tiers, an elevation/bezel material and
+  a type scale declared on `:root`, so surfaces share one rhythm.
+
+### Changed
+- **Apple-Home light tile** — the everyday light surface is now the premium drag-to-set tile: a
+  soft warm-glow brightness fill (no more muddy block), a round icon disc, a warm card wash +
+  squircle radius only when on, and a bold tabular % headline. Split-action gesture — the icon
+  disc toggles in place, the body opens the detail sheet, a drag sets brightness.
+- **Inline top edit bar** — Undo / Redo / Add card / Done live inline in the surface header while
+  editing, instead of a bar floating at the bottom of the screen.
+- **Borderless cards** — tiles, room cards, surfaces, scene tiles and control chrome trade hard
+  1px borders for a raised fill + hairline bezel ("depth from light, not boxes"); surface radii
+  unified to 18px.
+- **Cleaner Power surface** — the energy-flow object drops its redundant mid-wire value labels and
+  empty lower third; history charts show their window (anchored at the latest sample) instead of
+  stretching to fit a stray sample.
+- **Curated highlight counts** — the status strip applies the same registry curation as the preset
+  builders, so counts exclude hidden/diagnostic entities on a real home.
+
+### Fixed
+- **Right-click / long-press context menu** position when embedded in Home Assistant — it anchors
+  to its real containing block instead of jumping to the far left.
+- **Add-card gallery** — an opaque panel (some themes made `--surface` translucent → see-through)
+  and live previews that no longer collapse to a sliver.
+- **Editor scrim** — entering edit mode no longer paints an opaque full-screen overlay over the
+  surface.
+- **Power chart battery series** — signed battery power was pinned to a 0–100 SOC axis and drawn
+  off-screen; it now shares the power axis.
 
 ### Performance
 - **Batched sparkline-wall history** — a metric wall fetches its whole history in one request and
