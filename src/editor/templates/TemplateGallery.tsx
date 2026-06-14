@@ -98,7 +98,7 @@ export function TemplateGallery({
   }, [templates, needle]);
 
   return createPortal(
-    <div className="simui-root simui-tmpl-backdrop" onClick={onClose}>
+    <div className="simui-overlay simui-tmpl-backdrop" onClick={onClose}>
       <div
         className="simui-tmpl"
         role="dialog"

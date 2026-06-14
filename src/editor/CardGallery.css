@@ -4,7 +4,7 @@
    so it inherits hass.themes when embedded. Dark-first, minimal motion. */
 
 /* ── Modal shell (Sheet-style portal) ─────────────────────────────────────── */
-.simui-root.simui-gallery-backdrop {
+.simui-overlay.simui-gallery-backdrop {
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -20,7 +20,11 @@
   width: 100%;
   max-width: 920px;
   max-height: 88vh;
-  background: var(--surface);
+  /* A guaranteed-opaque base: some HA themes make --surface a translucent rgba,
+     which on a free-floating modal (nothing opaque beneath it) reads as see-through.
+     Layer the surface tint over the opaque --bg so the panel is always solid. */
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--surface), var(--surface));
   border: 1px solid var(--faint);
   border-radius: 20px 20px 0 0;
   overflow: hidden;
@@ -28,7 +32,7 @@
 }
 
 @media (min-width: 720px) {
-  .simui-root.simui-gallery-backdrop {
+  .simui-overlay.simui-gallery-backdrop {
     align-items: center;
     padding: 24px;
   }
@@ -49,7 +53,10 @@
   gap: 10px;
   padding: 12px 14px;
   border-bottom: 1px solid var(--faint);
-  background: var(--surface);
+  /* Opaque base (see .simui-gallery) so the sticky header never shows content
+     scrolling beneath it when --surface is a translucent theme value. */
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--surface), var(--surface));
 }
 
 .simui-gallery-search {
@@ -103,6 +110,10 @@
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
   align-content: start;
+  /* Size each card to its own content; without this the grid's default
+     align-items:stretch equalises row heights and the flexible preview frame
+     collapses (clipping the live preview to a ~22px sliver). */
+  align-items: start;
 }
 
 .simui-gallery-empty {
@@ -148,6 +159,8 @@
 .simui-gallery-preview {
   position: relative;
   height: 116px;
+  /* Never let the flex column shrink the preview frame below its fixed height. */
+  flex: none;
   overflow: hidden;
   background:
     radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--text) 4%, transparent), transparent 70%),

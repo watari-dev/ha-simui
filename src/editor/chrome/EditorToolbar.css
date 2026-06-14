@@ -3,44 +3,16 @@
    theme tokens (--surface / --surface-2 / --faint / --accent / --muted / --text /
    --up). Dark, unobtrusive, Linear-style; appears, never performs. */
 
-/* ── Anchor: centred-bottom on phone (safe-area aware), bottom-right on desktop ── */
-.simui-root.simui-etb-anchor {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 55; /* above the surface, below the gallery/inspector sheets (60+) */
-  display: flex;
-  justify-content: center;
-  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  pointer-events: none; /* only the bar itself is interactive */
-}
-
-@media (min-width: 720px) {
-  .simui-root.simui-etb-anchor {
-    justify-content: flex-end;
-    padding-right: calc(20px + env(safe-area-inset-right, 0px));
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
 /* ── The bar ──────────────────────────────────────────────────────────────── */
+/* An inline group that lives in the surface header (`.simui-head`) while editing —
+   not a floating overlay. It sits on the header's solid --bg, so it carries no
+   background / border / shadow / blur of its own: depth from light, not elevation
+   (DESIGN_PRINCIPLES §4). The buttons provide all the visual weight. */
 .simui-etb {
-  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px;
-  max-width: 100%;
-  background: color-mix(in srgb, var(--text) 4%, var(--surface));
-  border: 1px solid var(--faint);
-  border-radius: 14px;
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.42),
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
-  /* A whisper of glass so it reads as floating over the surface. */
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  min-width: 0; /* allow the header title to keep its share on narrow widths */
 }
 
 .simui-etb-group {

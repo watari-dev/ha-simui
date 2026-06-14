@@ -1,11 +1,11 @@
 import { useMemo, type CSSProperties } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, ChevronLeft, Pencil } from 'lucide-react';
+import { ChevronLeft, Pencil } from 'lucide-react';
 import { useAggregate } from '../hass/context';
 import { useDashboard } from './store';
 import { useEditableSurface } from './useEditableSurface';
-import { EmptyState } from '../editor/chrome';
+import { EditorToolbar, EmptyState } from '../editor/chrome';
 import { BlockChrome, StaticBlock } from './BlockChrome';
 import { lightIdsOf, summarizeRoom } from './summary';
 import type { Room } from './types';
@@ -41,15 +41,15 @@ export function RoomView({ room }: { room: Room }) {
         <span className="simui-head-title">{room.name}</span>
         <RoomGlance room={room} lightIds={lightIds} />
         <span className="simui-spacer" />
-        {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
-            (mounted by DashboardView) — keep the header chrome minimal. */}
-        <button
-          className={`simui-iconbtn-h${active ? ' active' : ''}`}
-          onClick={onEditToggle}
-          aria-label={active ? 'Done editing' : 'Edit room'}
-        >
-          {active ? <Check size={16} /> : <Pencil size={15} />}
-        </button>
+        {/* While editing, the inline edit bar (Undo / Redo / Add card / Saved / Done)
+            takes over the header's right side; otherwise just the Edit pencil. */}
+        {active ? (
+          <EditorToolbar />
+        ) : (
+          <button className="simui-iconbtn-h" onClick={onEditToggle} aria-label="Edit room">
+            <Pencil size={15} />
+          </button>
+        )}
       </header>
 
       <div className="simui-content simui-room">

@@ -4,7 +4,7 @@
    .simui-root so nothing leaks into HA's frontend. Dark-first, minimal motion. */
 
 /* ── Modal shell (Sheet-style portal) ─────────────────────────────────────── */
-.simui-root.simui-tmpl-backdrop {
+.simui-overlay.simui-tmpl-backdrop {
   position: fixed;
   inset: 0;
   z-index: 62;
@@ -28,7 +28,7 @@
 }
 
 @media (min-width: 720px) {
-  .simui-root.simui-tmpl-backdrop {
+  .simui-overlay.simui-tmpl-backdrop {
     align-items: center;
     padding: 24px;
   }

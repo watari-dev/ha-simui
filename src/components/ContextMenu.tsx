@@ -53,20 +53,32 @@ export function ContextMenu({ items, x, y, onClose, header }: ContextMenuProps) 
 
   // Clamp into the viewport once we can measure the menu. useLayoutEffect so the
   // reposition happens before paint — the menu never flashes off-screen.
+  //
+  // `position: fixed` resolves against the nearest ancestor with a transform /
+  // filter / contain (its "containing block"), NOT always the viewport. When simUI
+  // is embedded in HA, the app shell can transform a wrapper above document.body,
+  // so a raw `left: clientX` lands relative to that wrapper and the menu jumps far
+  // left. We recover the containing block's viewport origin from the menu's own
+  // rect (it is currently rendered at `pos`), then position relative to it. In
+  // standalone dev the containing block IS the viewport, so origin ≈ 0 — a no-op.
   useLayoutEffect(() => {
     const el = menuRef.current;
     if (!el) return;
-    const { width, height } = el.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
+    const { width, height } = rect;
+    const originX = rect.left - pos.x; // viewport x where the containing block's left edge sits
+    const originY = rect.top - pos.y;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    let nx = x;
+    let nx = x; // desired position in VIEWPORT coordinates (clientX/clientY)
     let ny = y;
     if (nx + width > vw - EDGE) nx = Math.max(EDGE, vw - width - EDGE);
     if (ny + height > vh - EDGE) ny = Math.max(EDGE, vh - height - EDGE);
     if (nx < EDGE) nx = EDGE;
     if (ny < EDGE) ny = EDGE;
-    setPos({ x: nx, y: ny });
-  }, [x, y, items.length]);
+    // Convert the clamped viewport coords into the containing block's coordinate space.
+    setPos({ x: nx - originX, y: ny - originY });
+  }, [x, y, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Focus the menu container so it captures keys immediately (Esc, arrows).
   useEffect(() => {
@@ -157,7 +169,7 @@ export function ContextMenu({ items, x, y, onClose, header }: ContextMenuProps) 
     // <body> (outside the app's React tree) — matching Sheet.tsx's pattern.
     <div
       ref={menuRef}
-      className="simui-root simui-ctxmenu"
+      className="simui-overlay simui-ctxmenu"
       role="menu"
       tabIndex={-1}
       aria-orientation="vertical"

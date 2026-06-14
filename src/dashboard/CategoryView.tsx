@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, ChevronLeft, Pencil, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Pencil, RotateCcw } from 'lucide-react';
 import { useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { useKioskOptional } from './kioskMode';
 import { useEditableSurface } from './useEditableSurface';
-import { EmptyState } from '../editor/chrome';
+import { EditorToolbar, EmptyState } from '../editor/chrome';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
 import { AmbientCanvas } from '../components/AmbientCanvas';
@@ -105,15 +105,15 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
         {active && override && onReset && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset to preset"><RotateCcw size={15} /></button>
         )}
-        {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
-            (mounted by EditorOverlay) — keep the header chrome minimal. */}
-        <button
-          className={`simui-iconbtn-h${active ? ' active' : ''}`}
-          onClick={onEditToggle}
-          aria-label={active ? 'Done editing' : 'Edit surface'}
-        >
-          {active ? <Check size={16} /> : <Pencil size={15} />}
-        </button>
+        {/* While editing, the inline edit bar (Undo / Redo / Add card / Saved / Done)
+            takes over the header's right side; otherwise just the Edit pencil. */}
+        {active ? (
+          <EditorToolbar />
+        ) : (
+          <button className="simui-iconbtn-h" onClick={onEditToggle} aria-label="Edit surface">
+            <Pencil size={15} />
+          </button>
+        )}
       </header>
       <div className={`simui-content${ambient ? ' simui-cat-content' : ''}`}>
         {ambient && <AmbientCanvas mode={kiosk ? 'dots' : 'field'} lightIds={surfaceLightIds} maxOpacity={0.12} />}

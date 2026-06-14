@@ -6,7 +6,7 @@ import { useEditor } from './store';
 import { CardGallery } from './CardGallery';
 import { Inspector } from './Inspector';
 import { EntityPicker } from './EntityPicker';
-import { EditorToolbar, OnboardingHint } from './chrome';
+import { OnboardingHint } from './chrome';
 import { TemplateGallery, type PageTemplate } from './templates';
 import { CARD_KINDS, seedFor } from './cardKinds';
 import { buildPreviewContext } from './preview';
@@ -60,10 +60,11 @@ export function EditorOverlay() {
     selection.kind !== 'none' ? editor.dirtyBlocks.find((b) => b.id === selection.blockId) ?? null : null;
   const tile = selection.kind === 'tile' && block ? (block.tiles?.[selection.entityId] ?? {}) : null;
 
-  // One fragment so the toolbar coexists with whatever panel is open (SPEC_EDITOR §6).
+  // The edit toolbar now lives inline in each surface header (`.simui-head`); this
+  // overlay only hosts the transient panels (gallery / templates / picker / inspector)
+  // plus the first-run onboarding hint (SPEC_EDITOR §6).
   return (
     <>
-      <EditorToolbar />
       {!onboarded && (
         <OnboardingHint
           onDismiss={() => {

@@ -1,7 +1,13 @@
-/* All styles scoped under .simui-root so nothing leaks into HA's frontend.
-   Colors prefer HA's theme variables and fall back to a dark-first palette,
-   so the panel inherits the user's theme when embedded. */
-.simui-root {
+/* Design tokens live on :root (and :host, to de-risk a future shadow-DOM pivot)
+   rather than on the .simui-root class. CSS custom properties only reach an element
+   that matches the declaring rule, so when tokens lived on `.simui-root` the four
+   body-level portals (Sheet / ContextMenu / CardGallery / TemplateGallery) had to
+   re-add `className="simui-root"` purely to inherit them — which also dragged in
+   `background`/`min-height`/`color` and caused the "infinite box" / scrim bugs.
+   On :root every node — including document.body portals — inherits them for free.
+   Colors prefer HA's theme variables and fall back to a dark-first palette, so the
+   panel inherits the user's theme when embedded. */
+:root, :host {
   --bg: var(--primary-background-color, #0a0b0d);
   --surface: var(--ha-card-background, var(--card-background-color, #15171c));
   --surface-2: #1b1e25;
@@ -22,13 +28,25 @@
   --slate: #7c93c8;  /* system */
   --hairline: var(--divider-color, rgba(255,255,255,0.06));
   --radius: 14px;
+}
 
+/* The app container paints + sets type; portals deliberately do NOT inherit these. */
+.simui-root {
   font-family: var(--paper-font-body1_-_font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   color: var(--text);
   background: var(--bg);
   min-height: 100%;
 }
-.simui-root * { box-sizing: border-box; }
+/* Overlay context for body-level portals (Sheet / ContextMenu / CardGallery /
+   TemplateGallery). Gives the portal subtree what it legitimately needs — token
+   inheritance (free, from :root), text color + font, and border-box — WITHOUT the
+   `.simui-root` paint side-effects (`background:var(--bg)`, `min-height:100%`) that
+   used to make a portal wrapper scrim the whole viewport or balloon to full height. */
+.simui-overlay {
+  color: var(--text);
+  font-family: var(--paper-font-body1_-_font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+.simui-root *, .simui-overlay, .simui-overlay * { box-sizing: border-box; }
 .simui-big, .simui-pct, .simui-target, .simui-value, .simui-delta {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
@@ -680,7 +698,7 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 /* A single shared focus-ring token so every custom control announces focus the
    same way (keyboard-only via :focus-visible). Reserved-accent tinted, so it
    reads as "the active control" without introducing a new colour. */
-.simui-root { --focus-ring: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+:root, :host { --focus-ring: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
 
 /* A crisp keyboard-only ring on every custom interactive surface in the shell.
    :focus-visible already excludes mouse focus, so we only override the (per-control)

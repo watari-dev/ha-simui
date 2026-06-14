@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, MonitorPlay, Pencil, RotateCcw } from 'lucide-react';
+import { MonitorPlay, Pencil, RotateCcw } from 'lucide-react';
 import { useAggregate, useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
 import { useKioskOptional } from './kioskMode';
 import { useEditableSurface } from './useEditableSurface';
-import { EmptyState } from '../editor/chrome';
+import { EditorToolbar, EmptyState } from '../editor/chrome';
 import { RoomCard } from './RoomCard';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
@@ -81,21 +81,22 @@ export function HomeView() {
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset home"><RotateCcw size={15} /></button>
         )}
         {/* Enter wall-tablet/kiosk mode — chrome-off, screen-awake, dot ambient.
-            Hidden once in kiosk (the header is hidden there anyway). */}
-        {!kiosk && (
+            Hidden once in kiosk (the header is hidden there anyway) and while editing
+            (the edit bar owns the header). */}
+        {!kiosk && !active && (
           <button className="simui-iconbtn-h" onClick={enterKiosk} aria-label="Enter kiosk mode">
             <MonitorPlay size={15} />
           </button>
         )}
-        {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
-            (mounted by DashboardView) — keep the header chrome minimal. */}
-        <button
-          className={`simui-iconbtn-h${active ? ' active' : ''}`}
-          onClick={onEditToggle}
-          aria-label={active ? 'Done editing' : 'Edit home'}
-        >
-          {active ? <Check size={16} /> : <Pencil size={15} />}
-        </button>
+        {/* While editing, the inline edit bar (Undo / Redo / Add card / Saved / Done)
+            takes over the header's right side; otherwise just the Edit pencil. */}
+        {active ? (
+          <EditorToolbar />
+        ) : (
+          <button className="simui-iconbtn-h" onClick={onEditToggle} aria-label="Edit home">
+            <Pencil size={15} />
+          </button>
+        )}
       </header>
       <div className="simui-content simui-home-content">
         <AmbientCanvas mode={kiosk ? 'dots' : 'field'} lightIds={homeLightIds} />

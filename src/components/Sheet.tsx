@@ -73,7 +73,7 @@ export function Sheet({ open, title, onClose, children }: SheetProps) {
   if (!open) return null;
 
   return createPortal(
-    <div className="simui-root simui-sheet-backdrop" onClick={onClose}>
+    <div className="simui-overlay simui-sheet-backdrop" onClick={onClose}>
       <div
         ref={panelRef}
         className="simui-sheet"

@@ -52,7 +52,7 @@ export function CardGallery({
   }, [kinds, needle]);
 
   return createPortal(
-    <div className="simui-root simui-gallery-backdrop" onClick={onClose}>
+    <div className="simui-overlay simui-gallery-backdrop" onClick={onClose}>
       <div
         className="simui-gallery"
         role="dialog"

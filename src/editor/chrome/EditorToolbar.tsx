@@ -10,10 +10,9 @@ import './EditorToolbar.css';
  * the save stays calm (DESIGN_PRINCIPLES §14, minimal motion).
  *
  * Reads `useEditor()` directly (it is editor chrome, not a reusable leaf), so it
- * MUST be rendered inside an <EditorProvider>. It self-gates on `active`, so the
- * integrator can mount it unconditionally next to the surface and it appears only
- * while editing. Floats centred at the bottom on phone (respecting the safe-area
- * inset) and shifts to the bottom-right on desktop.
+ * MUST be rendered inside an <EditorProvider>. It self-gates on `active`, so a view
+ * can drop it inline into its surface header (`.simui-head`) and it appears only
+ * while editing — an inline top edit bar, not a floating overlay.
  */
 export function EditorToolbar() {
   const editor = useEditor();
@@ -22,9 +21,8 @@ export function EditorToolbar() {
   const { canUndo, canRedo, committing, undo, redo, openGallery, exit } = editor;
 
   return (
-    <div className="simui-root simui-etb-anchor" role="toolbar" aria-label="Editing">
-      <div className="simui-etb">
-        <div className="simui-etb-group">
+    <div className="simui-etb" role="toolbar" aria-label="Editing">
+      <div className="simui-etb-group">
           <button
             type="button"
             className="simui-etb-btn"
@@ -83,7 +81,6 @@ export function EditorToolbar() {
           <Check size={16} strokeWidth={2.2} />
           <span className="simui-etb-label">Done</span>
         </button>
-      </div>
     </div>
   );
 }
