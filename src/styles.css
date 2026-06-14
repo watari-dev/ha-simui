@@ -12,7 +12,7 @@
   --surface: var(--ha-card-background, var(--card-background-color, #15171c));
   --surface-2: #1b1e25;
   --text: var(--primary-text-color, #edeef2);
-  --muted: var(--secondary-text-color, #838996);
+  --muted: var(--secondary-text-color, #8a909c);
   --faint: var(--divider-color, #23262e);
   --accent: var(--primary-color, #5b8cff);
   --warm: #ffb267;   /* on / heating */
@@ -27,7 +27,23 @@
   --teal: #34c0a8;   /* climate */
   --slate: #7c93c8;  /* system */
   --hairline: var(--divider-color, rgba(255,255,255,0.06));
-  --radius: 14px;
+
+  /* ── Design-system tokens (Phase 4: REDESIGN_PLAN.md §5) ──────────────────
+     One shared rhythm: a 4px spacing scale, two radius tiers, one elevation
+     language. Prefer these over ad-hoc literals so surfaces stop drifting. */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --r-surface: 18px;   /* cards / tiles / surfaces — continuous-squircle feel */
+  --r-control: 9px;    /* segmented controls, inputs, small buttons */
+  --r-pill: 999px;
+  --r-sheet: 20px;
+  --radius: var(--r-surface);
+  /* Depth from light, not boxes: a raised fill + a hairline top bezel replace
+     hard 1px borders on object surfaces. */
+  --surface-raised: color-mix(in srgb, var(--text) 4%, var(--surface));
+  --surface-hover: color-mix(in srgb, var(--text) 7%, var(--surface));
+  --bezel: inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+  /* Type scale (tabular figures live on the value/hero utilities). */
+  --fz-label: 11px; --fz-meta: 12px; --fz-body: 13px; --fz-value: 22px; --fz-hero: 44px;
 }
 
 /* The app container paints + sets type; portals deliberately do NOT inherit these. */
@@ -63,7 +79,7 @@
 
 .simui-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 
-.simui-tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 72px; padding: 11px 12px; background: color-mix(in srgb, var(--text) 4%, var(--surface)); border: 1px solid transparent; border-radius: 16px; box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05); transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+.simui-tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 72px; padding: 11px 12px; background: var(--surface-raised); border: 1px solid transparent; border-radius: var(--r-surface); box-shadow: var(--bezel); transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
 .simui-tile.is-clickable { cursor: pointer; }
 .simui-tile.is-clickable:hover { background: color-mix(in srgb, var(--text) 7.5%, var(--surface)); }
 .simui-tile.is-lit { background: color-mix(in srgb, var(--warm) 7%, var(--surface)); border-color: color-mix(in srgb, var(--warm) 22%, var(--faint)); }
@@ -84,7 +100,7 @@
 
 .simui-ic { display: inline-flex; flex: none; color: var(--muted); }
 .simui-ic.warm { color: var(--warm); }
-.simui-ic.cool { color: var(--accent); }
+.simui-ic.cool { color: var(--cool); }
 .simui-ic.amber { color: var(--warn); }
 
 .simui-big { font-size: 22px; font-weight: 600; line-height: 1; letter-spacing: -0.4px; }
@@ -182,7 +198,7 @@
 .simui-hero.is-state .simui-feats { margin-top: 14px; }
 
 /* soft group/list surfaces */
-.simui-surface { background: var(--group, rgba(255, 255, 255, 0.035)); border: none; border-radius: 20px; padding: 15px 16px; }
+.simui-surface { background: var(--group, rgba(255, 255, 255, 0.035)); border: none; border-radius: var(--r-surface); padding: var(--s-4); }
 .simui-surface-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 11px; font-weight: 500; }
 .simui-rows { display: flex; flex-direction: column; }
 .simui-rows.divided .simui-erow + .simui-erow { border-top: 1px solid var(--faint); }
@@ -199,7 +215,7 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-erow-name.muted { color: var(--muted); }
 .simui-erow-ic { display: inline-flex; flex: none; color: var(--muted); }
 .simui-erow-ic.amber { color: var(--warn); }
-.simui-erow-ic.cool { color: var(--accent); }
+.simui-erow-ic.cool { color: var(--cool); }
 .simui-erow-dot { flex: none; width: 9px; height: 9px; padding: 0; border: none; border-radius: 50%; background: #4b4f57; cursor: pointer; }
 .simui-erow-dot[data-on="true"] { background: var(--warm); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warm) 20%, transparent); }
 .simui-erow-state { font-size: 12px; color: var(--muted); }
@@ -245,7 +261,7 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 /* Room entry — quiet, borderless, integrated. Defines itself by a soft elevated
    surface + radius, not a hard box; lit rooms get a warm corner GLOW (not a flat
    wash that kills text). Text is always var(--text) — fixes the button UA black. */
-.simui-roomcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 122px; padding: 15px 16px; text-align: left; color: var(--text); background: color-mix(in srgb, var(--text) 3.5%, var(--surface)); border: 1px solid transparent; border-radius: 20px; cursor: pointer; overflow: hidden; transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease; }
+.simui-roomcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 122px; padding: var(--s-4); text-align: left; color: var(--text); background: var(--surface-raised); border: 1px solid transparent; border-radius: var(--r-surface); cursor: pointer; overflow: hidden; transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease; }
 .simui-roomcard:hover { background: color-mix(in srgb, var(--text) 6.5%, var(--surface)); transform: translateY(-1px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22); }
 .simui-roomcard:active { transform: translateY(0) scale(0.995); }
 .simui-roomcard.lit { background:
@@ -389,7 +405,7 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 /* ---- integrator: blocks shared by category/home surfaces ---- */
 /* (.simui-block + span classes already defined in the room layout section above) */
 .simui-surface-grid { align-items: start; }
-.simui-surface.card { padding: 12px; background: var(--surface); border: 1px solid var(--faint); border-radius: var(--radius); }
+.simui-surface.card { padding: var(--s-3); background: var(--surface-raised); box-shadow: var(--bezel); border-radius: var(--r-surface); }
 
 /* sub-grouped GroupBlock (axis: room/floor/device-class) */
 .simui-subgroups { display: flex; flex-direction: column; gap: 12px; }
@@ -403,7 +419,7 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-tile.is-launcher.is-tinted { background: color-mix(in srgb, var(--tile-accent) 10%, var(--surface)); border-color: color-mix(in srgb, var(--tile-accent) 28%, var(--faint)); }
 .simui-launch-ic { display: inline-flex; align-items: center; justify-content: center; color: var(--tile-accent, var(--accent)); }
 .simui-launch-name { font-size: 12px; font-weight: 600; max-width: 100%; }
-.simui-scene-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; min-height: 84px; padding: 11px 12px; background: var(--surface); border: 1px solid var(--faint); border-radius: var(--radius); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+.simui-scene-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; min-height: 84px; padding: 11px 12px; background: var(--surface-raised); box-shadow: var(--bezel); border-radius: var(--r-surface); color: var(--text); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
 .simui-scene-tile:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--faint)); }
 .simui-scene-tile .simui-launch-ic { color: var(--accent); }
 
