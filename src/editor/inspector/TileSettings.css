@@ -1,0 +1,66 @@
+/* TileSettings — per-tile form styles.
+ *
+ * Reuses the shared `simui-isub-*` primitives; holds only tile-form specifics:
+ * the feature/state-content pills and the action-slot rows. Dark-first, one accent
+ * on active, hairline borders.
+ */
+
+.simui-isub-tile-bits {
+  margin-top: 11px;
+}
+
+/* ── pills (features + state-line bits) ────────────────────────────────────── */
+
+.simui-isub-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.simui-isub-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-isub-pill:hover {
+  color: var(--text, #edeef2);
+}
+.simui-isub-pill.active {
+  color: var(--text, #edeef2);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+.simui-isub-pill-x {
+  display: inline-flex;
+  color: var(--muted, #8a909c);
+}
+
+/* ── action slots ──────────────────────────────────────────────────────────── */
+
+.simui-isub-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.simui-isub-action {
+  display: flex;
+  flex-direction: column;
+}
+.simui-isub-action-label {
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+  margin-bottom: 5px;
+}
+.simui-isub-action-detail {
+  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}

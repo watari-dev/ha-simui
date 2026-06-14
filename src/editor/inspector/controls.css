@@ -1,0 +1,356 @@
+/* Inspector sub-editor primitives — Linear-restraint controls.
+ *
+ * Scoped under `simui-isub-*` so this module is fully self-contained and never
+ * collides with Inspector.css's `simui-insp-*`. Dark-first, monochrome base, one
+ * accent on the active control, hairline dividers (not boxes), tabular numerals.
+ */
+
+/* ── fields & labels ───────────────────────────────────────────────────────── */
+
+.simui-isub-field {
+  margin-bottom: 12px;
+}
+.simui-isub-field:last-child {
+  margin-bottom: 0;
+}
+.simui-isub-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.simui-isub-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+}
+.simui-isub-fieldhint {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── sections ──────────────────────────────────────────────────────────────── */
+
+.simui-isub-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-isub-section.first {
+  border-top: none;
+  padding-top: 4px;
+}
+.simui-isub-head {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted, #8a909c);
+  font-weight: 500;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.simui-isub-count {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.75;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── inputs ────────────────────────────────────────────────────────────────── */
+
+.simui-isub-input,
+.simui-isub-select,
+.simui-isub-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg, #0a0b0d);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: var(--text, #edeef2);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+.simui-isub-input:focus,
+.simui-isub-select:focus,
+.simui-isub-textarea:focus {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 50%, var(--faint, #23262e));
+}
+.simui-isub-input::placeholder {
+  color: var(--muted, #8a909c);
+}
+.simui-isub-input.num {
+  font-variant-numeric: tabular-nums;
+}
+.simui-isub-textarea {
+  resize: vertical;
+  min-height: 52px;
+}
+
+.simui-isub-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.simui-isub-row > .simui-isub-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* ── segmented control ─────────────────────────────────────────────────────── */
+
+.simui-isub-seg {
+  display: flex;
+  gap: 4px;
+  background: var(--bg, #0a0b0d);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 9px;
+  padding: 3px;
+}
+.simui-isub-seg.wrap {
+  flex-wrap: wrap;
+}
+.simui-isub-seg-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.simui-isub-seg-btn:hover {
+  color: var(--text, #edeef2);
+}
+.simui-isub-seg-btn.active {
+  background: var(--surface-2, #1b1e25);
+  color: var(--text, #edeef2);
+}
+
+/* ── swatch grid ───────────────────────────────────────────────────────────── */
+
+.simui-isub-swatches {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+}
+.simui-isub-swatch {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--sw, transparent);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.simui-isub-swatch:hover {
+  transform: scale(1.06);
+}
+.simui-isub-swatch.active {
+  box-shadow: 0 0 0 2px var(--surface, #15171c), 0 0 0 3.5px var(--accent, #5b8cff);
+}
+.simui-isub-swatch.none {
+  background:
+    linear-gradient(135deg, transparent 45%, var(--muted, #8a909c) 46%, var(--muted, #8a909c) 54%, transparent 55%);
+}
+
+/* ── checkbox / toggle row ─────────────────────────────────────────────────── */
+
+.simui-isub-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text, #edeef2);
+  user-select: none;
+}
+.simui-isub-check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 5px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--bg, #0a0b0d);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.simui-isub-check input:checked {
+  background: var(--accent, #5b8cff);
+  border-color: var(--accent, #5b8cff);
+}
+.simui-isub-check input:checked::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ── lucide icon picker ────────────────────────────────────────────────────── */
+
+.simui-isub-iconroot {
+  position: relative;
+}
+.simui-isub-iconfield {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.simui-isub-iconbtn {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--bg, #0a0b0d);
+  color: var(--text, #edeef2);
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.simui-isub-iconbtn:hover,
+.simui-isub-iconbtn.open {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+
+.simui-isub-iconpop {
+  margin-top: 8px;
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 11px;
+  background: var(--bg, #0a0b0d);
+  padding: 8px;
+}
+.simui-isub-iconsearchwrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+.simui-isub-iconsearchglyph {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #8a909c);
+  pointer-events: none;
+}
+.simui-isub-iconsearch {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface, #15171c);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 8px;
+  padding: 6px 9px 6px 30px;
+  color: var(--text, #edeef2);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+.simui-isub-iconsearch:focus {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 50%, var(--faint, #23262e));
+}
+.simui-isub-icongrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-height: 168px;
+  overflow-y: auto;
+}
+.simui-isub-iconcell {
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  cursor: pointer;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+.simui-isub-iconcell:hover {
+  color: var(--text, #edeef2);
+  background: var(--surface-2, #1b1e25);
+}
+.simui-isub-iconcell.active {
+  color: var(--accent, #5b8cff);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 40%, var(--faint, #23262e));
+}
+.simui-isub-iconempty {
+  grid-column: 1 / -1;
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+}
+
+/* ── shared hint / empty text ──────────────────────────────────────────────── */
+
+.simui-isub-hint {
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+  opacity: 0.85;
+  line-height: 1.45;
+}
+
+/* ── small inline add/ghost button ─────────────────────────────────────────── */
+
+.simui-isub-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--text, #edeef2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+.simui-isub-btn:hover {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+.simui-isub-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--faint, #23262e);
+}
+.simui-isub-btn.compact {
+  width: auto;
+  flex: none;
+  padding: 8px 10px;
+}

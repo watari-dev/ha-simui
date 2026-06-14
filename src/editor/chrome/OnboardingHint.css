@@ -1,0 +1,136 @@
+/* OnboardingHint — the one-time edit-mode coachmark (SPEC_EDITOR §6 chrome).
+   Scoped under .simui-root; theme-token-driven; dark-first; minimal motion.
+   Anchors near the toolbar (centred-bottom phone / bottom-right desktop) but sits
+   ABOVE it so the two read as a pair. */
+
+.simui-root.simui-coach-anchor {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Float just above where the EditorToolbar lives (its bar is ~44px + insets). */
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 56; /* just above the toolbar (55) */
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+@media (min-width: 720px) {
+  .simui-root.simui-coach-anchor {
+    justify-content: flex-end;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
+  }
+}
+
+.simui-coach {
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 14px 13px;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border: 1px solid var(--faint);
+  border-radius: 14px;
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.44),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.simui-coach-x {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.simui-coach-x:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.simui-coach-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--text);
+  padding-right: 22px; /* clear the close button */
+}
+
+.simui-coach-list {
+  list-style: none;
+  margin: 11px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.simui-coach-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.simui-coach-item b {
+  color: var(--text);
+  font-weight: 600;
+}
+.simui-coach-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-top: -1px;
+  flex: none;
+  border-radius: 8px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--text) 5%, var(--surface));
+  border: 1px solid var(--faint);
+}
+
+.simui-coach-go {
+  margin-top: 13px;
+  width: 100%;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--faint));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.simui-coach-go:hover {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--faint));
+}
+
+.simui-coach-x:focus-visible,
+.simui-coach-go:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simui-coach-x,
+  .simui-coach-go { transition: none; }
+}

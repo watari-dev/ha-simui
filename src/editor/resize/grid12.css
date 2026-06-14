@@ -1,0 +1,64 @@
+/* grid12.css — the documented 12-column upgrade path (SPEC_LAYOUT.md §1, §9).
+ *
+ * OPT-IN and ADDITIVE. This stylesheet introduces nothing the current app depends on; it
+ * exists so a surface can move from the legacy `1 | 2 | 'full'` auto-fill model to a true
+ * N-track grid WITHOUT touching any existing class. Two ways to drive a block's width then
+ * become available, and both coexist with today's `.span-2` / `.span-full`:
+ *
+ *   1. Numeric `span-N` classes (N = 1..12) — authored span as a class, mirroring how the
+ *      legacy grid uses `.span-2`. The ResizeHandle in this module already commits a raw
+ *      1..N `BlockSpan` when run with `legacy={false}`, so the renderer can map
+ *      `span: number` → `span-${n}` and the handle drives this grid unchanged.
+ *
+ *   2. Inline `--span` / `--col` custom properties — the same vars `src/editor/grid.css`
+ *      already reads on `.simui-section-grid > .simui-block`. Prefer these when the engine
+ *      computes placement per breakpoint; the classes are the static-authoring fallback.
+ *
+ * The base `.simui-section-grid` track grid + the `--span` / `--col` placement rule live in
+ * `src/editor/grid.css` — this file is purely the static `span-N` vocabulary layered on top,
+ * scoped to that grid so it can NEVER affect the legacy `.simui-grid`. Nothing here animates
+ * grid placement (DESIGN_PRINCIPLES §11). All values are plain integers — no theme tokens.
+ *
+ * To adopt: import this alongside grid.css from the SectionGrid component, render blocks
+ * with `className={`simui-block span-${n}`}`, and run ResizeHandle with `legacy={false}`
+ * and `cols={breakpointCols}`.
+ */
+
+/* ── Static span-N width classes (1..12) ─────────────────────────────────────────────── */
+/* Scoped to the section grid so they only resolve on the N-track grid, never the auto-fill
+   one. `span 13`+ is clamped to a full row via `.span-full` (already defined globally). */
+.simui-section-grid > .simui-block.span-1  { grid-column: var(--col, auto) / span 1; }
+.simui-section-grid > .simui-block.span-2  { grid-column: var(--col, auto) / span 2; }
+.simui-section-grid > .simui-block.span-3  { grid-column: var(--col, auto) / span 3; }
+.simui-section-grid > .simui-block.span-4  { grid-column: var(--col, auto) / span 4; }
+.simui-section-grid > .simui-block.span-5  { grid-column: var(--col, auto) / span 5; }
+.simui-section-grid > .simui-block.span-6  { grid-column: var(--col, auto) / span 6; }
+.simui-section-grid > .simui-block.span-7  { grid-column: var(--col, auto) / span 7; }
+.simui-section-grid > .simui-block.span-8  { grid-column: var(--col, auto) / span 8; }
+.simui-section-grid > .simui-block.span-9  { grid-column: var(--col, auto) / span 9; }
+.simui-section-grid > .simui-block.span-10 { grid-column: var(--col, auto) / span 10; }
+.simui-section-grid > .simui-block.span-11 { grid-column: var(--col, auto) / span 11; }
+.simui-section-grid > .simui-block.span-12 { grid-column: 1 / -1; }
+
+/* ── Optional explicit column START (col-N) ──────────────────────────────────────────── */
+/* For surfaces that author absolute placement (e.g. a two-up row that must align) rather
+   than left-to-right packing. Pairs with a span-N for width. Omit ⇒ auto-flow (today). */
+.simui-section-grid > .simui-block.col-1  { --col: 1; }
+.simui-section-grid > .simui-block.col-2  { --col: 2; }
+.simui-section-grid > .simui-block.col-3  { --col: 3; }
+.simui-section-grid > .simui-block.col-4  { --col: 4; }
+.simui-section-grid > .simui-block.col-5  { --col: 5; }
+.simui-section-grid > .simui-block.col-6  { --col: 6; }
+.simui-section-grid > .simui-block.col-7  { --col: 7; }
+.simui-section-grid > .simui-block.col-8  { --col: 8; }
+.simui-section-grid > .simui-block.col-9  { --col: 9; }
+.simui-section-grid > .simui-block.col-10 { --col: 10; }
+.simui-section-grid > .simui-block.col-11 { --col: 11; }
+.simui-section-grid > .simui-block.col-12 { --col: 12; }
+
+/* ── Vertical span (row-N) for charts / banners (south-handle resize) ────────────────── */
+/* Mirrors the `--row-span` var grid.css reads; the static-authoring equivalent. */
+.simui-section-grid > .simui-block.row-1 { grid-row: span 1; }
+.simui-section-grid > .simui-block.row-2 { grid-row: span 2; }
+.simui-section-grid > .simui-block.row-3 { grid-row: span 3; }
+.simui-section-grid > .simui-block.row-4 { grid-row: span 4; }

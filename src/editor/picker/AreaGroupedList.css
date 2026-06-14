@@ -1,0 +1,235 @@
+/* AreaGroupedList — area-grouped result surface for the polished picker.
+   Scoped under .simui-root. Dark-first, monochrome base, single accent reserved for
+   selection/active only. Tabular numerals for counts + state hints. Hairline rules.
+   Minimal motion: selection/active states APPEAR (no row transition). Sticky area
+   headers give structure without chrome. Namespaced pk-* to coexist with ep-*. */
+
+.simui-root .pk-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  outline: none;
+}
+
+/* ── Area section ────────────────────────────────────────────────────────────── */
+.simui-root .pk-area {
+  display: flex;
+  flex-direction: column;
+}
+.simui-root .pk-area-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid color-mix(in srgb, var(--faint) 60%, transparent);
+}
+.simui-root .pk-area-label {
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simui-root .pk-area-dim {
+  color: var(--muted);
+  font-weight: 600;
+}
+.simui-root .pk-area-count {
+  font-size: 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+.simui-root .pk-area-all {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 2px;
+  border-radius: 5px;
+}
+.simui-root .pk-area-all:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.simui-root .pk-area-all:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: -1px;
+}
+
+/* "+N more in <area>" expander row. */
+.simui-root .pk-area-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 34px;
+  padding: 0 14px 0 46px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--faint) 55%, transparent);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.simui-root .pk-area-more:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* ── Rows ────────────────────────────────────────────────────────────────────── */
+.simui-root .pk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--faint) 55%, transparent);
+  /* no background transition — selection/active appear, not animate */
+}
+.simui-root .pk-row.is-active {
+  background: var(--surface-2);
+}
+.simui-root .pk-row:hover {
+  background: var(--surface-2);
+}
+.simui-root .pk-row.is-selected {
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+.simui-root .pk-row.is-selected.is-active {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+.simui-root .pk-row.is-dead {
+  opacity: 0.42;
+}
+.simui-root .pk-row.is-existing .pk-row-name {
+  color: var(--muted);
+}
+
+.simui-root .pk-check {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 60%, var(--faint));
+  border-radius: 5px;
+  color: #fff;
+}
+.simui-root .pk-check.is-radio {
+  border-radius: 999px;
+}
+.simui-root .pk-row.is-selected .pk-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.simui-root .pk-row-ico {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  color: var(--muted);
+}
+.simui-root .pk-row.is-selected .pk-row-ico {
+  color: var(--accent);
+}
+
+.simui-root .pk-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+.simui-root .pk-row-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simui-root .pk-row-id {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.simui-root .pk-row-state {
+  flex: 0 0 auto;
+  max-width: 120px;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.simui-root .pk-hl {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.simui-root .pk-badge {
+  flex: 0 0 auto;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--faint));
+  border-radius: 5px;
+  padding: 1px 5px;
+  line-height: 1.4;
+}
+.simui-root .pk-badge-soft {
+  color: var(--muted);
+  border-color: var(--faint);
+}
+
+/* ── Trailing total-cap hint ─────────────────────────────────────────────────── */
+.simui-root .pk-overflow {
+  padding: 12px 14px 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.simui-root .pk-overflow .simui-value {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,148 @@
+/* FacetBar — the polished picker's faceting rail.
+   Scoped under .simui-root. Dark-first, monochrome chips, single accent reserved
+   for the ON state only. Tabular counts. Hairline borders. Minimal motion (only a
+   120ms color/border tint on hover/select — chips never animate in/out).
+   Namespaced pk-* so it sits beside the existing ep-* picker without collision. */
+
+.simui-root .pk-facets {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* ── Segmented curation toggle (Primary / All) ───────────────────────────────── */
+.simui-root .pk-seg {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg);
+  border: 1px solid var(--faint);
+  border-radius: 9px;
+}
+.simui-root .pk-seg-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.simui-root .pk-seg-btn:hover {
+  color: var(--text);
+}
+.simui-root .pk-seg-btn.is-on {
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, var(--faint));
+}
+
+/* ── Facet groups ────────────────────────────────────────────────────────────── */
+.simui-root .pk-facet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.simui-root .pk-facet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 0 2px;
+}
+.simui-root .pk-facet-clear {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.simui-root .pk-facet-empty {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+/* ── Chips ───────────────────────────────────────────────────────────────────── */
+.simui-root .pk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.simui-root .pk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--faint);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.simui-root .pk-chip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 18%, var(--faint));
+}
+.simui-root .pk-chip.is-on {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--faint));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.simui-root .pk-chip-check {
+  flex: 0 0 auto;
+  margin-left: -1px;
+}
+.simui-root .pk-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simui-root .pk-chip-count {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  font-size: 10px;
+  color: var(--muted);
+}
+.simui-root .pk-chip.is-on .pk-chip-count {
+  color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+}
+
+/* "+N more" disclosure reads as a quieter, dashed chip. */
+.simui-root .pk-chip-more {
+  border-style: dashed;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.simui-root .pk-chip-more:hover {
+  color: var(--text);
+}
+
+.simui-root .pk-chip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}
+.simui-root .pk-seg-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: -1px;
+}

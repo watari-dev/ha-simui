@@ -1,0 +1,166 @@
+/* StatBlock — display-only leaf renderers the core blocks can't produce:
+ *   stat     a big tabular number (+ optional sparkline + delta)
+ *   gauge    a radial gauge (reuses widgets/GaugeTile)
+ *   label    a section heading on the ambient canvas (no surface chrome)
+ *   divider  a hairline rule / spacer
+ * Co-located; imported from StatBlock.tsx. No edits to global src/styles.css.
+ * Design language: Linear restraint, tabular figures, monochrome base + one
+ * accent reserved for state, minimal motion (values appear, not animate). */
+
+.simui-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 72px;
+  padding: 13px 14px;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border: 1px solid transparent;
+  border-radius: 16px;
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Active tint — the Apple-Home "this carries signal" cue, reserved for accent. */
+.simui-stat.is-accented {
+  background: color-mix(in srgb, var(--stat-accent, var(--accent)) 7%, var(--surface));
+  border-color: color-mix(in srgb, var(--stat-accent, var(--accent)) 20%, var(--faint));
+}
+
+.simui-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.simui-stat-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stat-accent, var(--muted));
+  flex: none;
+}
+
+.simui-stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simui-stat-body {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+.simui-stat-val {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.simui-stat-val.is-accented { color: var(--stat-accent, var(--accent)); }
+
+.simui-stat-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  flex: none;
+}
+
+/* Delta vs. the window's first sample — green up / red down, muted when flat. */
+.simui-stat-delta {
+  margin-left: auto;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  color: var(--muted);
+  flex: none;
+}
+.simui-stat-delta.up { color: var(--up); }
+.simui-stat-delta.down { color: var(--down); }
+
+.simui-stat-spark {
+  display: block;
+  width: 100%;
+  height: 30px;
+  overflow: visible;
+}
+.simui-stat-sparkline {
+  fill: none;
+  stroke: var(--stat-accent, var(--accent));
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.92;
+}
+.simui-stat-sparkarea {
+  fill: var(--stat-accent, var(--accent));
+  opacity: 0.1;
+  stroke: none;
+}
+
+.simui-stat.is-unavailable { opacity: 0.5; }
+.simui-stat.is-unavailable .simui-stat-val { color: var(--muted); font-size: 22px; }
+
+/* Compact (span-1) stat reads tighter. */
+.simui-stat.is-compact { gap: 7px; min-height: 64px; }
+.simui-stat.is-compact .simui-stat-val { font-size: 24px; }
+
+/* ── Section label — a heading on the canvas, no surface chrome ─────────────── */
+.simui-stat-section {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 2px 2px;
+  min-width: 0;
+}
+.simui-stat-section-ic {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  flex: none;
+}
+.simui-stat-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simui-stat-section-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.simui-stat-section-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--faint);
+  margin-left: 2px;
+}
+
+/* ── Divider / spacer ──────────────────────────────────────────────────────── */
+.simui-stat-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--faint);
+  margin: 6px 0;
+}
+.simui-stat-divider.is-spacer { background: transparent; height: 16px; }

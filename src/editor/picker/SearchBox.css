@@ -1,0 +1,63 @@
+/* SearchBox — command-palette search field for the polished entity picker.
+   Scoped under .simui-root. Dark-first, hairline border, single-accent focus ring,
+   minimal motion (only a 120ms border tint). Mirrors the existing .ep-search idiom
+   so the two pickers read identically; namespaced pk-* to avoid collisions. */
+
+.simui-root .pk-searchwrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.simui-root .pk-search-ico {
+  position: absolute;
+  left: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.simui-root .pk-search {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--faint);
+  border-radius: 10px;
+  padding: 9px 32px 9px 33px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+.simui-root .pk-search::placeholder {
+  color: var(--muted);
+}
+.simui-root .pk-search:focus {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--faint));
+}
+
+.simui-root .pk-search-clear {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.simui-root .pk-search-clear:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.simui-root .pk-search-clear:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}

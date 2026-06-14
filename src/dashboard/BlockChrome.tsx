@@ -9,8 +9,11 @@ import { GroupBlock } from './blocks/GroupBlock';
 import { ListBlock } from './blocks/ListBlock';
 import { CardBlock } from './blocks/CardBlock';
 import { ChartBlock } from './blocks/ChartBlock';
+import { StatBlock } from './blocks/StatBlock';
 import { AttentionStrip } from '../components/StatusBoardTile';
+import { ResizeHandle } from '../editor/resize/ResizeHandle';
 import type { Block, BlockSpan, Condition } from './types';
+import '../editor/grid.css';
 
 const spanClass = (s: BlockSpan): string => (s === 2 ? ' span-2' : s === 'full' ? ' span-full' : '');
 const spanLabel = (s: BlockSpan): string => (s === 2 ? '2×' : s === 'full' ? 'Full' : '1×');
@@ -22,7 +25,12 @@ export function BlockBody({ block }: { block: Block }) {
     case 'group': return <GroupBlock block={block} />;
     case 'list': return <ListBlock block={block} />;
     case 'chart': return <ChartBlock block={block} />;
-    case 'card': return <CardBlock block={block} />;
+    case 'card': {
+      // Display-only kinds (stat/gauge/section/divider) serialise as type:'card'
+      // and self-identify via options.statVariant — the novel-card seam.
+      const v = (block as { options?: { statVariant?: string } }).options?.statVariant;
+      return v ? <StatBlock block={block} /> : <CardBlock block={block} />;
+    }
     case 'attention': return <AttentionStrip entities={block.entityIds} />;
     default: return null;
   }
@@ -123,6 +131,7 @@ export function BlockChrome({ block, editing }: { block: Block; editing: boolean
               aria-hidden
             />
           )}
+          <ResizeHandle block={block} />
           <div className="simui-card-grab" {...attributes} {...listeners} aria-label="Drag to reorder" />
           <button
             className="simui-card-btn size"

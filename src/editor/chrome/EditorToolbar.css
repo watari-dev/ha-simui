@@ -1,0 +1,173 @@
+/* EditorToolbar — the floating edit-mode command bar (SPEC_EDITOR §6 chrome).
+   Scoped under .simui-root so nothing leaks into HA's frontend; consumes the
+   theme tokens (--surface / --surface-2 / --faint / --accent / --muted / --text /
+   --up). Dark, unobtrusive, Linear-style; appears, never performs. */
+
+/* ── Anchor: centred-bottom on phone (safe-area aware), bottom-right on desktop ── */
+.simui-root.simui-etb-anchor {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55; /* above the surface, below the gallery/inspector sheets (60+) */
+  display: flex;
+  justify-content: center;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none; /* only the bar itself is interactive */
+}
+
+@media (min-width: 720px) {
+  .simui-root.simui-etb-anchor {
+    justify-content: flex-end;
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── The bar ──────────────────────────────────────────────────────────────── */
+.simui-etb {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  max-width: 100%;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border: 1px solid var(--faint);
+  border-radius: 14px;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.42),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+  /* A whisper of glass so it reads as floating over the surface. */
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.simui-etb-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.simui-etb-div {
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 3px;
+  background: var(--faint);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.simui-etb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+/* Icon-only undo/redo are square; labelled buttons get a touch more room. */
+.simui-etb-btn:not(.primary):not(.done) {
+  padding: 0 7px;
+}
+.simui-etb-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.simui-etb-btn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 11%, transparent);
+}
+.simui-etb-btn:disabled {
+  color: color-mix(in srgb, var(--muted) 55%, transparent);
+  cursor: default;
+}
+
+.simui-etb-label {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Add card — the one accented affordance (color reserved for the primary action). */
+.simui-etb-btn.primary {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--faint));
+}
+.simui-etb-btn.primary:hover:not(:disabled) {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--faint));
+}
+
+/* Done — solid, the exit. Monochrome so it doesn't fight the accent. */
+.simui-etb-btn.done {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--faint);
+}
+.simui-etb-btn.done:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--text) 22%, var(--faint));
+  background: color-mix(in srgb, var(--text) 9%, var(--surface-2));
+}
+
+/* ── Save hint — a calm dot, never a spinner ──────────────────────────────── */
+.simui-etb-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--muted);
+  white-space: nowrap;
+  user-select: none;
+}
+.simui-etb-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--up, #34d399);
+  /* Settled (saved) = quiet, slightly dimmed. */
+  opacity: 0.7;
+  transition: opacity 0.18s ease, background 0.18s ease;
+}
+.simui-etb-save.is-saving {
+  color: var(--text);
+}
+.simui-etb-save.is-saving .simui-etb-dot {
+  background: var(--accent);
+  opacity: 1;
+}
+/* Below ~440px the "Saved/Saving" word and the labelled-button text drop out, but
+   the icons + dot stay — the bar never overflows a narrow phone. */
+@media (max-width: 440px) {
+  .simui-etb-save-label { display: none; }
+  .simui-etb-btn.primary .simui-etb-label,
+  .simui-etb-btn.done .simui-etb-label { display: none; }
+}
+
+/* ── Focus ring (matches the project's --focus-ring idiom) ────────────────── */
+.simui-etb-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+/* Minimal motion: the bar appears, it doesn't slide/spring in. Reduced-motion
+   users get nothing animated at all (the global rule in styles.css also applies). */
+@media (prefers-reduced-motion: reduce) {
+  .simui-etb-btn,
+  .simui-etb-dot { transition: none; }
+}

@@ -1,0 +1,164 @@
+/* ActionEditor — tap / hold / smart-click → behaviour (SPEC_EDITOR.md §card-config).
+ *
+ * Lives inside the inspector rail, so it borrows the inspector's input/select/
+ * textarea classes (.simui-insp-input / -select / -textarea) and only adds the
+ * slot-row chrome here. Minimalist per DESIGN_PRINCIPLES: monochrome base, hairline
+ * dividers (not boxes), ONE accent reserved for the active / configured control,
+ * tabular numerals, fast minimal motion. Co-located — never the global stylesheet.
+ */
+
+.simui-act {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── one interaction slot ──────────────────────────────────────────────────── */
+
+.simui-act-slot {
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-act-slot:first-child {
+  border-top: none;
+}
+
+.simui-act-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  color: var(--text, #edeef2);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.simui-act-chev {
+  flex: none;
+  display: inline-flex;
+  color: var(--muted, #8a909c);
+  transition: color 0.12s ease;
+}
+.simui-act-head:hover .simui-act-chev {
+  color: var(--text, #edeef2);
+}
+
+.simui-act-ic {
+  flex: none;
+  display: inline-flex;
+  color: var(--muted, #8a909c);
+}
+.simui-act-slot.is-set .simui-act-ic {
+  color: var(--text, #edeef2);
+}
+
+.simui-act-head-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.simui-act-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text, #edeef2);
+}
+
+.simui-act-summary {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The single accent: a tiny dot marking a slot the user has explicitly set. */
+.simui-act-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, #5b8cff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #5b8cff) 16%, transparent);
+}
+
+/* ── expanded body (the picker + revealed fields) ──────────────────────────── */
+
+.simui-act-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 12px 22px; /* indent under the chevron so the slot reads as a group */
+  /* Appears, doesn't perform (DESIGN_PRINCIPLES §11). */
+  animation: simui-act-reveal 0.12s ease;
+}
+
+@keyframes simui-act-reveal {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.simui-act-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.simui-act-sublabel {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  margin: 3px 0 -2px;
+}
+
+.simui-act-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  opacity: 0.8;
+}
+
+.simui-act-error {
+  margin: 0;
+  font-size: 11px;
+  color: var(--down, #f0735e);
+}
+
+/* invalid JSON → tint the textarea border (state, not chrome) */
+.simui-insp-textarea.has-error {
+  border-color: color-mix(in srgb, var(--down, #f0735e) 55%, var(--faint, #23262e));
+}
+
+/* ── navigate destination chips ────────────────────────────────────────────── */
+
+.simui-act-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.simui-act-chip {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-act-chip:hover {
+  color: var(--text, #edeef2);
+}
+.simui-act-chip.active {
+  color: var(--text, #edeef2);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 50%, var(--faint, #23262e));
+  background: color-mix(in srgb, var(--accent, #5b8cff) 9%, transparent);
+}

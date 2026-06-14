@@ -1,0 +1,10 @@
+/* BlockSettings — block-level form styles.
+ *
+ * Almost everything reuses the shared `simui-isub-*` primitives (controls.css);
+ * this file holds only the handful of block-form specifics. Kept tiny on purpose —
+ * one CSS per component, scoped, dark-first.
+ */
+
+.simui-isub-blockset {
+  display: contents;
+}

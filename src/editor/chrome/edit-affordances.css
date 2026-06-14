@@ -1,0 +1,142 @@
+/* edit-affordances.css — grab / resize handle styling + the minimal-motion ruleset
+   for the editor chrome (SPEC_EDITOR §6). ADDITIVE ONLY: new classes the integrator
+   opts into; it never re-styles the existing `.simui-card-grab` / `.simui-card-btn`
+   rules in styles.css. These are the refined, theme-token-driven handles for the
+   shell builders' richer drag/resize affordances. Scoped under .simui-root. */
+
+/* ── Grab handle (drag-to-reorder) ────────────────────────────────────────── */
+/* A small, explicit grip pill — distinct from the existing full-card invisible
+   `.simui-card-grab` overlay; use this when a *visible* handle is wanted (e.g. a
+   block with interactive leaves that should stay tappable while editing). */
+.simui-root .simui-grip {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  padding: 0 8px;
+  border: 1px solid var(--faint);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-root .simui-grip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 22%, var(--faint));
+}
+.simui-root .simui-grip:active { cursor: grabbing; }
+/* The six-dot grip glyph, drawn in CSS so it needs no icon import. */
+.simui-root .simui-grip-dots {
+  width: 14px;
+  height: 6px;
+  background-image: radial-gradient(currentColor 1px, transparent 1.4px);
+  background-size: 4px 3px;
+  background-position: 0 0;
+  opacity: 0.85;
+}
+
+/* While the block is being dragged: dim it and lift it (matches the existing
+   `.dragging` opacity but adds the lift + grabbing cursor on the new grip). */
+.simui-root .simui-grip-active {
+  opacity: 0.6;
+  cursor: grabbing;
+}
+
+/* ── Resize handle ────────────────────────────────────────────────────────── */
+/* A corner pull for span resizing (complements the existing `.size` step button).
+   Sits at the block's bottom-right; the integrator wires its pointer events to
+   `editor.resizeBlock`. Purely the affordance's look here. */
+.simui-root .simui-resize {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 6;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--text) 45%, transparent);
+  cursor: nwse-resize;
+  touch-action: none;
+  transition: color 0.12s ease;
+}
+.simui-root .simui-resize:hover { color: var(--accent); }
+/* Two stacked diagonal ticks — the universal "drag to resize" glyph, in CSS. */
+.simui-root .simui-resize::before,
+.simui-root .simui-resize::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transform: rotate(-45deg);
+  transform-origin: right center;
+}
+.simui-root .simui-resize::before { bottom: 4px; width: 9px; }
+.simui-root .simui-resize::after { bottom: 7.5px; width: 5px; }
+
+/* A live span read-out shown while dragging the resize handle (e.g. "2×" / "Full"). */
+.simui-root .simui-resize-readout {
+  position: absolute;
+  right: 4px;
+  bottom: 22px;
+  z-index: 7;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--faint);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Focus rings for the new handles, matching the project idiom. */
+.simui-root .simui-grip:focus-visible,
+.simui-root .simui-resize:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+/* ── Minimal-motion ruleset (the project's north star, scoped to edit chrome) ──
+   "State changes appear, they don't animate" (DESIGN_PRINCIPLES §14). These
+   editor-chrome classes use only quick opacity / outline-color / color fades —
+   NEVER springy transforms — and never a transform-based transition (drag uses
+   dnd-kit's own transform, which we don't tween here). New classes only, so this
+   never fights the global rules in styles.css. */
+.simui-root .simui-em-appear {
+  /* For elements that mount on selection/edit: they simply appear. Opt a node into
+     this to GUARANTEE no transform/transition is inherited from a parent. */
+  transition: opacity 0.1s ease;
+  transform: none !important;
+  animation: none !important;
+}
+.simui-root .simui-em-quiet {
+  /* Restrict any transition on an edit-chrome node to cheap, non-layout props. */
+  transition-property: opacity, color, background-color, border-color, outline-color, box-shadow;
+  transition-duration: 0.12s;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simui-root .simui-grip,
+  .simui-root .simui-resize,
+  .simui-root .simui-em-appear,
+  .simui-root .simui-em-quiet { transition: none; }
+}

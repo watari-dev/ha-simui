@@ -1,0 +1,59 @@
+/* selection.css — polished selection + hover affordances for edit mode
+   (SPEC_EDITOR §6 chrome). ADDITIVE ONLY: every rule here is a NEW class that the
+   integrator opts a block into (alongside the existing `.simui-block` classes) — it
+   never re-styles `.simui-block.selected` / `.simui-block.editing` from styles.css,
+   so the two can coexist or the integrator can migrate at leisure.
+
+   The existing BlockChrome paints selection with an inline `outline`; these classes
+   are the richer, theme-token-driven version: a continuous-radius ring that hugs the
+   card (Apple Home feel) plus a quiet hover outline. Scoped under .simui-root.
+   Color is reserved for the selected state only (DESIGN_PRINCIPLES). */
+
+/* ── Selection ring ───────────────────────────────────────────────────────── */
+/* Add `.is-selected` to a block while it's the active selection. The ring sits
+   OUTSIDE the card (offset) so it never crops content, and follows the card's
+   radius via a CSS var the block can set (defaults to --radius). */
+.simui-root .simui-sel-ring {
+  position: relative;
+  border-radius: var(--simui-sel-radius, var(--radius, 14px));
+}
+.simui-root .simui-sel-ring.is-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  /* A faint accent wash to lift the selected card off the surface — Apple Home's
+     active-tint, kept whisper-light so the content stays the hero. */
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* When a TILE (leaf) inside a block is the deeper selection, ring the leaf instead
+   of the whole card, so the inspector target is unmistakable. */
+.simui-root .simui-sel-leaf.is-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: var(--simui-sel-radius, var(--radius, 14px));
+}
+
+/* ── Hover outline (edit mode only) ───────────────────────────────────────── */
+/* Add `.simui-sel-hover` to editable blocks; a hairline outline appears on hover so
+   the surface reads as "everything here is editable" without shouting. Suppressed
+   while the card is selected (the ring already owns it). */
+.simui-root .simui-sel-hover {
+  border-radius: var(--simui-sel-radius, var(--radius, 14px));
+  transition: outline-color 0.12s ease;
+  outline: 1.5px solid transparent;
+  outline-offset: 2px;
+}
+.simui-root .simui-sel-hover:hover:not(.is-selected) {
+  outline-color: color-mix(in srgb, var(--accent) 38%, var(--faint));
+}
+/* Keyboard parity: focusing an editable block previews the same affordance. */
+.simui-root .simui-sel-hover:focus-visible:not(.is-selected) {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+/* Minimal motion: the ring/wash APPEAR (no transition); only the gentle hover
+   outline fades, and even that is killed under reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .simui-root .simui-sel-hover { transition: none; }
+}

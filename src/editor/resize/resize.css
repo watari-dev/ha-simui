@@ -1,0 +1,55 @@
+/* resize.css — the live width badge for ResizeHandle (and nothing else).
+ *
+ * The resize-handle GEOMETRY (the slim east/south hit-targets, the 1px accent edge, the
+ * `.resizing` lock) already lives in `src/editor/grid.css` and is reused verbatim by this
+ * module's `.simui-resize-handle.e/.s` markup — DO NOT redeclare it here. This file adds
+ * only the small "1× / 2× / Full" affordance that appears while a drag is live, so the user
+ * gets a glanceable readout of the span a pointer-up will commit.
+ *
+ * Design language (DESIGN_PRINCIPLES §11): monochrome surface + hairline; the accent is
+ * reserved for the active drag state; tabular numerals for the value; the badge APPEARS,
+ * it does not animate (no transform/opacity transition on mount — minimal motion). All
+ * colors are theme variables already defined on `.simui-root`.
+ */
+
+/* The badge: pinned to the block's trailing edge, vertically centered on the east handle.
+   Pointer-transparent so it never intercepts the gesture it's reporting on. */
+.simui-resize-badge {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  z-index: 9; /* above the resize handle (z 7) + the .resizing frame (z 8) */
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--accent, #3b82f6) 55%, var(--faint, rgba(255, 255, 255, 0.08)));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #3b82f6) 16%, var(--surface, #16181d));
+  color: var(--text, #e6e8ec);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums; /* tabular figures for all values */
+  letter-spacing: 0.2px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  /* A faint lift so it reads above whatever block content sits behind it. */
+  box-shadow: 0 1px 6px color-mix(in srgb, #000 28%, transparent);
+}
+
+/* When the active handle is the south (height) edge, the badge belongs on the bottom edge
+   instead of the trailing one. Markup adds `data-resizing` to the handle being dragged; we
+   can't reparent the badge from CSS, so this keeps the default (east) placement and lets the
+   accent edge on the south handle carry the height feedback — the badge stays the width
+   readout, which is the common case. (A future split can render a second south badge.) */
+
+/* Slightly stronger presence while the matching handle is actively dragged. */
+.simui-block.resizing .simui-resize-badge,
+.simui-card.resizing .simui-resize-badge {
+  border-color: var(--accent, #3b82f6);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 22%, var(--surface, #16181d));
+}

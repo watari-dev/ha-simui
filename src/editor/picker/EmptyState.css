@@ -1,0 +1,58 @@
+/* EmptyState — calm, centered no-results surface for the polished picker.
+   Scoped under .simui-root. Monochrome, generous-but-purposeful spacing. */
+
+.simui-root .pk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+  min-height: 200px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.simui-root .pk-empty-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+.simui-root .pk-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.simui-root .pk-empty-hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 280px;
+  line-height: 1.5;
+}
+.simui-root .pk-empty-btn {
+  margin-top: 10px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--faint);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.simui-root .pk-empty-btn:hover {
+  border-color: color-mix(in srgb, var(--text) 18%, var(--faint));
+  background: var(--surface-2);
+}
+.simui-root .pk-empty-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}

@@ -1,0 +1,209 @@
+/* ChartEditor — history-chart config styles.
+ *
+ * Reuses the shared `simui-isub-*` primitives; holds the series rows (swatch / name
+ * / fill / axis), the colour palette, the numeric-series add results, and the
+ * threshold rows. TradingView precision: thin swatches, tabular numerals.
+ */
+
+.simui-isub-chart-series {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── series row ────────────────────────────────────────────────────────────── */
+
+.simui-isub-chart-srow + .simui-isub-chart-srow {
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-isub-chart-shead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+.simui-isub-chart-swatch {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: none;
+  padding: 0;
+  background: var(--sw, var(--muted, #8a909c));
+  cursor: pointer;
+}
+.simui-isub-chart-sname {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text, #edeef2);
+}
+.simui-isub-chart-fill,
+.simui-isub-chart-axis {
+  flex: none;
+  padding: 4px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-isub-chart-fill:hover,
+.simui-isub-chart-axis:hover {
+  color: var(--text, #edeef2);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 40%, var(--faint, #23262e));
+}
+.simui-isub-chart-axis {
+  width: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.simui-isub-chart-x {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-isub-chart-x:hover {
+  color: var(--down, #f0735e);
+  border-color: color-mix(in srgb, var(--down, #f0735e) 35%, var(--faint, #23262e));
+}
+
+/* ── series detail popover (name + colour) ─────────────────────────────────── */
+
+.simui-isub-chart-spop {
+  padding: 4px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.simui-isub-chart-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.simui-isub-chart-col {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 6px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--sw, transparent);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.simui-isub-chart-col:hover {
+  transform: scale(1.08);
+}
+.simui-isub-chart-col.active {
+  box-shadow: 0 0 0 2px var(--surface, #15171c), 0 0 0 3px var(--accent, #5b8cff);
+}
+.simui-isub-chart-col.none {
+  background:
+    linear-gradient(135deg, transparent 45%, var(--muted, #8a909c) 46%, var(--muted, #8a909c) 54%, transparent 55%);
+}
+
+/* ── add a numeric series ──────────────────────────────────────────────────── */
+
+.simui-isub-chart-add {
+  margin-top: 10px;
+}
+.simui-isub-chart-results {
+  margin-top: 6px;
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg, #0a0b0d);
+}
+.simui-isub-chart-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid var(--faint, #23262e);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+.simui-isub-chart-result:last-child {
+  border-bottom: none;
+}
+.simui-isub-chart-result:hover {
+  background: var(--surface-2, #1b1e25);
+}
+.simui-isub-chart-result-plus {
+  flex: none;
+  color: var(--muted, #8a909c);
+}
+.simui-isub-chart-result-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.simui-isub-chart-result-name {
+  font-size: 13px;
+  color: var(--text, #edeef2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simui-isub-chart-result-id {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simui-isub-chart-result-val {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── thresholds ────────────────────────────────────────────────────────────── */
+
+.simui-isub-chart-thresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+.simui-isub-chart-thresh + .simui-isub-chart-thresh {
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-isub-chart-tval {
+  font-size: 13px;
+  color: var(--text, #edeef2);
+  font-variant-numeric: tabular-nums;
+}
+.simui-isub-chart-threshadd {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+.simui-isub-chart-threshadd > .simui-isub-input {
+  flex: 1;
+}

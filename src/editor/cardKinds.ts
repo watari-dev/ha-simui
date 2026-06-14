@@ -1,5 +1,6 @@
 import { uid } from '../util';
 import type { CardKind, PreviewContext } from './types';
+import { EXTRA_CARD_KINDS } from './kinds';
 
 /** Seed/preview sample size per kind (small + fixed, SPEC_EDITOR §4). */
 function seedSize(type: CardKind['type']): number {
@@ -63,4 +64,7 @@ export const CARD_KINDS: CardKind[] = [
     description: 'A single entity tile.',
     make: (seed) => ({ id: uid(), type: 'card', entityIds: seed.slice(0, 1), span: 1 }),
   },
+  // The expanded palette (the CHOICE pillar) — 16 preconfigured kinds, merged after
+  // the five core primitives so "compose first" ordering holds.
+  ...EXTRA_CARD_KINDS,
 ];
