@@ -5,6 +5,7 @@ import { Check, ChevronLeft, Pencil, RotateCcw } from 'lucide-react';
 import { useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
+import { useKioskOptional } from './kioskMode';
 import { useEditableSurface } from './useEditableSurface';
 import { EmptyState } from '../editor/chrome';
 import { SurfaceStrip } from './SurfaceStrip';
@@ -54,6 +55,7 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   const areaMap = useAreas();
   const registryMeta = useRegistry();
   const { config, goHome } = useDashboard();
+  const { enabled: kiosk } = useKioskOptional();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Rebuild the live surface only when the entity SET changes (keysVersion) — NOT on
@@ -114,7 +116,7 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
         </button>
       </header>
       <div className={`simui-content${ambient ? ' simui-cat-content' : ''}`}>
-        {ambient && <AmbientCanvas mode="field" lightIds={surfaceLightIds} maxOpacity={0.12} />}
+        {ambient && <AmbientCanvas mode={kiosk ? 'dots' : 'field'} lightIds={surfaceLightIds} maxOpacity={0.12} />}
         <div className={ambient ? 'simui-cat-layer' : undefined}>
           {surface.statusStrip && surface.statusStrip.length > 0 && (
             <SurfaceStrip pills={surface.statusStrip} />

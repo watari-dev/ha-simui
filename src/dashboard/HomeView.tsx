@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, Pencil, RotateCcw } from 'lucide-react';
+import { Check, MonitorPlay, Pencil, RotateCcw } from 'lucide-react';
 import { useAggregate, useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
+import { useKioskOptional } from './kioskMode';
 import { useEditableSurface } from './useEditableSurface';
 import { EmptyState } from '../editor/chrome';
 import { RoomCard } from './RoomCard';
@@ -25,6 +26,7 @@ function greeting(): string {
 
 export function HomeView() {
   const { config, openRoom } = useDashboard();
+  const { enabled: kiosk, enter: enterKiosk } = useKioskOptional();
   const source = useHassSource();
   const keysVersion = useEntityKeys();
   const areaMap = useAreas();
@@ -78,6 +80,13 @@ export function HomeView() {
         {active && override && onReset && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset home"><RotateCcw size={15} /></button>
         )}
+        {/* Enter wall-tablet/kiosk mode — chrome-off, screen-awake, dot ambient.
+            Hidden once in kiosk (the header is hidden there anyway). */}
+        {!kiosk && (
+          <button className="simui-iconbtn-h" onClick={enterKiosk} aria-label="Enter kiosk mode">
+            <MonitorPlay size={15} />
+          </button>
+        )}
         {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
             (mounted by DashboardView) — keep the header chrome minimal. */}
         <button
@@ -89,7 +98,7 @@ export function HomeView() {
         </button>
       </header>
       <div className="simui-content simui-home-content">
-        <AmbientCanvas lightIds={homeLightIds} />
+        <AmbientCanvas mode={kiosk ? 'dots' : 'field'} lightIds={homeLightIds} />
         <div className="simui-home-layer">
           {surface.statusStrip && surface.statusStrip.length > 0 && (
             <SurfaceStrip pills={surface.statusStrip} />

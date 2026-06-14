@@ -200,6 +200,24 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-back:hover { color: var(--text); background: var(--surface); }
 .simui-content { padding: 16px; }
 
+/* ---- kiosk / wall-tablet mode (kiosk-mode) ----
+   Chrome-off: hide the per-surface header and reclaim its space. Driven by a
+   `data-kiosk="true"` attribute DashboardView sets on the `.simui-root` mount; off
+   (data-kiosk="false") is identical to today. */
+.simui-root[data-kiosk="true"] .simui-head { display: none; }
+[data-kiosk="true"] .simui-content { padding-top: 8px; }
+/* The only way out while chrome is hidden: a quiet, low-opacity floating button
+   that brightens on hover (minimal motion — no entrance animation). */
+.simui-kiosk-exit {
+  position: fixed; top: 14px; right: 14px; z-index: 70;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 11px;
+  border: 1px solid var(--faint); background: color-mix(in srgb, var(--surface) 80%, transparent);
+  color: var(--muted); cursor: pointer; opacity: 0.28;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.simui-kiosk-exit:hover { opacity: 1; color: var(--text); border-color: color-mix(in srgb, var(--text) 22%, var(--faint)); }
+
 .simui-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 /* Phone: pack the compact (122px) room cards two-up instead of one long column.
    HA's `narrow` flag forces the same when the panel is narrow but the viewport
