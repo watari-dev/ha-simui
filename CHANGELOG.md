@@ -7,6 +7,14 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.5.0-beta.2] - 2026-06-15
+
+### Changed
+- **Universal Minimalist icon disc** — every tile (climate, cover, lock, fan, generic),
+  not just lights, now renders the UI-Lovelace-Minimalist round icon cell that fills
+  with its soft state colour when active. Covers gained a blinds icon. Consistent
+  icon-disc anatomy across the whole grid.
+
 ## [0.5.0-beta.1] - 2026-06-15
 
 Preview of the room-first Minimalist redesign — grounded in the actual
