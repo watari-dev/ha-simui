@@ -296,16 +296,17 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, sKey, config]);
 
-  // Mirror the editor's `active` to the dashboard `editing` flag (editor owns the
-  // source of truth — SPEC §1.2). If something else toggles `editing` off
-  // (e.g. navigation calls `setEditing(false)`), follow it.
+  // The editor owns `active` (SPEC §1.2); only enter()/exit() change it, and the
+  // host that calls enter() flips the dashboard `editing` flag in the same beat,
+  // so the two start in lockstep. The one case to mirror here is an EXTERNAL
+  // force-off of `editing` — navigation calls `setEditing(false)` while we're
+  // still active — which we follow by flushing pending edits and tearing the
+  // editor down. (We deliberately do NOT push `editing` back on from here: that
+  // would fight a route change mid-edit.)
   useEffect(() => {
-    if (editing !== active) {
-      if (active) setEditing(true);
-      else if (!active && editing) {
-        // External force-exit (e.g. route change): tear down editor state.
-        setActive(false);
-      }
+    if (active && !editing) {
+      flushPending();
+      setActive(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing]);

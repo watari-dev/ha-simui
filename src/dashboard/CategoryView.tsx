@@ -1,16 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Check, ChevronLeft, Pencil, Plus, RotateCcw } from 'lucide-react';
 import { useAllStates } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
+import { useEditor } from '../editor/store';
+import { EditorOverlay } from '../editor/EditorOverlay';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
-import { CardGallery } from '../editor/CardGallery';
-import { CARD_KINDS, seedFor } from '../editor/cardKinds';
-import { buildPreviewContext } from '../editor/preview';
-import type { CardKind } from '../editor/types';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { getPreset } from './presets/index';
 import type { Surface } from './presets/index';
@@ -54,8 +52,8 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   const states = useAllStates();
   const areaMap = useAreas();
   const registryMeta = useRegistry();
-  const { config, goHome, editing, setEditing, reorderBlocks, addBlock, createOverride, resetOverride } = useDashboard();
-  const [gallery, setGallery] = useState(false);
+  const { config, goHome, setEditing, createOverride, resetOverride } = useDashboard();
+  const editor = useEditor();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Rebuild the live surface only when the entity SET changes (idSig) — each block
@@ -69,15 +67,12 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, idSig, areaMap, registryMeta]);
 
-  // An override (a user-edited snapshot) takes over from the live surface.
+  // An override (a user-edited snapshot) takes over from the live surface. While
+  // the editor is active we render its optimistic working copy (`dirtyBlocks`) so
+  // edits show instantly; the editor commits them back into the override (debounced).
   const override = config?.overrides?.[`category:${categoryId}`];
-  const blocks = override ? override.blocks : surface.blocks;
+  const blocks = editor.active ? editor.dirtyBlocks : override ? override.blocks : surface.blocks;
   const ids = blocks.map((b) => b.id);
-  const preview = useMemo(() => buildPreviewContext(states), [idSig]); // eslint-disable-line react-hooks/exhaustive-deps
-  const onPickKind = (kind: CardKind) => {
-    addBlock(kind.make(seedFor(kind, preview)));
-    setGallery(false);
-  };
 
   const title = CATEGORY_TITLE[categoryId] ?? categoryId;
   const ambient = AMBIENT_CATEGORIES.has(categoryId);
@@ -91,41 +86,49 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
     if (!over || active.id === over.id) return;
     const o = ids.indexOf(String(active.id));
     const n = ids.indexOf(String(over.id));
-    if (o >= 0 && n >= 0) reorderBlocks(o, n);
+    if (o >= 0 && n >= 0) editor.moveBlock(o, n);
   };
 
-  // Entering edit on a live surface first snapshots it into an editable override.
+  // Entering edit on a live surface first snapshots it into an editable override,
+  // then hands control to the editor store (it seeds its working copy from the
+  // override once the snapshot materialises — SPEC_EDITOR §1.2). We flip the
+  // dashboard `editing` flag in the same beat so they start in lockstep.
   const onEditToggle = () => {
-    if (editing) {
-      setEditing(false);
+    if (editor.active) {
+      editor.exit();
       return;
     }
     if (!override) createOverride(categoryId, surface.blocks);
     setEditing(true);
+    editor.enter();
   };
   const onReset = () => {
+    editor.exit({ discard: true });
     resetOverride(categoryId);
-    setEditing(false);
+  };
+  const onBack = () => {
+    if (editor.active) editor.exit();
+    goHome();
   };
 
   return (
     <div className="simui-app">
       <header className="simui-head">
-        <button className="simui-back" onClick={goHome} aria-label="Back to home"><ChevronLeft size={18} /></button>
+        <button className="simui-back" onClick={onBack} aria-label="Back to home"><ChevronLeft size={18} /></button>
         <span className="simui-head-title">{title}</span>
         <span className="simui-spacer" />
-        {editing && override && (
+        {editor.active && override && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset to preset"><RotateCcw size={15} /></button>
         )}
-        {editing && (
-          <button className="simui-iconbtn-h" onClick={() => setGallery(true)} aria-label="Add card"><Plus size={16} /></button>
+        {editor.active && (
+          <button className="simui-iconbtn-h" onClick={() => editor.openGallery()} aria-label="Add card"><Plus size={16} /></button>
         )}
         <button
-          className={`simui-iconbtn-h${editing ? ' active' : ''}`}
+          className={`simui-iconbtn-h${editor.active ? ' active' : ''}`}
           onClick={onEditToggle}
-          aria-label={editing ? 'Done editing' : 'Edit surface'}
+          aria-label={editor.active ? 'Done editing' : 'Edit surface'}
         >
-          {editing ? <Check size={16} /> : <Pencil size={15} />}
+          {editor.active ? <Check size={16} /> : <Pencil size={15} />}
         </button>
       </header>
       <div className={`simui-content${ambient ? ' simui-cat-content' : ''}`}>
@@ -135,11 +138,11 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
             <SurfaceStrip pills={surface.statusStrip} />
           )}
           {blocks.length ? (
-            override ? (
+            editor.active ? (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={ids} strategy={rectSortingStrategy}>
                   <div className="simui-grid simui-surface-grid">
-                    {blocks.map((b) => <BlockChrome key={b.id} block={b} editing={editing} />)}
+                    {blocks.map((b) => <BlockChrome key={b.id} block={b} editing />)}
                   </div>
                 </SortableContext>
               </DndContext>
@@ -149,18 +152,13 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
               </div>
             )
           ) : (
-            <div className="simui-msg">Nothing in {title.toLowerCase()} yet.</div>
+            <div className="simui-msg">
+              {editor.active ? `Tap + to add a card.` : `Nothing in ${title.toLowerCase()} yet.`}
+            </div>
           )}
         </div>
       </div>
-      {gallery && (
-        <CardGallery
-          kinds={CARD_KINDS}
-          preview={preview}
-          onPick={onPickKind}
-          onClose={() => setGallery(false)}
-        />
-      )}
+      <EditorOverlay />
     </div>
   );
 }
