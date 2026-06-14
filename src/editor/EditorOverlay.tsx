@@ -91,6 +91,8 @@ export function EditorOverlay() {
           states={states}
           areaOf={index.areaOf}
           isPrimary={index.isPrimary}
+          areas={areas}
+          registry={registry}
           existing={block.entityIds}
           multi
           facets={facets}

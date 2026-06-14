@@ -26,6 +26,7 @@ import type {
   Condition,
 } from '../dashboard/types';
 import type { HassEntities, HassEntity } from '../types';
+import type { AreaMap, RegistryMeta } from '../dashboard/areas';
 
 // Re-export the Block vocabulary so downstream editor files import everything from
 // one module.
@@ -431,6 +432,17 @@ export interface EntityPickerProps {
   areaOf?: (entityId: string) => string | undefined;
   /** Curation gate predicate (hides diagnostic/config noise when `facets.primaryOnly`). */
   isPrimary?: (entityId: string, entity: HassEntity | undefined) => boolean;
+  /**
+   * Resolved area map (src/dashboard/areas.ts `useAreas`). Lets the picker build an
+   * AREA-AWARE faceted index internally so result rows group under their real area
+   * rather than all collapsing to "Unassigned". Absent (dev/mock) ⇒ no area grouping.
+   */
+  areas?: AreaMap;
+  /**
+   * Registry curation meta (src/dashboard/areas.ts `useRegistry`). Drives the
+   * primary-only gate over real registry metadata. Absent ⇒ entity_id pattern gate.
+   */
+  registry?: RegistryMeta;
   /** Already-on-surface entities, shown checked / de-emphasised. */
   existing?: string[];
   /** Allow choosing more than one (members) vs. exactly one (chart series, single card). */
