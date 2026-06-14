@@ -8,40 +8,45 @@
    Colors prefer HA's theme variables and fall back to a dark-first palette, so the
    panel inherits the user's theme when embedded. */
 :root, :host {
-  --bg: var(--primary-background-color, #0a0b0d);
-  --surface: var(--ha-card-background, var(--card-background-color, #15171c));
-  --surface-2: #1b1e25;
-  --text: var(--primary-text-color, #edeef2);
-  --muted: var(--secondary-text-color, #8a909c);
-  --faint: var(--divider-color, #23262e);
-  --accent: var(--primary-color, #5b8cff);
-  --warm: #ffb267;   /* on / heating */
-  --cool: #5ec8e6;   /* cooling / active */
-  --up: #3fd08a;     /* good / generating / secure */
-  --down: #f0735e;   /* alert / importing */
-  --warn: #f0a84b;   /* attention (unlocked / out-of-band) */
-  /* categorical accents — fixed per-category identity hues for the launcher/nav */
-  --violet: #a78bfa; /* media */
-  --cyan: #5ec8e6;   /* sensors */
-  --pink: #ec8fb8;   /* scenes */
-  --teal: #34c0a8;   /* climate */
-  --slate: #7c93c8;  /* system */
-  --hairline: var(--divider-color, rgba(255,255,255,0.06));
+  /* Material modelled on UI-Lovelace-Minimalist (the project the owner wants): a
+     darker page bg with #1D1D1D cards that FLOAT on a soft drop shadow, soft pastel
+     state colours, and a barely-there (~10%) active tint. */
+  --bg: var(--primary-background-color, #141416);
+  --surface: var(--ha-card-background, var(--card-background-color, #1d1d1d));
+  --surface-2: #262626;
+  --text: var(--primary-text-color, #e9eaec);
+  --muted: var(--secondary-text-color, #9a9ca1);
+  --faint: var(--divider-color, rgba(255,255,255,0.10));
+  --accent: var(--primary-color, #89b3f8);   /* soft blue */
+  --warm: #fcd663;   /* soft yellow — lights / on */
+  --cool: #89b3f8;   /* soft blue — cooling / active */
+  --up: #80c994;     /* soft green — good / secure */
+  --down: #f18b82;   /* soft coral — alert */
+  --warn: #fcd663;   /* soft amber — attention */
+  /* categorical accents — soft, desaturated identity hues (Minimalist palette) */
+  --violet: #b39ddb; /* media */
+  --cyan: #89b3f8;   /* sensors */
+  --pink: #e9a6c0;   /* scenes */
+  --teal: #80c994;   /* climate */
+  --slate: #9fb3d9;  /* system */
+  --hairline: var(--divider-color, rgba(255,255,255,0.08));
 
-  /* ── Design-system tokens (Phase 4: REDESIGN_PLAN.md §5) ──────────────────
-     One shared rhythm: a 4px spacing scale, two radius tiers, one elevation
-     language. Prefer these over ad-hoc literals so surfaces stop drifting. */
+  /* ── Design-system tokens ──────────────────────────────────────────────────
+     A 4px spacing scale + the Minimalist material: rounded cards lifted by a soft
+     drop shadow (UI-Lovelace-Minimalist's --box-shadow), not a flat hairline. */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
-  --r-surface: 18px;   /* cards / tiles / surfaces — continuous-squircle feel */
-  --r-control: 9px;    /* segmented controls, inputs, small buttons */
+  --r-surface: 20px;   /* Minimalist's rounded cards */
+  --r-control: 12px;   /* segmented controls, inputs, small buttons */
   --r-pill: 999px;
-  --r-sheet: 20px;
+  --r-sheet: 22px;
   --radius: var(--r-surface);
-  /* Depth from light, not boxes: a raised fill + a hairline top bezel replace
-     hard 1px borders on object surfaces. */
-  --surface-raised: color-mix(in srgb, var(--text) 4%, var(--surface));
-  --surface-hover: color-mix(in srgb, var(--text) 7%, var(--surface));
-  --bezel: inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+  /* Cards are the solid surface colour, lifted by the soft shadow. `--bezel` is the
+     card shadow (rules that set `box-shadow: var(--bezel)` now float, Minimalist-style). */
+  --surface-raised: var(--surface);
+  --surface-hover: color-mix(in srgb, var(--text) 6%, var(--surface));
+  --bezel: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+  --shadow-hover: 0 5px 14px 0 rgba(0, 0, 0, 0.26);
+  --tint-bg: 12%;   /* active card tint strength (~Minimalist opacity-bg) */
   /* Type scale (tabular figures live on the value/hero utilities). */
   --fz-label: 11px; --fz-meta: 12px; --fz-body: 13px; --fz-value: 22px; --fz-hero: 44px;
 }
@@ -82,9 +87,9 @@
 .simui-tile { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 72px; padding: 11px 12px; background: var(--surface-raised); border: 1px solid transparent; border-radius: var(--r-surface); box-shadow: var(--bezel); transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
 .simui-tile.is-clickable { cursor: pointer; }
 .simui-tile.is-clickable:hover { background: color-mix(in srgb, var(--text) 7.5%, var(--surface)); }
-.simui-tile.is-lit { background: color-mix(in srgb, var(--warm) 7%, var(--surface)); border-color: color-mix(in srgb, var(--warm) 22%, var(--faint)); }
-.simui-tile.is-unlocked { background: color-mix(in srgb, var(--warn) 8%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 22%, var(--faint)); }
-.simui-tile.is-on { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 22%, var(--faint)); }
+.simui-tile.is-lit { background: color-mix(in srgb, var(--warm) var(--tint-bg), var(--surface)); }
+.simui-tile.is-unlocked { background: color-mix(in srgb, var(--warn) var(--tint-bg), var(--surface)); }
+.simui-tile.is-on { background: color-mix(in srgb, var(--accent) var(--tint-bg), var(--surface)); }
 .simui-tile.span-2 { grid-column: span 2; }
 
 /* unavailable / unknown — dimmed + non-interactive. A dead device must never look
@@ -566,13 +571,13 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
   touch-action: none; user-select: none; -webkit-user-select: none;
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
-/* On: a soft Apple-Home warm wash on the whole card + a faint tinted ring — the
-   colour appears only when active, so on/off contrast is unmistakable. */
+/* On: a barely-there ~12% wash of the soft state colour over the whole card, still
+   floating on its drop shadow — Minimalist's calm active state (no border ring). */
 .simui-slidertile.is-on {
-  background: color-mix(in srgb, var(--slider-tint) 7%, var(--surface));
-  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 20%, transparent);
+  background: color-mix(in srgb, var(--slider-tint) var(--tint-bg), var(--surface));
+  box-shadow: var(--bezel);
 }
-.simui-slidertile.is-dragging { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 40%, transparent); }
+.simui-slidertile.is-dragging { box-shadow: var(--shadow-hover); }
 .simui-slidertile.is-static { cursor: default; touch-action: auto; }
 .simui-slidertile:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 1px; }
 /* The tinted fill rises from the bottom; its height IS the value. A soft vertical
@@ -580,12 +585,12 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
    not the flat muddy block it used to be. */
 .simui-slidertile-fill {
   position: absolute; left: 0; right: 0; bottom: 0; height: 0;
-  background: linear-gradient(to top, color-mix(in srgb, var(--slider-glow) 78%, transparent), color-mix(in srgb, var(--slider-glow) 26%, transparent));
-  opacity: 0.2; pointer-events: none;
+  background: linear-gradient(to top, color-mix(in srgb, var(--slider-glow) 70%, transparent), color-mix(in srgb, var(--slider-glow) 18%, transparent));
+  opacity: 0.06; pointer-events: none;
   transition: height 0.04s linear, opacity 0.2s ease;
 }
-.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.24; }
-.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; opacity: 0.32; }
+.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.09; }
+.simui-slidertile.is-dragging .simui-slidertile-fill { opacity: 0.16; }
 .simui-slidertile-body { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; width: 100%; padding: 12px; }
 .simui-slidertile-head { display: flex; align-items: center; gap: 8px; }
 /* Round icon disc (Apple/Mushroom): neutral grey when idle, tinted when active. */
