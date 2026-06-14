@@ -3,7 +3,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { useHassSource } from '../hass/context';
 import type { Block, BlockSpan, DashboardConfig } from './types';
 import { defaultCardSpan, generateDefault } from './generateDefault';
-import { resolveAreas } from './areas';
+import { resolveAreas, resolveRegistryMeta } from './areas';
 import { loadDashboard, saveDashboard } from './storage';
 import { uid } from '../util';
 
@@ -70,8 +70,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const saved = await loadDashboard(source);
       // Real area registry (when embedded) drives room assignment; heuristic in dev.
-      const areas = saved ? undefined : await resolveAreas(source);
-      const cfg = saved ?? generateDefault(source.getStates(), areas);
+      // The entity registry also feeds the curation gate (diagnostic/hidden = noise).
+      const [areas, registry] = saved
+        ? [undefined, undefined]
+        : await Promise.all([resolveAreas(source), resolveRegistryMeta(source)]);
+      const cfg = saved ?? generateDefault(source.getStates(), areas, registry);
       if (alive) {
         setConfig(cfg);
         loaded.current = true;

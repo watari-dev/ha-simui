@@ -3,7 +3,7 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Check, ChevronLeft, Pencil, Plus, RotateCcw } from 'lucide-react';
 import { useAllStates } from '../hass/context';
-import { useAreas } from './areas';
+import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
@@ -50,6 +50,7 @@ const CATEGORY_TITLE: Record<string, string> = {
 export function CategoryView({ categoryId }: { categoryId: string }) {
   const states = useAllStates();
   const areaMap = useAreas();
+  const registryMeta = useRegistry();
   const { config, goHome, editing, setEditing, reorderBlocks, addCard, createOverride, resetOverride } = useDashboard();
   const [adding, setAdding] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -60,10 +61,10 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   const surface: Surface = useMemo(() => {
     const presetId = PRESET_FOR[categoryId];
     const preset = presetId ? getPreset(presetId) : undefined;
-    if (preset) return preset.build({ states, areas: areaMap });
+    if (preset) return preset.build({ states, areas: areaMap, registry: registryMeta });
     return fallbackSurface(categoryId, states);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, idSig, areaMap]);
+  }, [categoryId, idSig, areaMap, registryMeta]);
 
   // An override (a user-edited snapshot) takes over from the live surface.
   const override = config?.overrides?.[`category:${categoryId}`];
