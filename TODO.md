@@ -30,12 +30,18 @@ The must-have checklist (ROADMAP §2), by tier.
 - [x] **`unavailable`/`unknown` states** — `.is-unavailable` now applied across `EntityRow`,
       `SliderTile`, `StatusBoardTile`, `MetricSpark`, and every domain widget: dimmed, placeholder
       (`—`/`Unavailable`), no controls, no fabricated sparkline/history while dead.
-- [ ] **Profile + de-jank the live tick** — measure render counts at scale; kill the per-render
-      `idSig` string join and O(all-entities) aggregate recompute (memoise the entity-key set; only
-      recompute aggregates whose inputs changed). Validate 60fps on ~6k entities.
-- [ ] **Faceted, virtualized entity picker** — replace `AddCardPanel`: search + domain/area/label
-      facets, fuzzy match, multi-select, virtualization, group-entity-preferred. The shared index
-      reused by the Inspector, add-block flow, and list-source authoring.
+- [~] **Profile + de-jank the live tick** — DONE: killed the per-render `idSig` `Object.keys().sort().join()`
+      and the per-tick container re-renders. `HassProvider` wraps the source with a memoized
+      **entity-keys version** (`useEntityKeys`, bumps only on add/remove, computed once per tick);
+      HomeView/CategoryView/EditorOverlay build on it + read the live map lazily, so value ticks no
+      longer re-render the containers or rebuild the entity index (verified: 0 container re-renders
+      across value ticks). `useEntity` stays surgical. TODO (lighter): per-domain/input-scoped
+      `useAggregate` so the ~12 aggregate computes don't all scan every tick; live-tick FPS profiling
+      on the real ~6k home.
+- [x] **Faceted, virtualized entity picker** — shipped: `EntityPicker` composes the `picker/` module
+      (SearchBox / FacetBar / AreaGroupedList) over the area-aware `EntityIndex` — domain+area+label
+      facets, fuzzy match, multi-select, area-grouped with per-area select-all, group-entity-preferred;
+      the shared index is reused by the Inspector add-members flow. `AddCardPanel` removed.
 
 ### Tier B — the editor + preset gallery (the flagged edit-suite gap)
 *Largely SHIPPED via the decoupled editor store (`src/editor/store.tsx`) + wave-3 fan-out.*

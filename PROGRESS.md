@@ -279,6 +279,16 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
     tsc + panel build + console all clean. Stale-worktree-base trap hit again → mitigated by forcing
     `git reset --hard <SHA>` in every agent's setup ([[workflow-worktree-stale-base]]).
 
+- **Live-tick de-jank (Tier A scale)** — the embedded panel + dev socket replace the whole
+  `states` object every tick, so `useAllStates` re-rendered HomeView/CategoryView/EditorOverlay on
+  EVERY state change anywhere — each recomputing an `O(M·logM)` `Object.keys().sort().join()` idSig
+  (and EditorOverlay rebuilt the whole entity index per tick). `HassProvider` now wraps the source
+  with a memoized **entity-keys version** (`useEntityKeys` — bumps only when the key SET changes,
+  computed once per tick); the three surface builders key their memos on it and read the live map
+  lazily via `getStates()`. `useEntity` stays surgical. **Verified in-browser**: 5 light toggles
+  (value ticks) → `CategoryView` re-renders **0×** (was 1× + a 6k-key sort each); editor/picker
+  intact; console clean. (Remaining lighter win: per-input-scoped `useAggregate`.)
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);
