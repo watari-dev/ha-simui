@@ -1,10 +1,15 @@
 import { DashboardProvider } from './dashboard/store';
 import { DashboardView } from './dashboard/DashboardView';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ConnectionBanner } from './components/ConnectionBanner';
 
 export function App() {
   return (
-    <DashboardProvider>
-      <DashboardView />
-    </DashboardProvider>
+    <ErrorBoundary>
+      <ConnectionBanner />
+      <DashboardProvider>
+        <DashboardView />
+      </DashboardProvider>
+    </ErrorBoundary>
   );
 }

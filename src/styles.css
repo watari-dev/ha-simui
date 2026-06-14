@@ -713,3 +713,49 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 }
 
 /* === end accessibility: focus rings + reduced motion (a11y-reduced-motion) === */
+
+/* === ship-readiness resilience (resilience) ===
+   Error-boundary fallbacks (full panel + inline compact notice) and the quiet
+   reconnect banner. Theme-aware via the existing tokens; minimal motion — these
+   simply appear, no keyframes. */
+
+/* full-panel fallback — whole app threw */
+.simui-eb-full {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.simui-eb-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; margin-bottom: 6px; }
+.simui-eb-body { font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* compact inline fallback — a single surface degraded in place */
+.simui-eb-compact {
+  margin: 8px 2px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--text) 3%, var(--surface));
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+
+/* reconnect banner — hairline strip above the chrome while the socket is down */
+.simui-conn-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warn) 28%, var(--faint));
+  border-radius: 10px;
+}
+.simui-conn-ic { flex: none; color: var(--warn); }
+/* === end ship-readiness resilience === */
