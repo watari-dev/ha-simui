@@ -14,12 +14,14 @@ export function SensorTile({ entity }: WidgetProps) {
   const a = entity.attributes;
   const unit = (a.unit_of_measurement as string | undefined) ?? '';
   const isTemp = a.device_class === 'temperature';
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const num = Number(entity.state);
-  const isNumeric = entity.state !== '' && !Number.isNaN(num);
+  const isNumeric = !dead && entity.state !== '' && !Number.isNaN(num);
   const lastSeen = useRef('');
   const [, bump] = useState(0);
 
   useEffect(() => {
+    // Never record fake history while dead — a dead sensor must not seed a trend.
     if (!isNumeric || lastSeen.current === entity.state) return;
     lastSeen.current = entity.state;
     const buf = buffers.get(entity.entity_id) ?? [];
@@ -28,6 +30,21 @@ export function SensorTile({ entity }: WidgetProps) {
     buffers.set(entity.entity_id, buf);
     bump((n) => n + 1);
   }, [entity.entity_id, entity.state, isNumeric, num]);
+
+  // Dead device — dim, clear placeholder, no sparkline / delta (no fabricated trend).
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          {isTemp && <span className="simui-ic"><Thermometer size={15} strokeWidth={2} /></span>}
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+        </div>
+        <div className="simui-row" style={{ alignItems: 'flex-end' }}>
+          <span className="simui-big">—</span>
+        </div>
+      </Tile>
+    );
+  }
 
   const buf = buffers.get(entity.entity_id) ?? [];
   const delta = buf.length > 1 ? num - buf[0] : 0;

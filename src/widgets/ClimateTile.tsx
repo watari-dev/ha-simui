@@ -12,6 +12,25 @@ const MODE_CLASS: Record<string, string> = { heat: 'warm', cool: 'cool', heat_co
 
 export function ClimateTile({ entity }: WidgetProps) {
   const callService = useCallService();
+  const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+
+  // Dead device — dim, placeholder reading, no steppers / mode strip.
+  if (dead) {
+    return (
+      <Tile className="is-unavailable">
+        <div className="simui-row">
+          <span className="simui-ic"><Thermometer size={16} strokeWidth={2} /></span>
+          <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
+        </div>
+        <div className="simui-row">
+          <span className="simui-big">—<span className="simui-unit">°</span></span>
+          <span className="simui-spacer" />
+          <span className="simui-state">Unavailable</span>
+        </div>
+      </Tile>
+    );
+  }
+
   const a = entity.attributes;
   const action = a.hvac_action as string | undefined;
   const current = a.current_temperature as number | undefined;

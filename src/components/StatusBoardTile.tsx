@@ -142,14 +142,47 @@ export function StatusBoardTile({ entity, name, menuItems }: StatusBoardTileProp
   const run = useActions();
   if (!e) return null;
 
-  const st = securityStatus(e);
   const label = name ?? friendly(e);
-  const Icon = st.icon;
+  const dead = e.state === 'unavailable' || e.state === 'unknown';
 
   const items: ContextMenuItem[] = [
     { label: 'Details', onClick: () => run({ action: 'more-info' }, entity) },
     ...(menuItems ?? []),
   ];
+
+  // Dead device — dim, "Unavailable" word, no tone halo (a dead sensor must not
+  // read as a confident "Clear"/"Secure").
+  if (dead) {
+    return (
+      <>
+        <div
+          className="simui-statusboard tone-idle is-unavailable"
+          role="group"
+          aria-label={`${label}: Unavailable`}
+          {...menu.menuProps}
+        >
+          <span className="simui-statusboard-ic" aria-hidden="true">
+            <AlertTriangle size={22} strokeWidth={2} />
+          </span>
+          <span className="simui-statusboard-word">Unavailable</span>
+          <span className="simui-statusboard-name" title={label}>{label}</span>
+          <StateLine value="" since={e.last_changed} tone="muted" />
+        </div>
+        {menu.open && menu.position && (
+          <ContextMenu
+            items={items}
+            x={menu.position.x}
+            y={menu.position.y}
+            onClose={menu.close}
+            header={isControllable(entity) ? <QuickControls entityId={entity} compact /> : undefined}
+          />
+        )}
+      </>
+    );
+  }
+
+  const st = securityStatus(e);
+  const Icon = st.icon;
 
   return (
     <>
