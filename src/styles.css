@@ -508,25 +508,42 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-slidertile {
   --slider-tint: var(--warm);
   position: relative; display: flex; min-height: 92px; padding: 0; overflow: hidden;
-  border-radius: 16px; background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border-radius: 18px; background: color-mix(in srgb, var(--text) 4%, var(--surface));
   box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.06); cursor: pointer;
   touch-action: none; user-select: none; -webkit-user-select: none;
-  transition: box-shadow 0.15s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
-.simui-slidertile.is-on { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 24%, transparent); }
-.simui-slidertile.is-dragging { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 42%, transparent); }
+/* On: a soft Apple-Home warm wash on the whole card + a faint tinted ring — the
+   colour appears only when active, so on/off contrast is unmistakable. */
+.simui-slidertile.is-on {
+  background: color-mix(in srgb, var(--slider-tint) 7%, var(--surface));
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 20%, transparent);
+}
+.simui-slidertile.is-dragging { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px color-mix(in srgb, var(--slider-tint) 40%, transparent); }
 .simui-slidertile.is-static { cursor: default; touch-action: auto; }
 .simui-slidertile:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 1px; }
-/* the tinted fill rises from the bottom; its height/width IS the value */
-.simui-slidertile-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; opacity: 0.18; pointer-events: none; transition: height 0.04s linear, opacity 0.15s ease; }
-.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.28; }
-.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; }
-.simui-slidertile-body { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; width: 100%; padding: 11px 12px; }
+/* The tinted fill rises from the bottom; its height IS the value. A soft vertical
+   gradient (stronger at the base, lighter toward the level) reads as a warm glow,
+   not the flat muddy block it used to be. */
+.simui-slidertile-fill {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+  background: linear-gradient(to top, var(--slider-tint), color-mix(in srgb, var(--slider-tint) 35%, transparent));
+  opacity: 0.14; pointer-events: none;
+  transition: height 0.04s linear, opacity 0.2s ease;
+}
+.simui-slidertile.is-on .simui-slidertile-fill { opacity: 0.18; }
+.simui-slidertile.is-dragging .simui-slidertile-fill { transition: none; opacity: 0.26; }
+.simui-slidertile-body { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; width: 100%; padding: 12px; }
 .simui-slidertile-head { display: flex; align-items: center; gap: 8px; }
-.simui-slidertile-ic { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; padding: 0; border: none; border-radius: 9px; background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--muted); cursor: pointer; transition: color 0.12s ease, background 0.12s ease; }
-.simui-slidertile-ic.on { color: var(--slider-tint); background: color-mix(in srgb, var(--slider-tint) 16%, transparent); }
-.simui-slidertile-pct { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+/* Round icon disc (Apple/Mushroom): neutral grey when idle, tinted when active. */
+.simui-slidertile-ic { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; padding: 0; border: none; border-radius: 50%; background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--muted); cursor: pointer; transition: color 0.18s ease, background 0.18s ease; }
+.simui-slidertile-ic.on { color: var(--slider-tint); background: color-mix(in srgb, var(--slider-tint) 20%, transparent); }
+.simui-slidertile-ic:hover { background: color-mix(in srgb, var(--slider-tint) 30%, transparent); }
+/* Brightness % is the headline value — bigger, bolder, tabular; muted "Off" when idle. */
+.simui-slidertile-pct { margin-left: auto; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; color: var(--text); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-slidertile:not(.is-on) .simui-slidertile-pct { font-size: 13px; font-weight: 500; color: var(--muted); }
 .simui-slidertile-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-slidertile:not(.is-on) .simui-slidertile-name { color: var(--muted); }
 
 /* ---- Worker 2 · Security status board (I5) ---- */
 .simui-statusboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }

@@ -142,11 +142,12 @@ export function SliderTile({ entity, name, step = 1, menuItems, actions }: Slide
   // Suppress the synthetic click that follows a drag (so a drag never toggles).
   const suppressClick = useRef(false);
 
-  // Body tap: an authored `tap` action overrides the toggle; absence ⇒ toggle
-  // (today's behaviour, unchanged). The drag-suppress + unavailable guards still
-  // gate it via `onTileClick` below — neither a drag nor a dead entity fires it.
+  // Apple split-action grammar: the icon disc toggles in place (onIconClick); a
+  // clean tap on the BODY opens the detail sheet; a drag sets the value. An authored
+  // `tap` action overrides this default. The drag-suppress + unavailable guards gate
+  // it via `onTileClick` below — neither a drag nor a dead entity fires it.
   const tap = useTapHandler(entity, actions, () => {
-    if (e && spec) spec.toggle(call, e, on);
+    run({ action: 'more-info' }, entity);
   });
 
   if (!e || !spec) return null;
@@ -222,7 +223,9 @@ export function SliderTile({ entity, name, step = 1, menuItems, actions }: Slide
     }
   };
 
-  const fill: CSSProperties = { ...drag.fillStyle, background: spec.tint };
+  // Height/width comes from the drag value; the tint is applied in CSS as a soft
+  // vertical gradient (from --slider-tint) so it reads as a glow, not a flat block.
+  const fill: CSSProperties = drag.fillStyle;
 
   const items: ContextMenuItem[] = [
     { label: on ? offLabel(domain) : onLabel(domain), onClick: () => spec.toggle(call, e, on) },
@@ -260,7 +263,7 @@ export function SliderTile({ entity, name, step = 1, menuItems, actions }: Slide
               onClick={onIconClick}
               onPointerDown={(ev) => ev.stopPropagation()}
             >
-              <Icon size={18} strokeWidth={2} />
+              <Icon size={19} strokeWidth={2} {...(on ? { fill: 'currentColor', fillOpacity: 0.16 } : {})} />
             </button>
             <span className="simui-slidertile-pct num">{readout(domain, on, value)}</span>
           </span>
