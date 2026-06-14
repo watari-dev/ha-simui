@@ -31,7 +31,7 @@ The must-have checklist (ROADMAP §2), by tier.
       recompute aggregates whose inputs changed). Validate 60fps on ~6k entities.
 - [ ] **Faceted, virtualized entity picker** — replace `AddCardPanel`: search + domain/area/label
       facets, fuzzy match, multi-select, virtualization, group-entity-preferred. The shared index
-      reused by the Inspector, add-block flow, list-source authoring, and ⌘K.
+      reused by the Inspector, add-block flow, and list-source authoring.
 
 ### Tier B — the editor + preset gallery (the flagged edit-suite gap)
 - [~] **Editable surfaces** — category surfaces are now editable via persisted **overrides**
@@ -82,9 +82,6 @@ The must-have checklist (ROADMAP §2), by tier.
 ---
 
 ## ✨ Differentiators — keep the edge (why switch, not just match)
-- [ ] **⌘K command palette as a *control* surface** — "movie" runs the scene, "kitchen" jumps,
-      "all lights off" = scoped bulk action, "living room temp" opens the climate Sheet. Reuses the
-      faceted picker + `runAction` + Sheet + ContextMenu keyboard model. *The #1 reason to switch.*
 - [ ] **Live-preview preset gallery** — every card is *your real home, composed* (this is Tier B's
       gallery — protect its priority; it's the onboarding *and* the differentiator).
 - [~] **Whole-home glance digest** — the status strip exists; make the counts *actions*
