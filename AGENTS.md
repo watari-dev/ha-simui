@@ -17,9 +17,11 @@ defaults auto-generated per room (never the whole entity registry). Entity widge
 sensor, climate, media_player, cover, lock + generic fallback. `npm run dev` (mock data
 when no token) → `dist/simui-panel.js`. Verified end-to-end in a headless browser.
 
-Known next steps: use the real HA **area registry** for room assignment (currently a
-name-keyword heuristic); richer in-UI composition (build groups/lists by hand, not just
-add-as-card); a `lightweight-charts` energy/history card.
+**Current pivot:** from the per-room dashboard to a navigation **shell** — a Home summary,
+device-type category views, native detail sheets, and preset templates (see "Navigation &
+interaction" below, and [`TODO.md`](TODO.md) / [`PROGRESS.md`](PROGRESS.md)). Smaller known
+gaps: real HA **area registry** for rooms (currently a name heuristic); richer in-UI
+composition; a `lightweight-charts` history card.
 
 ## Vision & principles
 
@@ -40,6 +42,11 @@ add-as-card); a `lightweight-charts` energy/history card.
 - **A Home Assistant MCP server is connected in this environment.** Use the
   `mcp__Home_Assistant__*` tools to inspect the live instance (entities, areas, devices,
   dashboards, history) when designing — don't guess at what exists.
+- **⚠️ The connected MCP currently points at a public *demo* sandbox**
+  (`ha-mcp-demo-server.qc-h.net` — HA's demo integration: "Bed Light", "Ecobee", "Paulus",
+  demo vacuums), **not the owner's real home.** All work so far is validated against demo
+  data. To work against the real instance, re-point the HA MCP at it **and restart the
+  session** (MCP servers load at session start), then verify `base_url` is the owner's domain.
 
 ## Architecture (decided)
 
@@ -75,18 +82,45 @@ on interaction (progressive disclosure).
 UI work. Core rule: *compose, don't tile* (the card is a primitive, not the layout); the
 room is the surface; the background is a living ambient canvas; minimize chrome.
 
-## Open decisions (resolve during brainstorm)
+## Navigation & interaction (decided)
 
-- **Full custom panel vs. custom Lovelace cards** — own the whole canvas (max density &
-  design freedom) vs. slot dense widgets into HA's existing dashboards (max integration).
-  Leaning: full panel, with optionally publishing widgets as cards later.
-- Distribution: drop the build in `/config/www/` + YAML `panel_custom` (simplest) →
-  custom integration (HACS-installable) later.
-- Config-driven (drag-to-build) vs. code/JSON-defined dashboards.
-- Data/state layer, styling system, component library.
+Mid-pivot from a per-room dashboard to a **shell**:
+
+- **No in-app sidebar** — HA already owns the left sidebar; nav lives in the panel's
+  top / summary chrome.
+- **Land on a Home summary** (status strip → scenes/favorites → rooms strip → an
+  "Everything" categories list), *not* a card grid.
+- **Two axes:** rooms + device categories — Lights / Climate / Media / Security / Sensors /
+  Energy / Power & outlets / System / Scenes — each a *composed* cross-room view.
+- **Tap = native Sheet** (bottom sheet on phone, popover on desktop); **right-click /
+  long-press = context menu**; **smart-click expands** (chart → detailed `lightweight-charts`
+  graph). Layered disclosure: glance → tap → context / expand.
+- **Presets** — ship a gallery of pre-composed pages/dashboards the user picks (instant nice
+  page), then edits. Auto-generate becomes one preset among several.
+- **Minimal motion** — state changes appear, not animate.
+
+Full spec: [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md) §14.
+
+## Decisions made
+
+- **Full custom panel** (not Lovelace cards), embedded via `panel_custom`.
+- **Distribution: HACS custom integration** — published at
+  [github.com/watari-dev/ha-simui](https://github.com/watari-dev/ha-simui).
+- **Config-driven**, composed blocks, drag-to-edit, persisted per user.
+- **Stack:** Vite + React 19 + TypeScript, `home-assistant-js-websocket`, dnd-kit,
+  lucide-react; plain CSS with HA-theme-aware variables.
+
+## Open questions
+
+- **Energy vs. Power** — separate category views, or merged into one?
+- Which **presets** ship by default (Minimal / Information-dense / Family hub / Wall tablet…).
+- Real **area registry** integration (replace the name-keyword room heuristic).
 
 ## Conventions
 
 - **`CLAUDE.md` is a symlink to this file (`AGENTS.md`)** — edit either; they are the same
   file on disk. If a tool ever *replaces* the file instead of editing it and breaks the
   link, re-run: `ln -sf AGENTS.md CLAUDE.md`
+- **Keep [`PROGRESS.md`](PROGRESS.md) and [`TODO.md`](TODO.md) current** as work proceeds —
+  log what shipped in PROGRESS, and what's queued/decided in TODO. Update them at the end of
+  each meaningful chunk of work.
