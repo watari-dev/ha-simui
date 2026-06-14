@@ -4,16 +4,25 @@ import { RoomView } from './RoomView';
 import { CategoryView } from './CategoryView';
 import { Sheet } from '../components/Sheet';
 import { DetailContent } from './DetailContent';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useEntity } from '../hass/context';
 import { friendly } from '../util';
 
 export function DashboardView() {
   const { config, route, sheetEntityId, closeSheet } = useDashboard();
 
+  // A stable key per route so a surface that threw clears its error once you
+  // navigate away (and so each surface gets its own boundary instance).
+  const routeKey = route.kind === 'home' ? 'home' : `${route.kind}/${route.id}`;
+
   return (
     <>
-      <Body />
-      <SheetHost entityId={sheetEntityId} onClose={closeSheet} />
+      <ErrorBoundary compact label="This view" resetKey={routeKey}>
+        <Body />
+      </ErrorBoundary>
+      <ErrorBoundary compact label="Detail" resetKey={sheetEntityId ?? ''}>
+        <SheetHost entityId={sheetEntityId} onClose={closeSheet} />
+      </ErrorBoundary>
     </>
   );
 
