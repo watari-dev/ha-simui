@@ -327,6 +327,25 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
     words. Noted (not blocking): room-glance temperature assumes a per-room `climate` hero, but this
     home uses floor/zone climate — rooms could read a temp *sensor* instead (future enhancement).
 
+- **Wall-tablet/kiosk mode + charts/energy polish (3-builder fan-out)** — verified in-browser:
+  - **Kiosk mode** — `KioskProvider` + `useScreenWakeLock`; entering (Home-header MonitorPlay button,
+    or `?kiosk=1` / localStorage) sets `data-kiosk="true"` on the root → CSS hides the
+    `.simui-head` chrome, the ambient switches to the **dot-matrix** `mode="dots"` field, the screen
+    stays awake, the editor is suppressed (tap-to-control kept), and a low-opacity floating Exit
+    button returns full chrome. Verified: enter → header gone + dots + persisted; exit → restored.
+  - **Energy-flow object** — `EnergyFlow`: a compact (380px) Powerwall-style cross — Solar / Home /
+    Grid / Battery nodes with live values, battery SOC fill, signed grid/battery direction, and a
+    travelling-dash on active wires (static under reduced-motion). Emitted by the Power preset when a
+    real solar + (battery|grid|SOC) system exists, via the `options.energyFlow` card seam (no new
+    BlockType). Fixed post-merge: capped the size (a `span:'full'` block was scaling the SVG ~6×) and
+    made the load prefer instantaneous W/kW over a cumulative kWh sensor.
+  - **Chart range toggle** — `Chart` gained a `rangeToggle` prop (24h/7d/30d); `ChartBlock` enables
+    it on multi-series flow charts (it lived only in the expand Sheet before).
+  - **Batched sparkline-wall history** — `MetricWall` now fetches the whole wall in ONE `useHistory`
+    call and feeds each `MetricSpark` its slice (was one WS request per cell).
+  - Added a Powerwall-style mock energy system so the dev Power category demonstrates all of the above.
+  - Deferred: shared crosshair scrub (SVG spark vs WebGL chart — low value); kiosk idle screensaver.
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);

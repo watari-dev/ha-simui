@@ -7,6 +7,20 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+### Added
+- **Wall-tablet / kiosk mode** — a chrome-off, screen-awake display mode (enter from the Home
+  header or `?kiosk=1`): hides the header, switches the ambient to the dot-matrix field, holds a
+  Screen Wake Lock, suppresses the editor (tap-to-control kept), with a floating exit button.
+- **Powerwall-style energy-flow object** — a compact Solar / Home / Grid / Battery flow diagram
+  with live values, battery state-of-charge, signed grid/battery direction, and motion only on
+  active wires. Emitted by the Power preset when a real solar + battery/grid system is detected.
+- **Range toggle (24h / 7d / 30d)** on the always-on Power flow chart (previously only in the
+  expand sheet).
+
+### Performance
+- **Batched sparkline-wall history** — a metric wall fetches its whole history in one request and
+  feeds each cell its slice, instead of one WebSocket request per cell.
+
 ## [0.3.0] - 2026-06-14
 
 The no-YAML editor lands end-to-end — the make-or-break feature for "a framework

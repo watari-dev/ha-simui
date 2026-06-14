@@ -133,10 +133,14 @@ The must-have checklist (ROADMAP §2), by tier.
       gallery — protect its priority; it's the onboarding *and* the differentiator).
 - [~] **Whole-home glance digest** — the status strip exists; make the counts *actions*
       ("3 lights on → turn all off"), cross-room, conditional-quiet.
-- [ ] **First-class wall-tablet / kiosk mode** — chrome-off, Screen Wake Lock, idle ambient
-      screensaver (the built `mode="dots"` canvas), auto-return-home, per-device profile.
-- [ ] **Powerwall-style energy flow object** — native, on the TradingView-grade data layer; gate on
-      real solar/battery detection.
+- [~] **First-class wall-tablet / kiosk mode** — DONE: chrome-off (`data-kiosk` hides the header),
+      Screen Wake Lock, dot-matrix (`mode="dots"`) ambient, enter (Home header) / exit (floating)
+      affordances, persisted via localStorage + `?kiosk=1`, editor suppressed (tap-to-control kept).
+      TODO (later): idle screensaver dim + auto-return-home + per-device profile.
+- [x] **Powerwall-style energy flow object** — `EnergyFlow` (Solar/Home/Grid/Battery cross with live
+      values, SOC fill, signed grid/battery flow + travelling-dash on active wires, reduced-motion
+      static). Gated on real solar + (battery|grid|SOC) detection in the Power preset (via the
+      `options.energyFlow` card seam). Verified.
 - [ ] **"Reality Doctor" health surface** — turn full-registry awareness into "which integrations
       are down / stale / orphaned / low-battery" — makes a giant install legible. (Showcase, later.)
 
@@ -144,11 +148,14 @@ The must-have checklist (ROADMAP §2), by tier.
 
 ## 🎨 Design polish — Phase 1–3 leftovers ([`DESIGN_DIRECTIONS.md`](DESIGN_DIRECTIONS.md))
 - [ ] Shared **crosshair scrub** across the glance sparkline ↔ the full chart.
-- [ ] **Range toggle (24h/7d/30d)** on the always-on Power "flow" chart (only in the expand Sheet today).
-- [ ] **Sparkline-wall history batching** — one shared history provider for walls with many cells
-      (today: one WS request per cell).
+- [x] **Range toggle (24h/7d/30d)** on the always-on Power "flow" chart — `Chart` gained a
+      `rangeToggle` prop; `ChartBlock` enables it for multi-series (flow) charts.
+- [x] **Sparkline-wall history batching** — `MetricWall` fetches the whole wall's history in ONE
+      `useHistory(ids)` call and feeds each `MetricSpark` its slice (was one WS request per cell).
 - [ ] Whisper the **album-art tint** into the `AmbientCanvas` (the tile tint is done).
-- [ ] Wire a **wall-tablet preset** that uses the dot-matrix `mode="dots"` canvas.
+- [x] **Wall-tablet dot-matrix** — kiosk mode wires `mode="dots"` for Home + ambient categories;
+      the "Wall tablet" page template already exists in the gallery.
+- [ ] Shared **crosshair scrub** (sparkline ↔ full chart) — deferred (SVG spark vs WebGL chart; low value).
 - [ ] Adopt the `TileFeatures` strip across *all* control widgets; full **1..12 grid** + `rows`.
 - [ ] Prefer **group/aggregate entities** in the auto-generator (intent-level controls, not bulbs).
 - [ ] Dedicated **media / scenes** category builders (security shipped; media/scenes still fallback).
