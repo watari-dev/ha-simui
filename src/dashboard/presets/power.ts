@@ -57,6 +57,13 @@ export function buildPower(ctx: PresetContext): Surface {
   // Prefer an explicit whole-home load; else the largest non-circuit reading.
   const load = byRole.get('load') ?? [];
   const circuits = byRole.get('circuit') ?? [];
+  // The live flow object + chart want an INSTANTANEOUS power (W/kW) load — a cumulative
+  // "Total Energy" kWh sensor (which also matches the load role) is not a flow value.
+  const loadPick =
+    load.find((e) => {
+      const u = e.attributes.unit_of_measurement as string | undefined;
+      return e.attributes.device_class === 'power' || u === 'W' || u === 'kW';
+    }) ?? load[0];
 
   // Battery state-of-charge (a `%` battery sensor) — not a power reading, so it sits
   // outside `powerSensors`. The flow object renders it as the battery fill.
@@ -81,7 +88,7 @@ export function buildPower(ctx: PresetContext): Surface {
   if (solar.length && (battery.length || gridEntity || socEntity)) {
     const flowIds: string[] = [];
     if (solar.length) flowIds.push(solar[0].entity_id);
-    if (load.length) flowIds.push(load[0].entity_id);
+    if (loadPick) flowIds.push(loadPick.entity_id);
     if (gridEntity) flowIds.push(gridEntity.entity_id);
     if (battery.length) flowIds.push(battery[0].entity_id);
     if (socEntity) flowIds.push(socEntity.entity_id);
@@ -97,7 +104,7 @@ export function buildPower(ctx: PresetContext): Surface {
       options: {
         energyFlow: true,
         solar: solar[0]?.entity_id,
-        load: load[0]?.entity_id,
+        load: loadPick?.entity_id,
         grid: gridEntity?.entity_id,
         battery: battery[0]?.entity_id,
         batterySoc: socEntity?.entity_id,
@@ -107,7 +114,7 @@ export function buildPower(ctx: PresetContext): Surface {
 
   // StatusStrip: live whole-home draw + solar (status tiles read the value live).
   const strip: Surface['statusStrip'] = [];
-  if (load.length) strip.push({ kind: 'status', entityId: load[0].entity_id, stateContent: ['state'] });
+  if (loadPick) strip.push({ kind: 'status', entityId: loadPick.entity_id, stateContent: ['state'] });
   if (solar.length) strip.push({ kind: 'status', entityId: solar[0].entity_id, stateContent: ['state'] });
   if (battery.length) strip.push({ kind: 'status', entityId: battery[0].entity_id, stateContent: ['state'] });
   if (strip.length) surface.statusStrip = strip;
@@ -117,7 +124,7 @@ export function buildPower(ctx: PresetContext): Surface {
   if (solar.length) {
     series.push({ entity: solar[0].entity_id, name: leafName(solar[0]), fill: 'area', color: 'var(--up)', opacity: 0.25, strokeWidth: 2, axisId: 'power' });
   }
-  const loadEntity = load[0] ?? grid[0];
+  const loadEntity = loadPick ?? grid[0];
   if (loadEntity) {
     series.push({ entity: loadEntity.entity_id, name: leafName(loadEntity), fill: 'line', color: 'var(--warn)', strokeWidth: 2, axisId: 'power' });
   }

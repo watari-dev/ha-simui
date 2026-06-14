@@ -55,6 +55,20 @@ const ENTITIES: HassEntity[] = [
   ent('switch.decorative_lights', 'on', { friendly_name: 'Decorative Lights' }),
   ent('switch.ac', 'off', { friendly_name: 'AC' }),
   ent('sensor.energy_consumption', '4.2', { friendly_name: 'Total Energy', unit_of_measurement: 'kWh', device_class: 'energy' }),
+
+  // Power — a Powerwall-style system (sunny-day scenario: solar covers the home,
+  // charges the battery, and exports the surplus) + per-circuit metering. Drives the
+  // Power category: the energy-flow object, the dual-axis flow chart, and the wall.
+  // Tesla sign idiom: +grid = import, -grid = export; +battery = discharge, - = charge.
+  ent('sensor.solar_power', '3200', { friendly_name: 'Solar Power', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.home_power', '1850', { friendly_name: 'Home Power', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.grid_power', '-1100', { friendly_name: 'Grid Power', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.battery_power', '-250', { friendly_name: 'Battery Power', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.battery_charge', '78', { friendly_name: 'Battery Charge', unit_of_measurement: '%', device_class: 'battery' }),
+  ent('sensor.kitchen_power', '420', { friendly_name: 'Kitchen Circuit', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.garage_power', '180', { friendly_name: 'Garage Circuit', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.office_power', '95', { friendly_name: 'Office Circuit', unit_of_measurement: 'W', device_class: 'power' }),
+  ent('sensor.laundry_power', '12', { friendly_name: 'Laundry Circuit', unit_of_measurement: 'W', device_class: 'power' }),
 ];
 
 const SNAPSHOT: HassEntities = Object.fromEntries(ENTITIES.map((e) => [e.entity_id, e]));

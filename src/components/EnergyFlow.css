@@ -16,6 +16,11 @@
 .simui-eflow {
   position: relative;
   width: 100%;
+  /* Cap + centre: a Powerwall-style flow object is a compact square-ish card, not a
+     full-bleed banner. Without a cap, a span:'full' block stretches it to the row
+     width and the fixed-viewBox SVG text scales up ~6×. */
+  max-width: 380px;
+  margin-inline: auto;
   background: color-mix(in srgb, var(--text) 4%, var(--surface));
   border: 1px solid var(--faint);
   border-radius: 16px;
