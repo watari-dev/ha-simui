@@ -64,10 +64,33 @@ function parseRoute(path: string): Route {
   return { kind: 'home' };
 }
 
+/** Inverse of {@link parseRoute}: a Route → its url path (`category/lights`, `room/<id>`, ``). */
+function routeToPath(r: Route): string {
+  if (r.kind === 'category') return `category/${r.id}`;
+  if (r.kind === 'room') return `room/${r.id}`;
+  return '';
+}
+
+// ── URL persistence (hash routing) ───────────────────────────────────────────
+// The route lives in the location HASH (e.g. `…/simui#/category/lights`). Hash
+// routing is self-contained: it rides on whatever URL hosts simUI (the HA panel's
+// `/simui`, or the dev server) WITHOUT fighting HA's own router, and Back + reload
+// restore the view for free. The hash is the single source of truth — `goTo` writes
+// it; a `hashchange` listener is the only thing that sets `route` state.
+const readHashPath = (): string =>
+  typeof location !== 'undefined' ? location.hash.replace(/^#\/?/, '') : '';
+const writeHashPath = (path: string): void => {
+  if (typeof location === 'undefined') return;
+  const next = `#/${path}`;
+  if (location.hash !== next && !(path === '' && (location.hash === '' || location.hash === '#'))) {
+    location.hash = next;
+  }
+};
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const source = useHassSource();
   const [config, setConfig] = useState<DashboardConfig | null>(null);
-  const [route, setRoute] = useState<Route>({ kind: 'home' });
+  const [route, setRoute] = useState<Route>(() => parseRoute(readHashPath()));
   const [editing, setEditing] = useState(false);
   const [sheetEntityId, setSheetEntityId] = useState<string | null>(null);
   const loaded = useRef(false);
@@ -118,7 +141,24 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const goTo = (r: Route) => { setEditing(false); setRoute(r); window.scrollTo?.(0, 0); };
+  // Back / forward / reload restore the view: a hashchange is the only EXTERNAL
+  // route driver. Functional updater compares against the live route so an echo of
+  // our own `goTo` (which already set state) is a no-op — no double render.
+  useEffect(() => {
+    const onHash = () => {
+      const p = readHashPath();
+      setRoute((prev) => (routeToPath(prev) === p ? prev : parseRoute(p)));
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const goTo = (r: Route) => {
+    setEditing(false);
+    setRoute(r);
+    writeHashPath(routeToPath(r)); // persist to the URL (fires hashchange → no-op echo)
+    window.scrollTo?.(0, 0);
+  };
 
   const value: DashboardCtx = {
     config,

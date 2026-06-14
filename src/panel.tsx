@@ -22,6 +22,7 @@ class SimUiPanel extends HTMLElement {
   private _hass: InjectedHass | undefined;
   private _listeners = new Set<() => void>();
   private _source?: HassSource;
+  private _narrow = false;
 
   set hass(value: InjectedHass) {
     this._hass = value;
@@ -31,7 +32,15 @@ class SimUiPanel extends HTMLElement {
     return this._hass;
   }
 
-  set narrow(_value: boolean) {}
+  // HA sets `narrow` whenever the layout is phone-width / the sidebar is docked.
+  // Reflect it onto the mount as `data-ha-narrow` so CSS can force the compact
+  // layout even when the viewport (what @media sees) is wider than the panel.
+  set narrow(value: boolean) {
+    this._narrow = value;
+    this._mount?.setAttribute('data-ha-narrow', value ? 'true' : 'false');
+  }
+  // simUI owns its own in-panel routing via the location hash (see dashboard/store),
+  // which survives reload + Back without depending on HA's path-based route prop.
   set route(_value: unknown) {}
   set panel(_value: unknown) {}
 
@@ -56,6 +65,7 @@ class SimUiPanel extends HTMLElement {
       this.appendChild(style);
       this._mount = document.createElement('div');
       this._mount.className = 'simui-root';
+      this._mount.setAttribute('data-ha-narrow', this._narrow ? 'true' : 'false');
       this.appendChild(this._mount);
       this._root = createRoot(this._mount);
       // rendered ONCE; updates flow through the source's subscribers

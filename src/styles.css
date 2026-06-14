@@ -201,6 +201,11 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-content { padding: 16px; }
 
 .simui-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+/* Phone: pack the compact (122px) room cards two-up instead of one long column.
+   HA's `narrow` flag forces the same when the panel is narrow but the viewport
+   (what @media reads) is wider — e.g. a docked sidebar on a mid-width window. */
+@media (max-width: 480px) { .simui-home-grid { grid-template-columns: 1fr 1fr; } }
+.simui-root[data-ha-narrow="true"] .simui-home-grid { grid-template-columns: 1fr 1fr; }
 /* Room entry — quiet, borderless, integrated. Defines itself by a soft elevated
    surface + radius, not a hard box; lit rooms get a warm corner GLOW (not a flat
    wash that kills text). Text is always var(--text) — fixes the button UA black. */
