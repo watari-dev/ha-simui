@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import type { LucideProps } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { domainOf, friendly } from '../util';
 
@@ -26,7 +27,7 @@ function serviceFor(domain: string): string {
   return domain === 'scene' || domain === 'script' ? 'turn_on' : 'press';
 }
 
-export function ActionTile({ entity }: WidgetProps) {
+export function ActionTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
   const domain = domainOf(entity.entity_id);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
@@ -37,10 +38,11 @@ export function ActionTile({ entity }: WidgetProps) {
     if (dead) return;
     void callService(domain, serviceFor(domain), {}, { entity_id: entity.entity_id });
   };
+  const onTap = useTapHandler(entity.entity_id, actions, dead ? undefined : run);
 
   return (
     <Tile
-      onClick={dead ? undefined : run}
+      onClick={onTap}
       className={`simui-action${dead ? ' is-unavailable' : ''}`}
     >
       <div className="simui-row">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Thermometer } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { Sparkline } from '../components/Sparkline';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { formatNumber, friendly } from '../util';
 
@@ -10,7 +11,8 @@ import { formatNumber, friendly } from '../util';
 const buffers = new Map<string, number[]>();
 const MAX_POINTS = 40;
 
-export function SensorTile({ entity }: WidgetProps) {
+export function SensorTile({ entity, actions }: WidgetProps) {
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const a = entity.attributes;
   const unit = (a.unit_of_measurement as string | undefined) ?? '';
   const isTemp = a.device_class === 'temperature';
@@ -34,7 +36,7 @@ export function SensorTile({ entity }: WidgetProps) {
   // Dead device — dim, clear placeholder, no sparkline / delta (no fabricated trend).
   if (dead) {
     return (
-      <Tile className="is-unavailable">
+      <Tile onClick={onTap} className="is-unavailable">
         <div className="simui-row">
           {isTemp && <span className="simui-ic"><Thermometer size={15} strokeWidth={2} /></span>}
           <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
@@ -52,7 +54,7 @@ export function SensorTile({ entity }: WidgetProps) {
   const deltaSuffix = isTemp ? '°' : '';
 
   return (
-    <Tile>
+    <Tile onClick={onTap}>
       <div className="simui-row">
         {isTemp && <span className="simui-ic"><Thermometer size={15} strokeWidth={2} /></span>}
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>

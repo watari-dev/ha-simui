@@ -2,12 +2,16 @@ import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly } from '../util';
 
-export function LightTile({ entity }: WidgetProps) {
+export function LightTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
+  const on = entity.state === 'on';
+  const toggle = () => void callService('light', on ? 'turn_off' : 'turn_on', {}, { entity_id: entity.entity_id });
+  const onTap = useTapHandler(entity.entity_id, actions, toggle);
 
   // Dead device — dim, no toggle, no slider (a dead light showing a live dimmer
   // reads as broken / controllable when it isn't).
@@ -24,11 +28,9 @@ export function LightTile({ entity }: WidgetProps) {
     );
   }
 
-  const on = entity.state === 'on';
   const brightness = (entity.attributes.brightness as number | undefined) ?? 0;
   const pct = on ? Math.max(1, Math.round((brightness / 255) * 100)) : 0;
 
-  const toggle = () => void callService('light', on ? 'turn_off' : 'turn_on', {}, { entity_id: entity.entity_id });
   const setPct = (e: ChangeEvent<HTMLInputElement>) =>
     void callService('light', 'turn_on', { brightness_pct: Number(e.target.value) }, { entity_id: entity.entity_id });
 
@@ -36,7 +38,7 @@ export function LightTile({ entity }: WidgetProps) {
   const trackStyle: CSSProperties = { background: `linear-gradient(to right, ${fill} ${pct}%, var(--faint) ${pct}%)` };
 
   return (
-    <Tile onClick={toggle} className={on ? 'is-lit' : ''}>
+    <Tile onClick={onTap} className={on ? 'is-lit' : ''}>
       <div className="simui-row">
         <span className={`simui-ic${on ? ' warm' : ''}`}><Lightbulb size={16} strokeWidth={2} /></span>
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
