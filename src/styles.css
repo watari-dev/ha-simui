@@ -651,3 +651,65 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 .simui-md-volrow .simui-slider { flex: 1; }
 .simui-md-volrow .simui-qc-val { flex: none; min-width: 38px; text-align: right; }
 /* === end per-domain detail sheets === */
+
+/* === accessibility: focus rings + reduced motion (a11y-reduced-motion) === */
+
+/* A single shared focus-ring token so every custom control announces focus the
+   same way (keyboard-only via :focus-visible). Reserved-accent tinted, so it
+   reads as "the active control" without introducing a new colour. */
+.simui-root { --focus-ring: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+
+/* A crisp keyboard-only ring on every custom interactive surface in the shell.
+   :focus-visible already excludes mouse focus, so we only override the (per-control)
+   default outline on the controls we're styling — never globally, so controls owned
+   elsewhere keep whatever focus affordance they already define. */
+.simui-pill-count:focus-visible,
+.simui-pill-nav:focus-visible,
+.simui-pill-action:focus-visible,
+.simui-pill-status.is-clickable:focus-visible,
+.simui-pill-select:focus-visible,
+.simui-ctxitem:focus-visible,
+.simui-segbtn:focus-visible,
+.simui-ftoggle:focus-visible,
+.simui-sbtn:focus-visible,
+.simui-iconbtn-h:focus-visible,
+.simui-range-btn:focus-visible,
+.simui-card-grab:focus-visible,
+.simui-card-btn:focus-visible,
+.simui-qc-swatch:focus-visible,
+.simui-slider:focus-visible,
+.simui-temp-ribbon:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* Round controls want a ring that hugs their shape. */
+.simui-pill-count:focus-visible,
+.simui-pill-nav:focus-visible,
+.simui-pill-action:focus-visible,
+.simui-pill-status.is-clickable:focus-visible,
+.simui-pill-select:focus-visible,
+.simui-qc-swatch:focus-visible { border-radius: 999px; }
+/* Range thumbs: ring the whole track so the focus is visible at any value. */
+.simui-slider:focus-visible,
+.simui-temp-ribbon:focus-visible { border-radius: 999px; }
+/* The dialog itself + the keyboard-active context-menu row. */
+.simui-sheet:focus-visible,
+.simui-ctxmenu:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Honour the platform "reduce motion" preference. The project's own north star is
+   "state changes appear, they don't animate" (DESIGN_PRINCIPLES §14) — the current
+   UI exceeds that with hover/slide transitions, so for users who ask for calm we
+   neutralise transitions + animations globally and let state simply appear. */
+@media (prefers-reduced-motion: reduce) {
+  .simui-root *,
+  .simui-root *::before,
+  .simui-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === end accessibility: focus rings + reduced motion (a11y-reduced-motion) === */

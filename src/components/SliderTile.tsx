@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { Blinds, Fan, Lightbulb, Volume2, VolumeX, type LucideIcon } from 'lucide-react';
 import { useEntity, useCallService } from '../hass/context';
 import { useContextMenu, ContextMenu, type ContextMenuItem } from './ContextMenu';
@@ -163,6 +163,54 @@ export function SliderTile({ entity, name, step = 1, menuItems }: SliderTileProp
     spec.toggle(call, e, on);
   };
 
+  // Arrow-key operability for the role=slider tile. Nudges the value by `step`
+  // (PageUp/Down by 10×) and commits via the same service path as a drag; the
+  // optimistic local value re-syncs once HA echoes the change back.
+  const nudge = (next: number) => {
+    const v = Math.max(0, Math.min(100, Math.round(next)));
+    spec.commit(call, e, v);
+  };
+  const onKeyDown = (ev: ReactKeyboardEvent) => {
+    // Enter / Space activate the toggle on any available tile (a slider role is
+    // still a click target here); the arrow/page/home/end nudges need a settable
+    // value (e.g. a positionable cover).
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      if (!unavailable) spec.toggle(call, e, on);
+      return;
+    }
+    if (!settable) return;
+    const big = 10;
+    switch (ev.key) {
+      case 'ArrowUp':
+      case 'ArrowRight':
+        ev.preventDefault();
+        nudge(value + step);
+        break;
+      case 'ArrowDown':
+      case 'ArrowLeft':
+        ev.preventDefault();
+        nudge(value - step);
+        break;
+      case 'PageUp':
+        ev.preventDefault();
+        nudge(value + big);
+        break;
+      case 'PageDown':
+        ev.preventDefault();
+        nudge(value - big);
+        break;
+      case 'Home':
+        ev.preventDefault();
+        nudge(0);
+        break;
+      case 'End':
+        ev.preventDefault();
+        nudge(100);
+        break;
+    }
+  };
+
   const fill: CSSProperties = { ...drag.fillStyle, background: spec.tint };
 
   const items: ContextMenuItem[] = [
@@ -178,11 +226,15 @@ export function SliderTile({ entity, name, step = 1, menuItems }: SliderTileProp
         style={{ '--slider-tint': spec.tint } as CSSProperties}
         role="slider"
         aria-label={`${label} ${valueNoun(domain)}`}
+        aria-orientation="vertical"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={value}
+        aria-valuetext={`${value}%`}
+        aria-disabled={settable ? undefined : true}
         tabIndex={0}
         onClick={onTileClick}
+        onKeyDown={onKeyDown}
         onPointerUpCapture={onPointerUpCapture}
         {...(settable ? drag.handlers : {})}
         {...menu.menuProps}
