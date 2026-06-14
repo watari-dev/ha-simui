@@ -30,14 +30,17 @@ The must-have checklist (ROADMAP §2), by tier.
 - [x] **`unavailable`/`unknown` states** — `.is-unavailable` now applied across `EntityRow`,
       `SliderTile`, `StatusBoardTile`, `MetricSpark`, and every domain widget: dimmed, placeholder
       (`—`/`Unavailable`), no controls, no fabricated sparkline/history while dead.
-- [~] **Profile + de-jank the live tick** — DONE: killed the per-render `idSig` `Object.keys().sort().join()`
-      and the per-tick container re-renders. `HassProvider` wraps the source with a memoized
-      **entity-keys version** (`useEntityKeys`, bumps only on add/remove, computed once per tick);
-      HomeView/CategoryView/EditorOverlay build on it + read the live map lazily, so value ticks no
-      longer re-render the containers or rebuild the entity index (verified: 0 container re-renders
-      across value ticks). `useEntity` stays surgical. TODO (lighter): per-domain/input-scoped
-      `useAggregate` so the ~12 aggregate computes don't all scan every tick; live-tick FPS profiling
-      on the real ~6k home.
+- [x] **Profile + de-jank the live tick** — DONE on both fronts:
+      • **Container re-renders** — killed the per-render `idSig` `Object.keys().sort().join()` and the
+        per-tick re-renders. `HassProvider` wraps the source with a memoized **entity-keys version**
+        (`useEntityKeys`, bumps only on add/remove, once per tick); HomeView/CategoryView/EditorOverlay
+        build on it + read the live map lazily, so value ticks no longer re-render the containers or
+        rebuild the entity index (verified: 0 container re-renders across value ticks).
+      • **Aggregate recompute** — `useAggregate(compute, deps?)` skips the compute on ticks where no
+        dep entity changed. The O(all-entities) `resolveSource` scans (status-strip count pills,
+        dynamic lists) are scoped to the source's candidate domains; the string-builders
+        (summarizeRoom / HouseGlance / attentionIds) to their entity lists. `useEntity` stays surgical.
+      Remaining (optional): live-tick FPS profiling on the real ~6k home to confirm 60fps end-to-end.
 - [x] **Faceted, virtualized entity picker** — shipped: `EntityPicker` composes the `picker/` module
       (SearchBox / FacetBar / AreaGroupedList) over the area-aware `EntityIndex` — domain+area+label
       facets, fuzzy match, multi-select, area-grouped with per-area select-all, group-entity-preferred;

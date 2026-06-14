@@ -287,7 +287,17 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
   computed once per tick); the three surface builders key their memos on it and read the live map
   lazily via `getStates()`. `useEntity` stays surgical. **Verified in-browser**: 5 light toggles
   (value ticks) → `CategoryView` re-renders **0×** (was 1× + a 6k-key sort each); editor/picker
-  intact; console clean. (Remaining lighter win: per-input-scoped `useAggregate`.)
+  intact; console clean.
+- **Input-scoped `useAggregate` (finishes the de-jank)** — `useAggregate(compute, deps?)` skips the
+  compute on a tick where no dep entity changed identity (returns the cached value). Applied to the
+  computes costing more than O(deps): the **O(all-entities) `resolveSource`** scans (status-strip
+  count pills + dynamic `ListBlock`s) — scoped to the source's candidate domains via
+  `sourceDomains`/`keysOfDomains` (recomputed only on set-change), so they re-scan only when a
+  relevant-domain entity changed; and the string-builders `summarizeRoom` + the home `HouseGlance` +
+  `StatusBoardTile` — scoped to their entity lists. Trivial `.some()`/`.filter()` aggregates + the
+  time-dependent `AmbientCanvas` `packState` keep computing every tick (skip-check would cost the
+  same, or a non-entity time input can't be tracked). Verified: room glance `23° · 1 light on` →
+  `23°` updates correctly on toggle (deps are a correct superset — no stale values).
 
 ## Notes / gotchas
 
