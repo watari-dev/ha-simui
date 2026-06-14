@@ -38,24 +38,33 @@ The must-have checklist (ROADMAP §2), by tier.
       reused by the Inspector, add-block flow, and list-source authoring.
 
 ### Tier B — the editor + preset gallery (the flagged edit-suite gap)
-- [~] **Editable surfaces** — category surfaces are now editable via persisted **overrides**
-      (config v2→v3; `mutateBlocks` edits the current surface; snapshot-on-first-edit; drag/resize/
-      remove/add + Reset-to-preset). TODO: the proper **`{ surfaces }` unification** + a shared
-      `SurfaceCanvas` (retire the room/override fork; RoomView/CategoryView share one edit shell).
-- [ ] **Add-block flow** — the `+` opens a typed menu (Group / List / Chart / Card / Hero) and
-      inserts an empty block of that type; inline `+` between blocks + an empty-state `+`. (Today
-      "add" = a single-entity card only.)
-- [ ] **Block / Tile Inspector (no YAML)** — a right-rail (desktop) / bottom-sheet (phone) panel
-      editing the selected block via structured controls: block title; Group `axis` + member list
-      (reorder/remove/`+`); List `source` matcher rows (domain/state/area → live "resolves to N");
-      Chart series + window + thresholds; per-tile name / icon (lucide picker) / `color` swatch /
-      `stateContent` / feature toggles.
-- [~] **Undo/redo + duplicate** — Reset-to-preset done. TODO: a single-level undo/redo history on
-      the config object + duplicate-block.
+*Largely SHIPPED via the decoupled editor store (`src/editor/store.tsx`) + wave-3 fan-out.*
+- [~] **Editable surfaces** — category surfaces are editable via the editor store: enter →
+      snapshot to **override** → optimistic `dirtyBlocks` → debounced commit through the atomic
+      `mutateBlocks` seam; drag/resize/remove/add + Reset-to-preset. TODO: generalize the loop to
+      **Room/Home** surfaces (they still run the legacy dashboard-editing path + don't mount
+      `EditorOverlay`); then the **`{ surfaces }` unification** + a shared `SurfaceCanvas`.
+- [x] **Add-block flow** — `CardGallery` (live `BlockBody` previews) with **23 kinds**; pick →
+      insert → auto-select → inspector. (`ResizeHandle` + 1×/2×/Full cycle for sizing.)
+- [x] **Block / Tile Inspector (no YAML)** — `BlockSettings` (title/width/axis) · `EntityMembers`
+      (list + add/remove) · `ChartEditor` (series/window/thresholds) · `ConditionEditor`
+      (visibility) · `TileSettings` (name / lucide icon / colour / size / state-line / features /
+      `ActionEditor`).
+- [x] **Undo/redo + duplicate** — history ring (⌘Z / ⇧⌘Z + toolbar), duplicate-block, copy/paste.
 - [x] **Persisted overrides** for generated surfaces (survive reload; reconcilable with the preset).
-- [ ] **Preset-gallery picker + first-run onboarding** — browsable **preset cards** with **live
-      previews built from the user's own entities**; picking commits to config; auto-generate
-      becomes one card; empty-state onboarding.
+- [x] **Preset-gallery picker + first-run onboarding** — `TemplateGallery`: 6 role/density page
+      templates with **live previews from the user's own entities**; picking snapshots onto the
+      surface. `OnboardingHint` one-time coachmark + `EmptyState`.
+
+#### Tier B follow-ups (built + type-clean on disk, NOT yet wired)
+- [ ] **Action execution** — the `ActionEditor` authors `TileConfig.actions` (persisted) but they
+      don't run yet. Thread `useTileAction` (`src/runtime/actions.ts`) through the real render
+      leaves — the domain widgets (`widgetFor`) + `EntityRow` + the block renderers passing
+      `block.tiles?.[id]?.actions` / `block.actions` down. (`EntityTile` is currently unused.)
+- [ ] **Area-grouped EntityPicker** — wire the polished `src/editor/picker/` (SearchBox / FacetBar /
+      AreaGroupedList + `rowsFromIndex`) into `EntityPicker.tsx`. Needs the area-aware `EntityIndex`
+      threaded in (pass `areas`/`registry` or the built `index` down). Current picker is already
+      faceted + virtualized + fuzzy — this adds per-area grouping + select-all-area.
 
 ### Tier C — structure + widget parity
 - [ ] **Multi-dashboard / named views** — evolve the model to multiple named dashboards/views with

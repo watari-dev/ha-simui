@@ -220,6 +220,31 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
   the wave-3 modules (more card kinds, richer inspector, action editor, drag-resize handles,
   template gallery, faceted picker, editor chrome).
 
+- **Editor wave-3 integrated (the gallery/inspector/templates suite)** — a 7-builder
+  fan-out + synthesizer, integrated and verified end-to-end in-browser:
+  - **Card-kind gallery → 23 kinds** (was 5): Scenes, Sliders, Metrics wall, Sensors-by-type,
+    Security board, Climate, Media, Camera, State hero, Status strip, Glance, What's-on,
+    Energy+Power, Week trend + display-only Stat / Gauge / Section / Divider (rendered by a new
+    `StatBlock` via the `options.statVariant` seam — no new `BlockType`).
+  - **Inspector enrichment** — composes `BlockSettings` (title/width/axis), `TileSettings`
+    (name/icon/accent/size/state-line/features/actions), `ChartEditor`, `EntityMembers`,
+    `ConditionEditor` (the new **Visibility** section) + the richer **ActionEditor**.
+  - **Editor chrome** — a floating `EditorToolbar` (undo/redo/add/save-dot/done), a one-time
+    `OnboardingHint`, and an `EmptyState` ("Start from a template" / "Add a card").
+  - **Page templates** — a `TemplateGallery` of 6 role/density variants (Minimal / Standard
+    home / Family hub / Wall tablet / Power user / By category), each a live full-page preview
+    built from the user's real entities; picking one snapshots it onto the surface.
+  - **Drag-to-resize** — `ResizeHandle` wired into the block edit chrome (snaps 1/2/full).
+  - Gotchas fixed: the `inspector/` dir collided with `Inspector.tsx` on macOS (case-insensitive)
+    and broke Vite dev resolution → renamed to `inspectors/`; gallery/template cards must be
+    `role=button` divs (their live `BlockBody` previews contain `<button>`s — invalid nesting).
+  - **Deferred follow-ups** (built + type-clean on disk, not yet wired): the polished
+    area-grouped **EntityPicker** rewrite (current faceted/virtualized picker stays); **action
+    execution** (the ActionEditor authors `TileConfig.actions`, but running them needs
+    `useTileAction` threaded through the real leaves — domain widgets + `EntityRow` + block
+    renderers — since `EntityTile` is unused); generalizing the editor loop to **Room/Home**
+    surfaces (today only Category surfaces drive the editor store).
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);
