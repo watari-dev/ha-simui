@@ -123,6 +123,8 @@ export function EditorOverlay() {
             editor.openEntityPicker();
           }}
           onRemoveEntity={(entityId) => editor.removeEntity(block.id, entityId)}
+          onSelectTile={(entityId) => editor.selectTile(block.id, entityId)}
+          onSelectBlock={() => editor.selectBlock(block.id)}
           onDuplicate={() => editor.duplicateBlock(block.id)}
           onRemove={() => editor.removeBlock(block.id)}
           onClose={editor.clearSelection}

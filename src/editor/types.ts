@@ -399,6 +399,10 @@ export interface InspectorProps {
   onAddEntities: () => void;
   /** Remove a member entity from the selected block. */
   onRemoveEntity: (entityId: string) => void;
+  /** Drill into a member's per-tile config (name/icon/colour/state-line/actions). */
+  onSelectTile?: (entityId: string) => void;
+  /** Back out of a tile to its parent block. */
+  onSelectBlock?: () => void;
   /** Block-level ops surfaced as inspector buttons. */
   onDuplicate: () => void;
   onRemove: () => void;

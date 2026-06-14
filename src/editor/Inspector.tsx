@@ -15,7 +15,7 @@
 // switch). Layout (CSS): a right-rail on desktop, a bottom sheet on phone
 // (DESIGN_PRINCIPLES §14). Co-located styles in ./Inspector.css.
 
-import { Copy, Trash2, X } from 'lucide-react';
+import { ChevronLeft, Copy, Trash2, X } from 'lucide-react';
 import './Inspector.css';
 // NB: the sub-editor barrel lives in `inspectors/` (plural) — deliberately NOT
 // `inspector/`, which would collide with this file (`Inspector.tsx`) on a
@@ -48,6 +48,8 @@ export function Inspector({
   onTileChange,
   onAddEntities,
   onRemoveEntity,
+  onSelectTile,
+  onSelectBlock,
   onDuplicate,
   onRemove,
   onClose,
@@ -81,6 +83,7 @@ export function Inspector({
             ? (tile?.name ?? friendlyOf(states, entityId!))
             : (block.title || `${block.type} card`)
         }
+        onBack={isTile ? onSelectBlock : undefined}
         onClose={onClose}
       />
 
@@ -118,6 +121,7 @@ export function Inspector({
                   tiles={block.tiles}
                   onAddEntities={onAddEntities}
                   onRemoveEntity={onRemoveEntity}
+                  onSelect={onSelectTile}
                 />
               </section>
             )}
@@ -159,14 +163,21 @@ export function Inspector({
 function Header({
   kicker,
   title,
+  onBack,
   onClose,
 }: {
   kicker: string;
   title: string;
+  onBack?: () => void;
   onClose: () => void;
 }) {
   return (
     <header className="simui-insp-head">
+      {onBack && (
+        <button className="simui-insp-close" onClick={onBack} aria-label="Back to card" style={{ marginRight: 2 }}>
+          <ChevronLeft size={16} strokeWidth={2} />
+        </button>
+      )}
       <div className="simui-insp-head-text">
         <span className="simui-insp-kicker">{kicker}</span>
         <span className="simui-insp-title" title={title}>
