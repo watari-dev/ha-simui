@@ -7,6 +7,17 @@ All notable changes to simUI are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-15
+
+### Fixed
+- **Popups rendered unstyled when embedded in Home Assistant** — the context menu, detail
+  sheets, and the add-card / template galleries portaled to `document.body`, which sits
+  *outside* the panel's stylesheet scope in a real HA install, so they appeared completely
+  unstyled (the right-click menu blew out to full-width native sliders across the screen).
+  They now portal into an overlay container *inside* the panel's styled subtree, so their CSS
+  and design tokens always apply. (Worked in standalone dev all along, which is why it was
+  only visible embedded.)
+
 ## [0.4.0] - 2026-06-15
 
 An Apple-Home design pass over the whole shell — a redesigned light tile, a glanceable

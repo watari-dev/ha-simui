@@ -1,5 +1,6 @@
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useOverlayRoot } from '../../components/OverlayRoot';
 import {
   LayoutGrid,
   LayoutTemplate,
@@ -77,6 +78,7 @@ export function TemplateGallery({
   onPick,
   onClose,
 }: TemplateGalleryProps) {
+  const overlayRoot = useOverlayRoot();
   const [query, setQuery] = useState('');
   const labelId = useId();
 
@@ -136,7 +138,7 @@ export function TemplateGallery({
         </div>
       </div>
     </div>,
-    document.body,
+    overlayRoot ?? document.body,
   );
 }
 

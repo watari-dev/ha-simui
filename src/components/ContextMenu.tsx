@@ -10,6 +10,7 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useOverlayRoot } from './OverlayRoot';
 
 /**
  * Right-click / long-press context menu (DESIGN_PRINCIPLES §14). The third layer
@@ -43,6 +44,7 @@ export interface ContextMenuProps {
 const EDGE = 8;
 
 export function ContextMenu({ items, x, y, onClose, header }: ContextMenuProps) {
+  const overlayRoot = useOverlayRoot();
   const menuRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y });
   // -1 = nothing focused yet (pointer-summoned); 0+ = keyboard navigating.
@@ -208,7 +210,7 @@ export function ContextMenu({ items, x, y, onClose, header }: ContextMenuProps) 
         </div>
       ))}
     </div>,
-    document.body,
+    overlayRoot ?? document.body,
   );
 }
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useOverlayRoot } from './OverlayRoot';
 
 interface SheetProps {
   open: boolean;
@@ -21,6 +22,7 @@ const FOCUSABLE =
  * aria-modal. Dependency-free beyond React + lucide.
  */
 export function Sheet({ open, title, onClose, children }: SheetProps) {
+  const overlayRoot = useOverlayRoot();
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const labelId = useId();
@@ -95,6 +97,6 @@ export function Sheet({ open, title, onClose, children }: SheetProps) {
         <div className="simui-sheet-body">{children}</div>
       </div>
     </div>,
-    document.body,
+    overlayRoot ?? document.body,
   );
 }

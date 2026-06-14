@@ -1,6 +1,7 @@
 import { useId, useMemo, useState, type DragEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
+import { useOverlayRoot } from '../components/OverlayRoot';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { BlockBody } from '../dashboard/BlockChrome';
 import { iconNode } from '../components/icons';
@@ -32,6 +33,7 @@ export function CardGallery({
   onQueryChange,
   onClose,
 }: CardGalleryProps) {
+  const overlayRoot = useOverlayRoot();
   // Controlled query when the parent drives it; otherwise local. Either way the
   // input stays responsive and the previews never re-sample on a keystroke.
   const [localQuery, setLocalQuery] = useState('');
@@ -98,7 +100,7 @@ export function CardGallery({
         </div>
       </div>
     </div>,
-    document.body,
+    overlayRoot ?? document.body,
   );
 }
 
