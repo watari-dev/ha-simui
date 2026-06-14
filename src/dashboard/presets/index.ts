@@ -16,6 +16,7 @@ import { domainOf, friendly } from '../../util';
 
 import { buildHome } from './home';
 import { buildLights } from './lights';
+import { buildMedia } from './media';
 import { buildClimate } from './climate';
 import { buildSensors } from './sensors';
 import { buildPower } from './power';
@@ -86,6 +87,13 @@ export const PRESETS: Preset[] = [
     description: 'All your lights, grouped by room, with the room group tile leading each section.',
     accent: 'warm',
     build: buildLights,
+  },
+  {
+    id: 'media',
+    name: 'Media',
+    description: 'What’s playing now, with transport, over a compact list of every speaker and display.',
+    accent: 'violet',
+    build: buildMedia,
   },
   {
     id: 'climate',

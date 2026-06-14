@@ -20,11 +20,12 @@ import type { HassEntities } from '../types';
 // its own members; Climate's cooling-wash + time-of-day base alone give it life.
 const AMBIENT_CATEGORIES = new Set(['lights', 'climate']);
 
-// The category id → preset id. media/scenes have no dedicated builder yet, so
-// they use a generic cross-room fallback below.
+// The category id → preset id. `scenes` has no dedicated builder yet, so it uses the
+// generic cross-room fallback below.
 const PRESET_FOR: Record<string, string> = {
   lights: 'lights',
   climate: 'climate',
+  media: 'media',
   sensors: 'sensors',
   power: 'power',
   security: 'security',
@@ -150,17 +151,9 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   );
 }
 
-/** Generic surface for categories without a dedicated preset (media / scenes). */
+/** Generic surface for categories without a dedicated preset (scenes). */
 function fallbackSurface(categoryId: string, states: HassEntities): Surface {
   const surface: Surface = { blocks: [] };
-
-  if (categoryId === 'media') {
-    const players = ofDomain(states, 'media_player').filter(isLive);
-    for (const p of players) {
-      surface.blocks.push({ id: blockId('cat-media'), type: 'card', entityIds: [p.entity_id], span: 2 });
-    }
-    return surface;
-  }
 
   if (categoryId === 'scenes') {
     const ids = [...ofDomain(states, 'scene'), ...ofDomain(states, 'script')].filter(isLive).map((e) => e.entity_id);
