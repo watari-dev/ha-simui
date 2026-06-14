@@ -7,7 +7,7 @@
 import type { ChartAxis, ChartSeries, ChartSpec } from '../types';
 import type { HassEntity } from '../../types';
 import type { PresetContext, Surface } from './index';
-import { blockId, isLive, leafName } from './index';
+import { blockId, isLive, leafName, isPrimary } from './index';
 import { domainOf, friendly } from '../../util';
 
 const POWER_UNITS = new Set(['W', 'kW']);
@@ -35,8 +35,11 @@ function roleOf(e: HassEntity): Role {
 }
 
 export function buildPower(ctx: PresetContext): Surface {
-  const { states } = ctx;
-  const powerSensors = Object.values(states).filter(isPowerLike);
+  const { states, registry } = ctx;
+  // Curation gate (TODO Tier A): exclude diagnostic/hidden power telemetry before
+  // roles are assigned. Pattern-only when `registry` is absent (dev/mock).
+  const primary = (e: HassEntity) => isPrimary(e.entity_id, e, registry);
+  const powerSensors = Object.values(states).filter((e) => isPowerLike(e) && primary(e));
 
   const surface: Surface = { blocks: [] };
   if (!powerSensors.length) return surface;
@@ -115,6 +118,7 @@ export function buildPower(ctx: PresetContext): Surface {
     (e) =>
       (domainOf(e.entity_id) === 'switch' || domainOf(e.entity_id) === 'input_boolean') &&
       isLive(e) &&
+      primary(e) &&
       (e.attributes.device_class === 'outlet' || matchName(e, /outlet|plug|gpo|socket/i)),
   );
   if (outlets.length) {

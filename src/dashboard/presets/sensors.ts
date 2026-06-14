@@ -8,7 +8,7 @@
 import type { Block, ChartSeries, ChartSpec } from '../types';
 import type { HassEntity } from '../../types';
 import type { PresetContext, Surface } from './index';
-import { blockId, isLive, isNumericSensor, leafName, groupByRoom } from './index';
+import { blockId, isLive, isNumericSensor, leafName, groupByRoom, isPrimary } from './index';
 import { domainOf } from '../../util';
 
 const OVERVIEW_MIN = 8; // fewer numeric sensors than this → skip overview charts
@@ -46,10 +46,14 @@ function colorForQuantity(key: string): string | undefined {
 }
 
 export function buildSensors(ctx: PresetContext): Surface {
-  const { states, areas } = ctx;
-  const numeric = Object.values(states).filter(isNumericSensor);
+  const { states, areas, registry } = ctx;
+  // Curation gate (TODO Tier A): sensors are the worst noise vector — diagnostic
+  // battery/RSSI/linkquality/signal-strength entities flood here. Drop them before
+  // bucketing. Pattern-only when `registry` is absent (dev/mock).
+  const primary = (e: HassEntity) => isPrimary(e.entity_id, e, registry);
+  const numeric = Object.values(states).filter((e) => isNumericSensor(e) && primary(e));
   const binary = Object.values(states).filter(
-    (e) => domainOf(e.entity_id) === 'binary_sensor' && isLive(e),
+    (e) => domainOf(e.entity_id) === 'binary_sensor' && isLive(e) && primary(e),
   );
 
   const surface: Surface = { blocks: [] };

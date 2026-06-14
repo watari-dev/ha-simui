@@ -1,5 +1,6 @@
 import type { Block, BlockSpan, DashboardConfig, Room } from './types';
-import type { AreaMap } from './areas';
+import type { AreaMap, RegistryMeta } from './areas';
+import { isPrimaryEntity } from './areas';
 import type { HassEntities, HassEntity } from '../types';
 import { domainOf, friendly, uid } from '../util';
 
@@ -34,13 +35,16 @@ export function defaultCardSpan(entityId: string): BlockSpan {
   return d === 'media_player' || d === 'sensor' ? 2 : 1;
 }
 
-export function generateDefault(states: HassEntities, areas?: AreaMap): DashboardConfig {
+export function generateDefault(states: HassEntities, areas?: AreaMap, registry?: RegistryMeta): DashboardConfig {
   const byRoom = new Map<string, HassEntity[]>();
   const areaIdOf = new Map<string, string | null>();
   for (const e of Object.values(states)) {
     const d = domainOf(e.entity_id);
     if (!ALLOW.has(d)) continue;
     if (d === 'sensor' && !e.attributes.unit_of_measurement) continue;
+    // Curation gate (TODO Tier A): never bucket diagnostic/config/hidden/disabled
+    // or entity_id pattern noise into a room. Pattern-only when `registry` absent.
+    if (!isPrimaryEntity(e.entity_id, e, registry?.[e.entity_id])) continue;
     const name = roomNameFor(e, areas);
     let arr = byRoom.get(name);
     if (!arr) { arr = []; byRoom.set(name, arr); }

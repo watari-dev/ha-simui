@@ -58,6 +58,15 @@ export interface ListSource {
   hideWhenEmpty?: boolean; // default true — the card vanishes when resolved length 0
   sort?: 'name' | 'state' | 'last_changed';
   wrap?: 'rows' | 'tiles';
+  /**
+   * Opt OUT of the registry curation gate (TODO Tier A). By default `resolveSource`
+   * drops diagnostic/config/hidden/disabled and entity_id pattern noise (e.g.
+   * `update.*`, `*_signal_strength`, restart buttons). A few surfaces *intend* to
+   * show those — e.g. the Server preset's "updates available" / "needs attention"
+   * lists deliberately include `update.*` and maintenance binary_sensors. Set this
+   * `true` on such a source so its explicit matchers are honoured verbatim.
+   */
+  includeNoise?: boolean;
 }
 
 /** One value scale on a ChartBlock (FRAMEWORK.md §5). */

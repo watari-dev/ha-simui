@@ -10,7 +10,7 @@
 import type { Block } from '../types';
 import type { HassEntity } from '../../types';
 import type { PresetContext, StripPill, Surface } from './index';
-import { blockId, isLive, ofDomain } from './index';
+import { blockId, isLive, ofDomain, isPrimary } from './index';
 import { attentionIds } from '../../components/StatusBoardTile';
 import { domainOf } from '../../util';
 
@@ -34,12 +34,16 @@ function isSecurityCover(e: HassEntity): boolean {
 }
 
 export function buildSecurity(ctx: PresetContext): Surface {
-  const { states } = ctx;
+  const { states, registry } = ctx;
 
-  const locks = ofDomain(states, 'lock').filter(isLive);
-  const alarms = ofDomain(states, 'alarm_control_panel').filter(isLive);
-  const covers = ofDomain(states, 'cover').filter(isSecurityCover);
-  const binaries = Object.values(states).filter(isSecurityBinary);
+  // Curation gate (TODO Tier A): ofDomain already curates; gate the direct binary
+  // scan + covers too so hidden/diagnostic sensors never reach the status board.
+  const locks = ofDomain(states, 'lock', registry).filter(isLive);
+  const alarms = ofDomain(states, 'alarm_control_panel', registry).filter(isLive);
+  const covers = ofDomain(states, 'cover', registry).filter(isSecurityCover);
+  const binaries = Object.values(states).filter(
+    (e) => isSecurityBinary(e) && isPrimary(e.entity_id, e, registry),
+  );
 
   // The full watched set: sort unsecured first (securityStatus is pure).
   const all: HassEntity[] = [...alarms, ...locks, ...covers, ...binaries];
