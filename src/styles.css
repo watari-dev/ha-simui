@@ -713,3 +713,44 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 }
 
 /* === end accessibility: focus rings + reduced motion (a11y-reduced-motion) === */
+
+/* === Tier-C entity widgets (camera/weather/gauge/action/fan/vacuum) === */
+
+/* Camera — a still frame fills the tile; caption overlays the bottom edge. */
+.simui-camera { padding: 0; overflow: hidden; gap: 0; }
+.simui-cam-frame { position: relative; width: 100%; aspect-ratio: 16 / 10; min-height: 96px; background: var(--surface-2); }
+.simui-cam-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.simui-cam-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); background: var(--surface-2); }
+.simui-cam-cap { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 18px 12px 8px; background: linear-gradient(to top, rgba(0,0,0,0.55), transparent); }
+.simui-cam-name { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.simui-cam-state { margin-left: auto; font-size: 11px; color: rgba(255,255,255,0.8); }
+
+/* Weather — current condition + temp, then a compact forecast row. */
+.simui-weather { gap: 10px; }
+.simui-wx-head { display: flex; align-items: center; gap: 11px; }
+.simui-wx-ic { display: inline-flex; flex: none; color: var(--cool); }
+.simui-wx-now { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.simui-wx-temp { font-size: 22px; font-weight: 600; line-height: 1; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-wx-cond { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-wx-fc { display: flex; gap: 6px; }
+.simui-wx-fcd { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 9px; background: color-mix(in srgb, var(--text) 4%, transparent); }
+.simui-wx-fcl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.simui-wx-fci { display: inline-flex; color: var(--muted); }
+.simui-wx-fct { font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+/* Gauge — radial arc, accent fill on a faint track, tabular readout centred. */
+.simui-gauge { align-items: stretch; gap: 6px; }
+.simui-gauge-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+.simui-gauge-svg { display: block; }
+.simui-gauge-track { stroke: var(--faint); }
+.simui-gauge-fill { stroke: var(--accent); transition: stroke-dasharray 0.25s ease; }
+.simui-gauge-readout { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; pointer-events: none; }
+.simui-gauge-val { font-size: 20px; font-weight: 600; line-height: 1; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.simui-gauge-unit { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+/* Action — one-tap runner; a subtle run pill on the right. */
+.simui-action { justify-content: center; }
+.simui-action.is-clickable:hover .simui-action-run { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--faint)); }
+.simui-action-run { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--faint); color: var(--muted); transition: color 0.12s ease, border-color 0.12s ease; }
+
+/* === end Tier-C entity widgets === */
