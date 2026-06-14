@@ -12,8 +12,15 @@ import { StatusBoardTile } from '../../components/StatusBoardTile';
 import { useDashboard } from '../store';
 import { domainOf, friendly, prettyState } from '../../util';
 import type { Block, GroupAxis } from '../types';
+import type { TileConfig } from '../../editor/types';
 import type { ColorToken } from '../../widgets/tileContract';
 import type { HassEntity } from '../../types';
+
+/** Per-entity override map, present on a `BlockConfig` (the real object behind `Block`). */
+type Tiles = Record<string, TileConfig>;
+function tilesOf(block: Block): Tiles | undefined {
+  return (block as { tiles?: Tiles }).tiles;
+}
 
 const LAUNCHER_PREFIX = 'category.';
 
@@ -67,6 +74,7 @@ export function GroupBlock({ block }: { block: Block }) {
   const allLights = ids.length > 0 && ids.every((id) => domainOf(id) === 'light');
   const axis: GroupAxis = block.axis ?? 'none';
   const grouped = axis === 'room' || axis === 'floor' || axis === 'device-class';
+  const tiles = tilesOf(block);
 
   return (
     <div className="simui-surface">
@@ -76,9 +84,9 @@ export function GroupBlock({ block }: { block: Block }) {
         </div>
       )}
       {allLights && <LightMaster ids={ids} />}
-      {grouped ? <GroupedRows ids={ids} axis={axis} /> : (
+      {grouped ? <GroupedRows ids={ids} axis={axis} tiles={tiles} /> : (
         <div className="simui-rows">
-          {ids.map((id) => <EntityRow key={id} entityId={id} />)}
+          {ids.map((id) => <EntityRow key={id} entityId={id} actions={tiles?.[id]?.actions} />)}
         </div>
       )}
     </div>
@@ -86,7 +94,7 @@ export function GroupBlock({ block }: { block: Block }) {
 }
 
 /** Sub-divide members under quiet headings by the chosen axis (areas for room/floor). */
-function GroupedRows({ ids, axis }: { ids: string[]; axis: GroupAxis }) {
+function GroupedRows({ ids, axis, tiles }: { ids: string[]; axis: GroupAxis; tiles?: Tiles }) {
   const areas = useAreas();
   // device_class is effectively static, so read a one-shot snapshot rather than
   // subscribing — the rows themselves subscribe per-entity for live values.
@@ -103,7 +111,7 @@ function GroupedRows({ ids, axis }: { ids: string[]; axis: GroupAxis }) {
 
   // A single bucket isn't worth a sub-heading — render flat.
   if (buckets.size <= 1) {
-    return <div className="simui-rows">{ids.map((id) => <EntityRow key={id} entityId={id} />)}</div>;
+    return <div className="simui-rows">{ids.map((id) => <EntityRow key={id} entityId={id} actions={tiles?.[id]?.actions} />)}</div>;
   }
 
   return (
@@ -112,7 +120,7 @@ function GroupedRows({ ids, axis }: { ids: string[]; axis: GroupAxis }) {
         <div className="simui-subgroup" key={label}>
           <div className="simui-subhead">{label}</div>
           <div className="simui-rows">
-            {members.map((id) => <EntityRow key={id} entityId={id} />)}
+            {members.map((id) => <EntityRow key={id} entityId={id} actions={tiles?.[id]?.actions} />)}
           </div>
         </div>
       ))}

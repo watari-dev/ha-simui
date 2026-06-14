@@ -3,6 +3,13 @@ import { useAreas } from '../areas';
 import { resolveSource } from '../presets/index';
 import { EntityRow } from '../EntityRow';
 import type { Block } from '../types';
+import type { TileConfig } from '../../editor/types';
+
+/** Per-entity override map, present on a `BlockConfig` (the real object behind `Block`). */
+type Tiles = Record<string, TileConfig>;
+function tilesOf(block: Block): Tiles | undefined {
+  return (block as { tiles?: Tiles }).tiles;
+}
 
 // A hairline-divided list of entities — quiet status + simple controls. When
 // `block.source` is set the membership is DYNAMIC (FRAMEWORK.md §4): resolved live
@@ -10,7 +17,7 @@ import type { Block } from '../types';
 // makes the whole card vanish when nothing matches — "hide noise until it's signal."
 export function ListBlock({ block }: { block: Block }) {
   if (block.source) return <DynamicList block={block} />;
-  return <StaticList title={block.title} ids={block.entityIds} />;
+  return <StaticList title={block.title} ids={block.entityIds} tiles={tilesOf(block)} />;
 }
 
 function DynamicList({ block }: { block: Block }) {
@@ -24,10 +31,10 @@ function DynamicList({ block }: { block: Block }) {
   const ids = joined ? joined.split(',') : [];
 
   if (!ids.length && (source.hideWhenEmpty ?? true)) return null;
-  return <StaticList title={block.title} ids={ids} empty="Nothing right now." />;
+  return <StaticList title={block.title} ids={ids} tiles={tilesOf(block)} empty="Nothing right now." />;
 }
 
-function StaticList({ title, ids, empty }: { title?: string; ids: string[]; empty?: string }) {
+function StaticList({ title, ids, tiles, empty }: { title?: string; ids: string[]; tiles?: Tiles; empty?: string }) {
   return (
     <div className="simui-surface list">
       {title && (
@@ -37,7 +44,7 @@ function StaticList({ title, ids, empty }: { title?: string; ids: string[]; empt
       )}
       {ids.length ? (
         <div className="simui-rows divided">
-          {ids.map((id) => <EntityRow key={id} entityId={id} />)}
+          {ids.map((id) => <EntityRow key={id} entityId={id} actions={tiles?.[id]?.actions} />)}
         </div>
       ) : (
         empty && <div className="simui-list-empty">{empty}</div>
