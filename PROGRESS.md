@@ -14,6 +14,37 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Apple-Home redesign + UX bug-fix sweep (4 phases, branch `feat/applehome-redesign`).**
+  Plan in [REDESIGN_PLAN.md](REDESIGN_PLAN.md); diagnosed by an 11-agent workflow + live repro.
+  - **Phase 1 — bug fixes.** *R0:* design tokens moved off the `.simui-root` class onto
+    `:root, :host`; a new `.simui-overlay` class gives body-portals token/colour/box-sizing
+    without the `.simui-root` paint side-effects (background/min-height) that scrimmed the
+    viewport. *R1:* context menu now positions against its real containing-block origin
+    (fixes the embedded-HA "far-left" jump; no-op in dev). *R2:* the edit toolbar is an
+    **inline top-header bar** (was a fixed full-screen anchor that painted an opaque scrim
+    and docked a stretched bar to the edge) — rendered in `.simui-head` of Home/Room/Category
+    while editing, consolidated with the pencil/Done toggle. *R3:* the add-card gallery gets a
+    guaranteed-opaque base (theme-translucent `--surface` made it see-through) and the live
+    previews no longer collapse (`align-items:start` + `flex:none`).
+  - **Phase 2 — Apple-Home light tile.** `LightTile` delegates to the premium `SliderTile`;
+    Apple split-action (icon disc toggles, body opens the detail sheet, drag sets brightness);
+    the muddy brown brightness block is now a soft `--slider-tint` gradient glow; round 34px
+    icon disc, warm card wash + squircle radius only when on, bolder tabular % headline.
+  - **Phase 3 — top-of-home highlights.** An always-present, **tappable** band — Lights /
+    Climate / Security / Media (speakers & TVs) / Fans — each a live `useAggregate` that taps
+    through to its category. Structural: the `count` StripPill gained `path` (every count pill
+    was previously inert) and a `zeroText` so Security reads a calm "Secure". Dropped the
+    redundant HouseGlance header readout.
+  - **Phase 4 — visual system.** A token layer on `:root` (4px spacing scale, two radius tiers,
+    `--surface-raised`/`--surface-hover`/`--bezel`, type scale); retired hard 1px borders on
+    object surfaces (tile / room card / surface / card / scene tile → raised fill + bezel,
+    "depth from light, not boxes"); unified surface radii to 18px; `--muted` → `#8a909c`;
+    `cool` role → `--cool`. True boundaries (sheet/modal/ctxmenu/conn-banner) keep their hairline.
+  - **Verified live** in `npm run dev` across home/lights/sensors/room + gallery/sheet/ctxmenu/
+    editor; `npm run build` passes. **Still needs embedded-HA verification** for R1 (right-click)
+    and R3 (see-through), which only reproduce inside HA — rebuild the integration bundle
+    (`npm run build:integration`) and load in HA to confirm.
+
 - **Editor MVP wired — the "add a card" gallery works end-to-end** (the make-or-break feature).
   `src/editor/cardKinds.ts` (catalogue: Group / List / History chart / Hero / Card, each a valid
   `make(seed)` → renderable BlockConfig) + `src/editor/preview.ts` (`buildPreviewContext` samples
