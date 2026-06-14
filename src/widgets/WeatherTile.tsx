@@ -4,6 +4,7 @@ import {
   Moon, Sun, Wind, type LucideProps,
 } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { formatNumber, friendly, prettyState } from '../util';
 
@@ -43,7 +44,8 @@ function dayLabel(iso: string | undefined): string {
   return new Date(t).toLocaleDateString(undefined, { weekday: 'short' });
 }
 
-export function WeatherTile({ entity }: WidgetProps) {
+export function WeatherTile({ entity, actions }: WidgetProps) {
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const a = entity.attributes;
   const temp = a.temperature as number | undefined;
@@ -67,7 +69,7 @@ export function WeatherTile({ entity }: WidgetProps) {
   }
 
   return (
-    <Tile className="simui-weather">
+    <Tile className="simui-weather" onClick={onTap}>
       <div className="simui-wx-head">
         <span className="simui-wx-ic"><Icon size={26} strokeWidth={1.75} /></span>
         <div className="simui-wx-now">

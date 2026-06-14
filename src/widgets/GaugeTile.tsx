@@ -1,4 +1,5 @@
 import { Tile } from '../components/Tile';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { clamp, formatNumber, friendly } from '../util';
 
@@ -33,7 +34,8 @@ function arcPath(): string {
   return `M ${a.x} ${a.y} A ${R} ${R} 0 ${large} 1 ${b.x} ${b.y}`;
 }
 
-export function GaugeTile({ entity }: WidgetProps) {
+export function GaugeTile({ entity, actions }: WidgetProps) {
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const a = entity.attributes;
   const unit = (a.unit_of_measurement as string | undefined) ?? '';
@@ -48,7 +50,7 @@ export function GaugeTile({ entity }: WidgetProps) {
   const path = arcPath();
 
   return (
-    <Tile className={`simui-gauge${dead ? ' is-unavailable' : ''}`}>
+    <Tile className={`simui-gauge${dead ? ' is-unavailable' : ''}`} onClick={onTap}>
       <span className="simui-name" title={name}>{name}</span>
       <div className="simui-gauge-wrap">
         <svg

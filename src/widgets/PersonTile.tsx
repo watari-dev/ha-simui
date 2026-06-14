@@ -2,6 +2,7 @@ import { MapPin, UserCheck, UserX } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { StateLine } from '../components/StateLine';
 import { useActions } from '../dashboard/useActions';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState } from '../util';
 
@@ -10,8 +11,11 @@ import { friendly, prettyState } from '../util';
  * detail Sheet (where a map can live); the icon tints `cool` (accent) when home,
  * `warn` (amber) when away. State stays glanceable with a recency suffix.
  */
-export function PersonTile({ entity }: WidgetProps) {
+export function PersonTile({ entity, actions }: WidgetProps) {
   const run = useActions();
+  const onTap = useTapHandler(entity.entity_id, actions, () =>
+    run({ action: 'more-info' }, entity.entity_id),
+  );
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
 
@@ -35,7 +39,7 @@ export function PersonTile({ entity }: WidgetProps) {
   const iconClass = home ? ' cool' : away ? '' : ' amber';
 
   return (
-    <Tile onClick={() => run({ action: 'more-info' }, entity.entity_id)} className={home ? 'is-on' : ''}>
+    <Tile onClick={onTap} className={home ? 'is-on' : ''}>
       <div className="simui-row">
         <span className={`simui-ic${iconClass}`}><Icon size={15} strokeWidth={2} /></span>
         <span className="simui-name" title={name}>{name}</span>
