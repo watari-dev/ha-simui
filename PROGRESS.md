@@ -262,6 +262,23 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
     commit — fixed by forcing `git reset --hard <HEAD>` in each agent's setup before building.
   - tsc + panel build + runtime console all clean on the combined main.
 
+- **Actions everywhere + per-tile authoring + surface unification (7-agent fan-out)** — closed out
+  the editor's remaining gaps:
+  - **Authored tap-actions execute on every leaf** — `WidgetProps.actions` + a `useTapHandler`
+    runtime helper let all 19 domain widgets (via `CardBlock`) honor an authored `tap`; the special
+    Group leaves (`SliderTile`/`StatusBoardTile`) + `HeroBlock` too; rows were already wired. Every
+    leaf preserves its domain default unless a slot is explicitly set (no-regress).
+  - **Per-tile config is reachable** — the missing link: `EntityMembers` rows now drill into
+    `editor.selectTile` → `TileSettings` (name/icon/colour/state-line/features/**ActionEditor**) with
+    a back-to-card affordance. Without this the whole per-tile panel was unreachable.
+  - **End-to-end verified in-browser**: drill into a light tile → author `tap → navigate → home` →
+    exit → tapping the light navigates home (runs the authored action, NOT the default toggle/sheet).
+  - **Surface unification** — extracted a shared `useEditableSurface` hook; Home/Room/Category now
+    share one edit contract (the per-view duplication is gone), behavior-preserving.
+  - 9 commits cherry-picked from isolated worktrees (foundation → 7 parallel builders → tile-select);
+    tsc + panel build + console all clean. Stale-worktree-base trap hit again → mitigated by forcing
+    `git reset --hard <SHA>` in every agent's setup ([[workflow-worktree-stale-base]]).
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);

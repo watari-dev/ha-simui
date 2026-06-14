@@ -39,13 +39,17 @@ The must-have checklist (ROADMAP §2), by tier.
 
 ### Tier B — the editor + preset gallery (the flagged edit-suite gap)
 *Largely SHIPPED via the decoupled editor store (`src/editor/store.tsx`) + wave-3 fan-out.*
-- [x] **Editable surfaces — all three** — Home / Room / Category all drive the editor store:
+- [x] **Editable surfaces — all three, unified** — Home / Room / Category all drive the editor
+      store through a shared **`useEditableSurface`** hook (`src/dashboard/useEditableSurface.ts`):
       enter → (snapshot to **override** for home/category; rooms edit `room.blocks` directly with
       no snapshot) → optimistic `dirtyBlocks` → debounced commit via the atomic `mutateBlocks`
       seam; drag/resize/remove/add + Reset (home/category). `EditorOverlay` is mounted ONCE at
-      `DashboardView` and self-gates on `editor.active`. TODO (nice-to-have): the formal
-      **`{ surfaces }` unification** + a shared `SurfaceCanvas`/`useEditableSurface` to retire the
-      per-view duplication.
+      `DashboardView`. The per-view duplication is retired. (A `SurfaceCanvas` component to also
+      share the JSX is a further nicety, not required.)
+- [x] **Per-tile config reachable** — `EntityMembers` rows are clickable → `editor.selectTile`,
+      surfacing `TileSettings` (name / lucide icon / colour / size / state-line / features /
+      **ActionEditor**) with a back-to-card affordance. This is what makes authored tap-actions
+      (and all per-tile overrides) usable from the UI.
 - [x] **Add-block flow** — `CardGallery` (live `BlockBody` previews) with **23 kinds**; pick →
       insert → auto-select → inspector. (`ResizeHandle` + 1×/2×/Full cycle for sizing.)
 - [x] **Block / Tile Inspector (no YAML)** — `BlockSettings` (title/width/axis) · `EntityMembers`
@@ -59,12 +63,14 @@ The must-have checklist (ROADMAP §2), by tier.
       surface. `OnboardingHint` one-time coachmark + `EmptyState`.
 
 #### Tier B follow-ups
-- [x] **Action execution (rows)** — `useTileAction` (`src/runtime/actions.ts`) is threaded through
-      `EntityRow`; `GroupBlock`/`ListBlock` pass `block.tiles?.[id]?.actions` down. A leaf's handler
-      is overridden ONLY when its ActionMap slot is explicitly set, so every domain default is
-      preserved (verified: a no-actions tap still opens the sheet / toggles). TODO: the
-      single-entity **CardBlock** path (needs `actions?` on `WidgetProps` + ~20 widgets honoring it)
-      and the non-row GroupBlock variants (slider/status/metric walls) + HeroBlock.
+- [x] **Action execution — every leaf** — `useTileAction`/`useTapHandler` (`src/runtime/actions.ts`)
+      threaded through: `EntityRow` (group/list rows), all **19 domain widgets** via `WidgetProps.actions`
+      ← `CardBlock` (single-entity cards), and the special Group leaves `SliderTile` /
+      `StatusBoardTile` + `HeroBlock`. A leaf's handler is overridden ONLY when its ActionMap slot is
+      explicitly set, so every domain default is preserved (no-regress verified). End-to-end verified:
+      authoring `tap → navigate → home` on a light tile makes the tap navigate home instead of toggling.
+      (Minor: the `metric wall`/chart-expand leaves keep their own smart-click semantics; LightTile/
+      GenericTile leave their *unavailable* branch inert by design.)
 - [x] **Area-grouped EntityPicker** — `EntityPicker.tsx` now composes the `src/editor/picker/`
       module (SearchBox / FacetBar / AreaGroupedList + `rowsFromIndex`) over the area-aware
       `EntityIndex` (`areas`/`registry` threaded through `EntityPickerProps` ← `EditorOverlay`).
