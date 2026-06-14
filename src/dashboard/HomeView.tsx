@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Check, Pencil, RotateCcw } from 'lucide-react';
-import { useAggregate, useAllStates } from '../hass/context';
+import { useAggregate, useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
 import { useEditableSurface } from './useEditableSurface';
@@ -25,15 +25,16 @@ function greeting(): string {
 
 export function HomeView() {
   const { config, openRoom } = useDashboard();
-  const states = useAllStates();
+  const source = useHassSource();
+  const keysVersion = useEntityKeys();
   const areaMap = useAreas();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // The Home summary preset: status strip + scenes + category launcher + security
-  // (PRESETS.md §1). Rebuilt only when the entity SET changes. `areaMap` is
-  // entity-keyed (entityId → {area, floor}); the builders look up by entity id.
-  const idSig = useMemo(() => Object.keys(states).sort().join(','), [states]);
-  const surface: Surface = useMemo(() => buildHome({ states, areas: areaMap }), [idSig, areaMap]); // eslint-disable-line react-hooks/exhaustive-deps
+  // (PRESETS.md §1). Rebuilt only when the entity SET changes (keysVersion) — NOT on
+  // value ticks; the live map is read lazily. `areaMap` is entity-keyed
+  // (entityId → {area, floor}); the builders look up by entity id.
+  const surface: Surface = useMemo(() => buildHome({ states: source.getStates(), areas: areaMap }), [keysVersion, areaMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The home's own light ids drive the living field's warmth.
   const roomSig = config ? config.rooms.map((r) => r.id).join(',') : '';

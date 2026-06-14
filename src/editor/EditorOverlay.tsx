@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useAllStates } from '../hass/context';
+import { useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas, useRegistry } from '../dashboard/areas';
 import { useDashboard } from '../dashboard/store';
 import { useEditor } from './store';
@@ -23,7 +23,8 @@ import type { CardKind, EntityFacets } from './types';
 export function EditorOverlay() {
   const editor = useEditor();
   const dash = useDashboard();
-  const states = useAllStates();
+  const source = useHassSource();
+  const keysVersion = useEntityKeys();
   const areas = useAreas();
   const registry = useRegistry();
   const [facets, setFacets] = useState<EntityFacets>({ primaryOnly: true });
@@ -32,15 +33,19 @@ export function EditorOverlay() {
     () => typeof localStorage !== 'undefined' && localStorage.getItem('simui:editor:onboarded') === '1',
   );
 
-  const idSig = useMemo(() => Object.keys(states).sort().join(','), [states]);
-  const preview = useMemo(() => buildPreviewContext(states), [idSig]); // eslint-disable-line react-hooks/exhaustive-deps
-  const index = useMemo(() => buildEntityIndex({ states, areas, registry }), [states, areas, registry]);
+  // A render snapshot for the controlled panels (picker/inspector/preview are
+  // enumeration, not live tiles). EditorOverlay re-renders on editor state
+  // (selection/panel/dirtyBlocks) — fresh enough — and the preview/index rebuild
+  // only when the entity SET changes (keysVersion), never on value ticks.
+  const states = source.getStates();
+  const preview = useMemo(() => buildPreviewContext(source.getStates()), [keysVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+  const index = useMemo(() => buildEntityIndex({ states: source.getStates(), areas, registry }), [keysVersion, areas, registry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply a page template onto the active surface. We tear the editor down WITHOUT
   // committing first (discard) so its empty working copy can't overwrite the template
   // on flush; the surface then re-renders the new override read-only (tap Edit to refine).
   const applyTemplate = (t: PageTemplate) => {
-    const blocks = t.build({ states, areaOf: index.areaOf });
+    const blocks = t.build({ states: source.getStates(), areaOf: index.areaOf });
     const r = dash.route;
     editor.exit({ discard: true });
     if (r.kind === 'home') dash.createHomeOverride(blocks);

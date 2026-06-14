@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Check, ChevronLeft, Pencil, RotateCcw } from 'lucide-react';
-import { useAllStates } from '../hass/context';
+import { useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { useEditableSurface } from './useEditableSurface';
@@ -49,22 +49,23 @@ const CATEGORY_TITLE: Record<string, string> = {
  * "Reset to preset" drops the override and goes back to the live surface.
  */
 export function CategoryView({ categoryId }: { categoryId: string }) {
-  const states = useAllStates();
+  const source = useHassSource();
+  const keysVersion = useEntityKeys();
   const areaMap = useAreas();
   const registryMeta = useRegistry();
   const { config, goHome } = useDashboard();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // Rebuild the live surface only when the entity SET changes (idSig) — each block
-  // subscribes to its own values. areaMap is entity-keyed; pass it straight through.
-  const idSig = useMemo(() => Object.keys(states).sort().join(','), [states]);
+  // Rebuild the live surface only when the entity SET changes (keysVersion) — NOT on
+  // value ticks; each block subscribes to its own values. areaMap is entity-keyed.
   const surface: Surface = useMemo(() => {
+    const states = source.getStates();
     const presetId = PRESET_FOR[categoryId];
     const preset = presetId ? getPreset(presetId) : undefined;
     if (preset) return preset.build({ states, areas: areaMap, registry: registryMeta });
     return fallbackSurface(categoryId, states);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, idSig, areaMap, registryMeta]);
+  }, [categoryId, keysVersion, areaMap, registryMeta]);
 
   // An override (a user-edited snapshot) takes over from the live surface. The
   // shared hook resolves the rendered block list (editor working copy while active,

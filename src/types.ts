@@ -20,6 +20,14 @@ export interface HassSource {
   getStates: () => HassEntities;
   callService: CallService;
   connection?: Connection;
+  /**
+   * A version counter that bumps ONLY when the entity-key SET changes (an entity
+   * added or removed) — not on value ticks. Lets surface builders rebuild on
+   * set-change instead of every tick, and replaces the per-render
+   * `Object.keys(states).sort().join()` signature. Provided by `HassProvider`'s
+   * wrapper (`useEntityKeys`); absent on a raw source (treated as 0 / never bumps).
+   */
+  getKeysVersion?: () => number;
 }
 
 export interface WidgetProps {
