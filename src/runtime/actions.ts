@@ -193,3 +193,26 @@ export function useTileAction(
 
   return { onClick, onContextMenu, onDoubleClick };
 }
+
+/**
+ * Widget convenience for the CardBlock single-entity path. Returns the body-tap
+ * handler a Tile-based widget should pass to `<Tile onClick={…}>`: the authored
+ * `tap` action when explicitly set, otherwise the widget's own `fallback` handler
+ * UNCHANGED (no-regress — absence === today's behavior). `<Tile>`'s onClick is a
+ * bare `() => void`, so this returns that shape rather than a DOM event handler.
+ *
+ * Usage in a widget:
+ *   const onTap = useTapHandler(props.entity.entity_id, props.actions, toggle);
+ *   <Tile onClick={onTap}> … </Tile>
+ * A display-only widget passes no fallback ⇒ the tile is inert unless a tap is authored.
+ */
+export function useTapHandler(
+  entityId: string,
+  actions: ActionMap | undefined,
+  fallback?: () => void,
+): (() => void) | undefined {
+  const run = useActions();
+  const tap = actions?.tap;
+  if (tap) return () => run(tap, entityId);
+  return fallback;
+}

@@ -1,4 +1,5 @@
 import type { Connection, HassEntities, HassEntity } from 'home-assistant-js-websocket';
+import type { ActionMap } from './editor/types';
 
 export type { HassEntities, HassEntity };
 
@@ -23,4 +24,12 @@ export interface HassSource {
 
 export interface WidgetProps {
   entity: HassEntity;
+  /**
+   * Authored interaction overrides for this leaf (SPEC_EDITOR §card-config). A widget
+   * honors a slot ONLY when it is explicitly set, otherwise it keeps its own domain
+   * default (so absence === today's behavior). Threaded by CardBlock from
+   * `block.tiles?.[id]?.actions ?? block.actions`. Run them with `useTapHandler`
+   * (src/runtime/actions.ts).
+   */
+  actions?: ActionMap;
 }

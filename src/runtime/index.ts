@@ -4,6 +4,7 @@
 
 export {
   useTileAction,
+  useTapHandler,
   resolveAction,
   defaultAction,
   type TileActionHandlers,
