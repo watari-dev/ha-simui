@@ -32,8 +32,11 @@ export function Chart({ spec }: { spec: ChartSpec }) {
   const entities = useMemo(() => spec.series.map((s) => s.entity), [spec.series]);
   const data = useHistory(entities, spec.window);
 
+  const chartLabel =
+    spec.title ?? `History chart: ${spec.series.map((s) => s.name ?? seriesLabel(s.entity)).join(', ')}`;
+
   return (
-    <div className="simui-chart">
+    <div className="simui-chart" role="group" aria-label={chartLabel}>
       {(spec.title || spec.header.showCurrent) && (
         <div className="simui-chart-head">
           {spec.title && <span className="simui-chart-title">{spec.title}</span>}
@@ -231,7 +234,9 @@ function ChartCanvas({ spec, data }: { spec: ChartSpec; data: Series }) {
     }
   }, [data, spec.series]);
 
-  return <div className="simui-chart-canvas" ref={hostRef} />;
+  // The canvas conveys the same series as the (real-text) header readout, which AT
+  // can read; the pixel chart itself is decorative to a screen reader.
+  return <div className="simui-chart-canvas" ref={hostRef} aria-hidden="true" />;
 }
 
 /* ---------------------------------------------------------------------------
