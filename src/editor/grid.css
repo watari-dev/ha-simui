@@ -1,0 +1,188 @@
+/* grid.css — the responsive 12-col-ready surface grid + resize-handle + drag affordances.
+ *
+ * Owned by the layout/editor work, NOT merged into the global src/styles.css (fan-out
+ * rule). The integrator imports it from the SectionGrid/BlockFrame component(s):
+ *     import '../editor/grid.css';
+ *
+ * Design language is unchanged (SPEC_LAYOUT.md §8): hairline dashed insertion outline
+ * reuses the existing `.simui-block.editing` dashed token; handles are slim hit-targets
+ * with a 1px accent edge on hover; NO transition on grid-column (layout *appears*, never
+ * animates — DESIGN_PRINCIPLES §11). All colors are theme variables already defined on
+ * `.simui-root` (--accent / --hairline / --radius / --surface-2 / --down / --text).
+ *
+ * Coexists with the legacy `.simui-grid` (auto-fill) — that stays for un-migrated call
+ * sites. This stylesheet introduces the true N-track grid the 12-col model needs so a
+ * block can be column-placed (`--col`) and resize handles can snap to a column edge.
+ */
+
+/* ── The section grid: a real N-column track grid (SPEC_LAYOUT.md §1.4) ─────────────── */
+/* `--cols` is set by the engine per breakpoint (desktop 12 / tablet 6 / phone 4); it
+   defaults to 12 so the grid is sane even before the breakpoint context mounts. */
+.simui-section-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr));
+  gap: var(--grid-gap, 12px);
+  align-items: start;
+}
+
+/* Each block places itself via inline `--col` / `--span` (computed from the breakpoint +
+   effectiveSpan). No `--col` ⇒ `auto`, so the implicit grid packs it left-to-right —
+   i.e. exactly today's auto-flow, just on a fixed-track grid. `--row-span` is reserved
+   for charts/banners (south-handle resize). Span defaults to full so an unplaced block
+   never collapses to one thin track before the engine writes its --span. */
+.simui-section-grid > .simui-block,
+.simui-section-grid > .simui-card {
+  grid-column: var(--col, auto) / span var(--span, var(--cols, 12));
+  grid-row: span var(--row-span, 1);
+  min-width: 0; /* let grid children shrink below content width — no overflow */
+}
+
+/* CRITICAL: no transition on grid placement. Reflow on breakpoint change is instant. */
+.simui-section-grid > .simui-block,
+.simui-section-grid > .simui-card {
+  transition: none;
+}
+
+/* ── Resize handles (SPEC_LAYOUT.md §5.1/§5.2) ──────────────────────────────────────── */
+/* The block frame is the positioned host (already `position: relative` in styles.css for
+   `.simui-block`). Handles are absolutely positioned slim edges, invisible until the
+   frame is in edit mode, with a 1px accent edge on hover — the same hairline language. */
+.simui-resize-handle {
+  position: absolute;
+  z-index: 7; /* above the grab overlay (z 5) + buttons sit at 6 in styles.css */
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  touch-action: none; /* we own the pointer gesture */
+  transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+/* Reveal handles only while the block is being edited. */
+.simui-block.editing > .simui-resize-handle,
+.simui-card.editing > .simui-resize-handle {
+  opacity: 1;
+}
+
+/* East (horizontal width) handle — a vertical bar on the trailing edge. */
+.simui-resize-handle.e {
+  top: 8px;
+  bottom: 8px;
+  right: -3px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+/* South (vertical / rowSpan) handle — a horizontal bar on the bottom edge. Only the
+   charts/banners that support rowSpan render it (BlockFrame gates it). */
+.simui-resize-handle.s {
+  left: 8px;
+  right: 8px;
+  bottom: -3px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+/* The visible 1px accent edge inside the (larger) hit-target. */
+.simui-resize-handle::after {
+  content: '';
+  position: absolute;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.simui-resize-handle.e::after {
+  top: 0;
+  bottom: 0;
+  right: 3px;
+  width: 2px;
+}
+.simui-resize-handle.s::after {
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  height: 2px;
+}
+.simui-resize-handle:hover::after,
+.simui-resize-handle:focus-visible::after {
+  opacity: 1;
+}
+.simui-resize-handle:focus-visible {
+  outline: none;
+}
+.simui-resize-handle:focus-visible::after {
+  background: var(--accent);
+}
+
+/* While resizing, lock the accent edge on across the whole grid (set on the frame by
+   useResize) so the drag reads as one continuous gesture. */
+.simui-block.resizing,
+.simui-card.resizing {
+  z-index: 8;
+}
+.simui-block.resizing .simui-resize-handle::after,
+.simui-card.resizing .simui-resize-handle::after {
+  opacity: 1;
+  background: var(--accent);
+}
+/* Suppress body interaction feedback mid-resize so it doesn't fight the gesture. */
+.simui-block.resizing,
+.simui-block.resizing * {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* ── Drag / move affordance + insertion preview (SPEC_LAYOUT.md §5.3) ────────────────── */
+/* The dashed insertion outline reuses the existing `.simui-block.editing` dashed token
+   (DESIGN_PRINCIPLES §11) — a hairline that *appears* at the snap cell, no animation. */
+.simui-drop-cell {
+  border-radius: var(--radius);
+  outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* The grab affordance for whole-frame move — co-located here so the layout work doesn't
+   touch global styles. Mirrors the existing `.simui-card-grab` overlay but sits below the
+   resize handles so an edge drag resizes rather than moves. */
+.simui-block-grab {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: var(--radius);
+  cursor: grab;
+  touch-action: none;
+}
+.simui-block-grab:active {
+  cursor: grabbing;
+}
+
+/* Dragging block: the same 0.55 dim as the legacy `.simui-block.dragging`. */
+.simui-section-grid > .simui-block.dragging,
+.simui-section-grid > .simui-card.dragging {
+  opacity: 0.55;
+}
+
+/* ── Responsive: the engine sets --cols, but provide CSS fallbacks so the grid is
+   correct even in the dev harness before the breakpoint context resolves. These mirror
+   SPEC_LAYOUT.md §1.1 (desktop ≥1100 / tablet ≥680 / phone otherwise) and only apply when
+   --cols has NOT been set by JS (they set the *variable*, which JS then overrides). ──── */
+.simui-section-grid {
+  --cols: 4; /* phone default */
+}
+@media (min-width: 680px) {
+  .simui-section-grid {
+    --cols: 6; /* tablet */
+  }
+}
+@media (min-width: 1100px) {
+  .simui-section-grid {
+    --cols: 12; /* desktop authoring grid */
+  }
+}
+/* When JS sets an explicit data-cols, honor it over the media-query fallback. */
+.simui-section-grid[data-cols="4"] { --cols: 4; }
+.simui-section-grid[data-cols="6"] { --cols: 6; }
+.simui-section-grid[data-cols="12"] { --cols: 12; }

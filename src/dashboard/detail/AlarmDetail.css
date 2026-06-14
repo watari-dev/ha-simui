@@ -1,0 +1,8 @@
+/* AlarmDetail — co-located; imported from AlarmDetail.tsx.
+ * Only the masthead icon+label inline; no edits to global src/styles.css. */
+
+.simui-alarm-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

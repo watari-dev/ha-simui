@@ -5,7 +5,7 @@ export type BlockType = 'hero' | 'group' | 'list' | 'chart' | 'card' | 'attentio
 // Placement is a property of the BLOCK, never the leaf tile (FRAMEWORK.md §2).
 // `1`/`2` = column span in the auto-fill grid; `'full'` = the whole row.
 // (The contract's eventual 1..12 model lands when the grid moves to 12 columns.)
-export type BlockSpan = 1 | 2 | 'full';
+export type BlockSpan = 1 | 2 | 'full' | number;
 
 /**
  * How a GroupBlock's members are grouped (FRAMEWORK.md §2). Not hard-coded to

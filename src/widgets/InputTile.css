@@ -1,0 +1,34 @@
+/* NumberTile / SelectTile — co-located layout for the "labelled settable value"
+ * shape. Reuses the global tile vocabulary (.simui-value/.simui-unit/.simui-seg/
+ * .simui-step/.simui-fsel); these rules only handle spacing + a full-width
+ * segmented control. No new colors — all tokens inherit hass.themes. */
+
+.simui-tile.simui-input { gap: 8px; }
+
+/* The current value sits right-aligned on the header row, tabular for steadiness. */
+.simui-input-value {
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+.simui-input-value .simui-unit { font-weight: 500; }
+
+/* The −/+ stepper is the only control: push it to the right so the row reads
+ * label … [− value +], matching the climate stepper's alignment. */
+.simui-input-step { margin-left: auto; }
+
+/* A segmented option chooser fills the tile width and lets options share space
+ * evenly, so 2–4 options never crowd into the corner. */
+.simui-input-seg { display: flex; width: 100%; }
+.simui-input-seg .simui-segbtn {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The collapsed dropdown stretches to the tile width for an easy tap target. */
+.simui-input-fsel { display: flex; width: 100%; }
+.simui-input-fsel .simui-fsel { flex: 1; width: 100%; }

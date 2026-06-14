@@ -1,0 +1,117 @@
+/* HistoryPane — inline history graph + stats strip + state band (SPEC_DETAIL §3.3).
+ * Co-located; imported from HistoryPane.tsx. No edits to global src/styles.css. */
+
+.simui-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Numeric stats strip: min / avg / max / now, tabular, right-rhythm. ── */
+.simui-history-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--faint);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.simui-history-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 10px;
+  background: var(--surface, transparent);
+}
+
+.simui-history-stat-k {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.simui-history-stat-v {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.simui-history-stat.is-now .simui-history-stat-v {
+  color: var(--accent);
+}
+
+/* ── Attribute spark (the brightness/position inline graph). ── */
+.simui-history-spark {
+  display: block;
+  width: 100%;
+  height: 56px;
+  border-radius: 8px;
+}
+
+.simui-history-spark.is-empty {
+  height: 56px;
+  border-radius: 8px;
+  background: var(--faint);
+}
+
+.simui-history-spark-band {
+  fill: var(--faint);
+  opacity: 0.5;
+}
+
+/* ── State band: a thin segmented track, state-coloured. ── */
+.simui-history-band-wrap {
+  position: relative;
+}
+
+.simui-history-band {
+  position: relative;
+  width: 100%;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--faint);
+}
+
+.simui-history-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  outline: none;
+}
+
+.simui-history-seg:focus-visible {
+  box-shadow: inset 0 0 0 1.5px var(--text);
+}
+
+.simui-history-band-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.simui-history-band-readout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.simui-history-band-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}

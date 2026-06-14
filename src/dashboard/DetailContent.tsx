@@ -10,6 +10,9 @@ import { MediaDetail } from './detail/MediaDetail';
 import { CoverDetail } from './detail/CoverDetail';
 import { LockDetail } from './detail/LockDetail';
 import { SensorDetail } from './detail/SensorDetail';
+import { FanDetail } from './detail/FanDetail';
+import { VacuumDetail } from './detail/VacuumDetail';
+import { AlarmDetail } from './detail/AlarmDetail';
 import type { HassEntity } from '../types';
 
 /**
@@ -42,6 +45,12 @@ export function DetailContent({ entityId }: { entityId: string }) {
     case 'sensor':
     case 'binary_sensor':
       return <SensorDetail entity={entity} />;
+    case 'fan':
+      return <FanDetail entity={entity} />;
+    case 'vacuum':
+      return <VacuumDetail entity={entity} />;
+    case 'alarm_control_panel':
+      return <AlarmDetail entity={entity} />;
     default:
       return <FallbackDetail entity={entity} />;
   }

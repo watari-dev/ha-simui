@@ -1,0 +1,77 @@
+/* DeviceInfo — area / device / integration rows (SPEC_DETAIL §3.5).
+ * Co-located; imported from DeviceInfo.tsx. No edits to global src/styles.css. */
+
+.simui-deviceinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.simui-deviceinfo-row {
+  display: grid;
+  grid-template-columns: 18px 84px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.simui-deviceinfo-row + .simui-deviceinfo-row {
+  border-top: 1px solid var(--faint);
+}
+
+.simui-deviceinfo-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  align-self: center;
+}
+
+.simui-deviceinfo-k {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.simui-deviceinfo-v {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.simui-deviceinfo-strong {
+  color: var(--text);
+}
+
+.simui-deviceinfo-muted {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.simui-deviceinfo-row.is-tappable {
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.simui-deviceinfo-row.is-tappable:hover {
+  background: var(--faint);
+}
+
+.simui-deviceinfo-row.is-tappable:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.simui-deviceinfo-row.is-tappable .simui-deviceinfo-v {
+  color: var(--accent);
+}
