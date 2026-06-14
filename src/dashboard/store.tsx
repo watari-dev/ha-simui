@@ -28,6 +28,8 @@ interface DashboardCtx {
   removeBlock: (blockId: string) => void;
   cycleBlockSpan: (blockId: string) => void;
   addCard: (entityId: string) => void;
+  /** Append a fully-built block (the gallery → drop path). */
+  addBlock: (block: Block) => void;
   /** Snapshot a generated category surface into a persisted, editable override. */
   createOverride: (categoryId: string, blocks: Block[]) => void;
   /** Drop a category override → back to the live preset. */
@@ -129,6 +131,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     removeBlock: (id) => mutateBlocks((b) => b.filter((x) => x.id !== id)),
     cycleBlockSpan: (id) => mutateBlocks((b) => b.map((x) => (x.id === id ? { ...x, span: nextSpan(x.span) } : x))),
     addCard: (entityId) => mutateBlocks((b) => [...b, { id: uid(), type: 'card', entityIds: [entityId], span: defaultCardSpan(entityId) }]),
+    addBlock: (block) => mutateBlocks((b) => [...b, block]),
     createOverride: (categoryId, blocks) =>
       setConfig((c) =>
         c

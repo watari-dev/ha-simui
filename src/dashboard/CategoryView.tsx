@@ -7,7 +7,10 @@ import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
-import { AddCardPanel } from './AddCardPanel';
+import { CardGallery } from '../editor/CardGallery';
+import { CARD_KINDS, seedFor } from '../editor/cardKinds';
+import { buildPreviewContext } from '../editor/preview';
+import type { CardKind } from '../editor/types';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { getPreset } from './presets/index';
 import type { Surface } from './presets/index';
@@ -51,8 +54,8 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   const states = useAllStates();
   const areaMap = useAreas();
   const registryMeta = useRegistry();
-  const { config, goHome, editing, setEditing, reorderBlocks, addCard, createOverride, resetOverride } = useDashboard();
-  const [adding, setAdding] = useState(false);
+  const { config, goHome, editing, setEditing, reorderBlocks, addBlock, createOverride, resetOverride } = useDashboard();
+  const [gallery, setGallery] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Rebuild the live surface only when the entity SET changes (idSig) — each block
@@ -70,6 +73,11 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
   const override = config?.overrides?.[`category:${categoryId}`];
   const blocks = override ? override.blocks : surface.blocks;
   const ids = blocks.map((b) => b.id);
+  const preview = useMemo(() => buildPreviewContext(states), [idSig]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onPickKind = (kind: CardKind) => {
+    addBlock(kind.make(seedFor(kind, preview)));
+    setGallery(false);
+  };
 
   const title = CATEGORY_TITLE[categoryId] ?? categoryId;
   const ambient = AMBIENT_CATEGORIES.has(categoryId);
@@ -110,7 +118,7 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset to preset"><RotateCcw size={15} /></button>
         )}
         {editing && (
-          <button className="simui-iconbtn-h" onClick={() => setAdding(true)} aria-label="Add card"><Plus size={16} /></button>
+          <button className="simui-iconbtn-h" onClick={() => setGallery(true)} aria-label="Add card"><Plus size={16} /></button>
         )}
         <button
           className={`simui-iconbtn-h${editing ? ' active' : ''}`}
@@ -145,11 +153,12 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
           )}
         </div>
       </div>
-      {adding && (
-        <AddCardPanel
-          existing={blocks.flatMap((b) => b.entityIds)}
-          onAdd={addCard}
-          onClose={() => setAdding(false)}
+      {gallery && (
+        <CardGallery
+          kinds={CARD_KINDS}
+          preview={preview}
+          onPick={onPickKind}
+          onClose={() => setGallery(false)}
         />
       )}
     </div>

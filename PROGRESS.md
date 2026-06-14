@@ -14,6 +14,18 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Editor MVP wired — the "add a card" gallery works end-to-end** (the make-or-break feature).
+  `src/editor/cardKinds.ts` (catalogue: Group / List / History chart / Hero / Card, each a valid
+  `make(seed)` → renderable BlockConfig) + `src/editor/preview.ts` (`buildPreviewContext` samples
+  real, *available* entities) + `store.addBlock(block)`. CategoryView's `+` now opens the
+  **CardGallery** (replacing the flat AddCardPanel): five kinds, each a **live preview built from
+  the user's real entities** — History chart shows real "Energy · 4.2 kWh" w/ sparkline, Hero
+  shows "22°", Card shows "Ecobee". Pick → block added + persisted to the surface override.
+  Verified headless (navigate → edit → `+` → gallery 5 kinds/5 live previews → pick Group →
+  1→2 blocks, persisted). Next: generalize the gallery to Home/Room, wire the **Inspector**
+  (select block/tile → configure name/icon/color/features/actions), drag-resize, undo, and the
+  **EntityPicker** for members.
+
 - **Editor subsystem fan-out (7 Opus agents, ~732k tokens)** — the real "own the editor" build
   (option A). Foundation wrote `SPEC_EDITOR.md` + `src/editor/types.ts`: config **v4** via an
   *optional inline* `tiles?: Record<entityId, TileConfig>` on each block (per-leaf
