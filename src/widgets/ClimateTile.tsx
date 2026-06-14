@@ -2,6 +2,7 @@ import { Minus, Plus, Thermometer } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { TileFeatures } from '../components/TileFeatures';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { TileFeature } from '../widgets/tileContract';
 import type { WidgetProps } from '../types';
 import { clamp, friendly } from '../util';
@@ -10,8 +11,11 @@ import { clamp, friendly } from '../util';
 const ACTION_CLASS: Record<string, string> = { heating: 'warm', cooling: 'cool', drying: 'warm', fan: 'cool' };
 const MODE_CLASS: Record<string, string> = { heat: 'warm', cool: 'cool', heat_cool: 'cool', auto: 'cool' };
 
-export function ClimateTile({ entity }: WidgetProps) {
+export function ClimateTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Display-only body today (steppers + mode strip are the only controls); the
+  // whole-tile tap is inert unless an action is authored.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
 
   // Dead device — dim, placeholder reading, no steppers / mode strip.
@@ -55,7 +59,7 @@ export function ClimateTile({ entity }: WidgetProps) {
     hvacModes.length > 1 ? [{ type: 'climate-hvac-modes', modes: hvacModes, style: 'icons' }] : [];
 
   return (
-    <Tile>
+    <Tile onClick={onTap}>
       <div className="simui-row">
         <span className={`simui-ic ${iconClass}`}><Thermometer size={16} strokeWidth={2} /></span>
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>

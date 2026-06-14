@@ -2,13 +2,14 @@ import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
 import { Fan } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
 // FanEntityFeature
 const FEAT = { SET_SPEED: 1 };
 
-export function FanTile({ entity }: WidgetProps) {
+export function FanTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const on = entity.state === 'on';
@@ -18,6 +19,8 @@ export function FanTile({ entity }: WidgetProps) {
 
   const toggle = () =>
     void callService('fan', on ? 'turn_off' : 'turn_on', {}, { entity_id: entity.entity_id });
+  // Whole-tile tap defaults to on/off; an authored `tap` action overrides it.
+  const onTap = useTapHandler(entity.entity_id, actions, toggle);
   const setPct = (e: ChangeEvent<HTMLInputElement>) =>
     void callService('fan', 'set_percentage', { percentage: Number(e.target.value) }, { entity_id: entity.entity_id });
 
@@ -40,7 +43,7 @@ export function FanTile({ entity }: WidgetProps) {
   }
 
   return (
-    <Tile onClick={toggle} className={`simui-fan${on ? ' is-on' : ''}`}>
+    <Tile onClick={onTap} className={`simui-fan${on ? ' is-on' : ''}`}>
       <div className="simui-row">
         <span className={`simui-ic${on ? ' cool' : ''}`}><Fan size={16} strokeWidth={2} /></span>
         <span className="simui-name" title={name}>{name}</span>

@@ -2,13 +2,17 @@ import type { ChangeEvent, CSSProperties } from 'react';
 import { ChevronDown, ChevronUp, Square } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
 const FEAT = { OPEN: 1, CLOSE: 2, SET_POSITION: 4, STOP: 8 };
 
-export function CoverTile({ entity }: WidgetProps) {
+export function CoverTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Display-only body today (slider / transport buttons are the only controls);
+  // the whole-tile tap is inert unless an action is authored.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
 
   // Dead device — dim, no slider / transport buttons (it can't be moved).
@@ -36,7 +40,7 @@ export function CoverTile({ entity }: WidgetProps) {
     : undefined;
 
   return (
-    <Tile className={open ? 'is-on' : ''}>
+    <Tile onClick={onTap} className={open ? 'is-on' : ''}>
       <div className="simui-row">
         <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
         <span className="simui-spacer" />
