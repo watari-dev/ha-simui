@@ -299,6 +299,34 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
   same, or a non-entity time input can't be tracked). Verified: room glance `23° · 1 light on` →
   `23°` updates correctly on toggle (deps are a correct superset — no stale values).
 
+- **Shell: adaptive + URL persistence + distribution + real-home validation** — picked up the
+  three "bigger directions":
+  - **URL/route persistence** — the route now lives in the location **hash** (`#/category/lights`,
+    `#/room/<id>`): Back / forward / reload restore the view. Self-contained — rides on the HA
+    panel's `/simui` URL without touching HA's router, and works identically in standalone dev.
+    `routeToPath` ↔ `parseRoute`; `goTo` writes the hash, a `hashchange` listener is the sole
+    external driver (functional updater dedupes the echo). Verified: nav updates the hash, Back
+    returns home, reload of `#/category/sensors` restores Sensors.
+  - **Adaptive shell** — the panel **consumes HA's `narrow`** (was discarded → `data-ha-narrow` on
+    the root, forces the compact layout when the panel is narrow but the viewport is wider). The
+    surfaces (auto-fill grids), editor panels (332px rail ↔ bottom-sheet), and detail Sheet were
+    already responsive; added phone (≤480 / narrow) two-up room cards. Verified 6/3/2-col rooms
+    across desktop/tablet/phone.
+  - **Release hygiene** (fan-out agent) — LICENSE (MIT), README rewrite (framework + editor +
+    presets, honest "working prototype" status), CHANGELOG `[Unreleased]`, `package.json` license,
+    version sync. Owner to confirm MIT + cut a tagged 0.3.0 release.
+  - **Real-home validation** (read-only via the `simbas-home-assistant` MCP) — inspected the actual
+    home: **6,257 entities / 39 domains / 20 areas / 3 floors**, ~36% `unavailable`, and heavy
+    diagnostic noise (3,160 sensors incl. 1,511 dead; 222 `update.*`; 359 maintenance buttons;
+    Shelly fault diagnostics; `browser_mod_*` "Screen" lights; 335 `device_tracker` vs **2** people).
+    Findings: the architecture holds — the registry curation gate (entity_category/hidden/disabled)
+    filters the bulk, no preset/auto-gen scans `device_tracker` (it's only a pickable "Trackers"
+    facet), the floor→area hierarchy is clean for `axis:'floor'`, and the just-shipped live-tick
+    perf work is *confirmed essential* at this scale. Fix applied: extended the dev/no-registry
+    pattern backstop with the Shelly fault suffixes + power-cycle/factory-reset/safe-mode maintenance
+    words. Noted (not blocking): room-glance temperature assumes a per-room `climate` hero, but this
+    home uses floor/zone climate — rooms could read a temp *sensor* instead (future enhancement).
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);

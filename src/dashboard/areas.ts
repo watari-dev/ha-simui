@@ -310,11 +310,17 @@ const NOISE_ID_PATTERNS: RegExp[] = [
   /_signal_strength$/i, // RSSI / link telemetry
   /_link_?quality$/i, // Zigbee/Z-Wave LQI
   /^update\./i, // update.* (firmware/HACS update entities)
+  // Shelly / power-monitor fault diagnostics (validated against a real 6k-entity
+  // home: "Switch Overvoltage/Overheating/Overcurrent/overpowering"). The registry
+  // marks these entity_category=diagnostic; this is the dev / no-registry backstop.
+  /_over(voltage|heating|current|powering)$/i,
 ];
 
-// Restart / reboot / identify / update maintenance buttons & switches. These leak
-// onto Lights/System surfaces as noise; a person controls them from device pages.
-const MAINTENANCE_WORDS = /\b(restart|reboot|identify|update|firmware|re-?index)\b/i;
+// Restart / reboot / identify / update / power-cycle maintenance buttons & switches.
+// These leak onto Lights/System surfaces as noise; a person controls them from device
+// pages. (power-cycle / factory-reset / safe-mode added from real-home validation.)
+const MAINTENANCE_WORDS =
+  /\b(restart|reboot|identify|update|firmware|re-?index|power[\s_-]?cycle|factory[\s_-]?reset|safe[\s_-]?mode)\b/i;
 const MAINTENANCE_DEVICE_CLASSES = new Set(['restart', 'identify', 'update']);
 
 /**

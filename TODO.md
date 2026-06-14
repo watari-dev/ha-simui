@@ -107,10 +107,18 @@ The must-have checklist (ROADMAP §2), by tier.
 - [x] **Error boundaries** — app-level + per-surface (`HomeView`/`RoomView`/Sheet) `ErrorBoundary`
       with compact inline fallback + route-derived `resetKey`; `ConnectionBanner` + `useConnectionStatus`
       reconnect banner (auto-hides when live, `'live'` in dev/mock). One bad widget no longer blanks the panel.
-- [ ] **Adaptive shell** — consume HA's `narrow` (currently discarded); reflow nav phone/tablet/desktop.
-- [ ] **URL / route persistence** — Back + reload restore the view (precondition for kiosk deep-links).
-- [ ] **Release hygiene** — LICENSE, version sync, tagged release + CHANGELOG, README rewrite +
-      screenshots (gates any non-owner install).
+- [x] **Adaptive shell** — the panel now consumes HA's `narrow` (→ `data-ha-narrow`, forces the
+      compact layout when the panel is narrow but the viewport is wider); surfaces (auto-fill grids),
+      editor panels (rail↔bottom-sheet), and the detail Sheet were already responsive; phone packs
+      rooms two-up. Verified 6-col desktop / 3-col tablet / 2-col phone.
+- [x] **URL / route persistence** — route lives in the location hash (`#/category/lights`,
+      `#/room/<id>`); Back + forward + reload restore the view. Self-contained (rides on the panel's
+      `/simui` URL, no HA-router coupling); works in standalone dev too. Verified end-to-end.
+- [~] **Release hygiene** — DONE: LICENSE (MIT), README rewrite (framework + editor + presets, honest
+      status), CHANGELOG `[Unreleased]`, `package.json` license field, version sync (0.2.0 across
+      package/manifest/hacs). TODO (owner): confirm the MIT default; cut a tagged release (likely
+      **0.3.0** — bump package/manifest, move `[Unreleased]`→`[0.3.0]`, rebuild bundle, push tag) so
+      HACS surfaces the editor + perf work. Screenshots still a placeholder.
 - [ ] **Settings / options flow** + a reset-layout escape hatch.
 - [~] **Accessibility pass** — done: ARIA + keyboard on the custom controls (slider/dial roles +
       value/arrow-keys, `role=dialog`+focus-trap+Esc on Sheet, `role=menu`+arrow-nav on ContextMenu,

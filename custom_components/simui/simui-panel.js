@@ -13656,9 +13656,13 @@ const $W = [
   // RSSI / link telemetry
   /_link_?quality$/i,
   // Zigbee/Z-Wave LQI
-  /^update\./i
+  /^update\./i,
   // update.* (firmware/HACS update entities)
-], qW = /\b(restart|reboot|identify|update|firmware|re-?index)\b/i, TW = /* @__PURE__ */ new Set(["restart", "identify", "update"]);
+  // Shelly / power-monitor fault diagnostics (validated against a real 6k-entity
+  // home: "Switch Overvoltage/Overheating/Overcurrent/overpowering"). The registry
+  // marks these entity_category=diagnostic; this is the dev / no-registry backstop.
+  /_over(voltage|heating|current|powering)$/i
+], qW = /\b(restart|reboot|identify|update|firmware|re-?index|power[\s_-]?cycle|factory[\s_-]?reset|safe[\s_-]?mode)\b/i, TW = /* @__PURE__ */ new Set(["restart", "identify", "update"]);
 function hI(i, e, a) {
   if (a && (a.entityCategory === "diagnostic" || a.entityCategory === "config" || a.hidden || a.disabled))
     return !1;
