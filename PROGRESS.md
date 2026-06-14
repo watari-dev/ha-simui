@@ -14,6 +14,17 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Competitiveness sprint (in progress, [`ROADMAP.md`](ROADMAP.md))** — (1) **`area_id` + floor fix**:
+  the resolver + all preset builders are now entity-keyed (HA doesn't put `area_id` in state — the
+  bug); `areas.ts` resolves the floor registry; `GroupBlock` `axis:'floor'` buckets by floor — so on
+  a real home, category surfaces group by the real areas/floors. (2) **`unavailable`/`unknown`
+  states** dimmed + non-interactive (`EntityRow`, `SliderTile`, `.is-unavailable`). (3) **Editable
+  category surfaces** (the headline edit-suite gap): config **v2→v3** (added `overrides`); `mutateBlocks`
+  now edits the *current* surface (room or category), not just rooms; a category snapshots into a
+  persisted, editable **override** on first Edit (drag-reorder / resize / remove / add — the same
+  chrome as a room) with **Reset to preset** to revert. Verified headless end-to-end; `npm run build`
+  green. Remaining: registry curation, perf de-jank, faceted picker, full `{surfaces}` model + Inspector
+  + add-block flow, preset-gallery picker shell.
 - **Phase 2/3 post-review hardening** — fixed the two HIGH findings from the adversarial review:
   (1) **CategoryView remount churn** — the surface `useMemo` keyed on raw `states` rebuilt every
   tick (regenerating block ids → remounting every Chart/MetricSpark); now memoised on the

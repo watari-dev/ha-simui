@@ -28,6 +28,10 @@ interface DashboardCtx {
   removeBlock: (blockId: string) => void;
   cycleBlockSpan: (blockId: string) => void;
   addCard: (entityId: string) => void;
+  /** Snapshot a generated category surface into a persisted, editable override. */
+  createOverride: (categoryId: string, blocks: Block[]) => void;
+  /** Drop a category override → back to the live preset. */
+  resetOverride: (categoryId: string) => void;
   // Native detail Sheet (tap = more-info). One sheet host at the app root.
   sheetEntityId: string | null;
   openSheet: (entityId: string) => void;
@@ -81,10 +85,21 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     void saveDashboard(source, config);
   }, [config, source]);
 
+  // Edit the CURRENT surface's blocks — a room, or an overridden category. A
+  // category must be overridden (snapshotted) before it can be mutated.
   const mutateBlocks = (fn: (blocks: Block[]) => Block[]) => {
     setConfig((c) => {
-      if (!c || route.kind !== 'room') return c;
-      return { ...c, rooms: c.rooms.map((r) => (r.id === route.id ? { ...r, blocks: fn(r.blocks) } : r)) };
+      if (!c) return c;
+      if (route.kind === 'room') {
+        return { ...c, rooms: c.rooms.map((r) => (r.id === route.id ? { ...r, blocks: fn(r.blocks) } : r)) };
+      }
+      if (route.kind === 'category') {
+        const key = `category:${route.id}`;
+        const ov = c.overrides?.[key];
+        if (!ov) return c;
+        return { ...c, overrides: { ...c.overrides, [key]: { blocks: fn(ov.blocks) } } };
+      }
+      return c;
     });
   };
 
@@ -103,6 +118,27 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     removeBlock: (id) => mutateBlocks((b) => b.filter((x) => x.id !== id)),
     cycleBlockSpan: (id) => mutateBlocks((b) => b.map((x) => (x.id === id ? { ...x, span: nextSpan(x.span) } : x))),
     addCard: (entityId) => mutateBlocks((b) => [...b, { id: uid(), type: 'card', entityIds: [entityId], span: defaultCardSpan(entityId) }]),
+    createOverride: (categoryId, blocks) =>
+      setConfig((c) =>
+        c
+          ? {
+              ...c,
+              overrides: {
+                ...(c.overrides ?? {}),
+                // Fresh stable ids so the snapshot doesn't depend on the volatile
+                // preset id scheme.
+                [`category:${categoryId}`]: { blocks: blocks.map((b) => ({ ...b, id: uid() })) },
+              },
+            }
+          : c,
+      ),
+    resetOverride: (categoryId) =>
+      setConfig((c) => {
+        if (!c?.overrides) return c;
+        const next = { ...c.overrides };
+        delete next[`category:${categoryId}`];
+        return { ...c, overrides: next };
+      }),
     sheetEntityId,
     openSheet: (entityId) => setSheetEntityId(entityId),
     closeSheet: () => setSheetEntityId(null),

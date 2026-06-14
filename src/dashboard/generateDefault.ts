@@ -81,5 +81,5 @@ export function generateDefault(states: HassEntities, areas?: AreaMap): Dashboar
     const ib = ROOM_ORDER.indexOf(b.name);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name);
   });
-  return { version: 2, rooms };
+  return { version: 3, rooms, overrides: {} };
 }

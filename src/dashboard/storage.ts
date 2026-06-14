@@ -1,23 +1,28 @@
-import type { Block, BlockSpan, DashboardConfig } from './types';
+import type { Block, BlockSpan, DashboardConfig, SurfaceOverride } from './types';
 import type { HassSource } from '../types';
 
 const KEY = 'simui:dashboard:v2';
 
-// Back-compat: earlier configs stored `size` on blocks; the contract renamed it
-// to `span` (FRAMEWORK.md §2). Map old → new on load so saved dashboards survive.
+/** Normalize a block: earlier configs stored `size`; the contract renamed it to `span`. */
+function migrateBlock(b: Block): Block {
+  const legacy = b as Block & { size?: BlockSpan };
+  const span: BlockSpan = b.span ?? legacy.size ?? 1;
+  const next = { ...b, span };
+  delete (next as { size?: unknown }).size;
+  return next;
+}
+
+// Back-compat: map old `size`→`span` and bump v2 → v3 (adds the `overrides` map for
+// edited category surfaces). Idempotent, so it's safe to run on a v3 config too.
 function migrate(config: DashboardConfig): DashboardConfig {
+  const overrides: Record<string, SurfaceOverride> = {};
+  for (const [k, ov] of Object.entries(config.overrides ?? {})) {
+    overrides[k] = { blocks: (ov.blocks ?? []).map(migrateBlock) };
+  }
   return {
-    ...config,
-    rooms: config.rooms.map((room) => ({
-      ...room,
-      blocks: room.blocks.map((b) => {
-        const legacy = b as Block & { size?: BlockSpan };
-        const span: BlockSpan = b.span ?? legacy.size ?? 1;
-        const next = { ...b, span };
-        delete (next as { size?: unknown }).size;
-        return next;
-      }),
-    })),
+    version: 3,
+    overrides,
+    rooms: (config.rooms ?? []).map((room) => ({ ...room, blocks: room.blocks.map(migrateBlock) })),
   };
 }
 
@@ -26,7 +31,8 @@ export async function loadDashboard(source: HassSource): Promise<DashboardConfig
   if (conn) {
     try {
       const res = await conn.sendMessagePromise<{ value?: DashboardConfig }>({ type: 'frontend/get_user_data', key: KEY } as never);
-      if (res && res.value && res.value.version === 2) return migrate(res.value);
+      const ver = (res?.value as { version?: number } | undefined)?.version;
+      if (res && res.value && (ver === 2 || ver === 3)) return migrate(res.value);
     } catch {
       // fall through
     }
@@ -35,7 +41,8 @@ export async function loadDashboard(source: HassSource): Promise<DashboardConfig
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DashboardConfig;
-      if (parsed.version === 2) return migrate(parsed);
+      const ver = (parsed as { version?: number }).version;
+      if (ver === 2 || ver === 3) return migrate(parsed);
     }
   } catch {
     /* ignore */

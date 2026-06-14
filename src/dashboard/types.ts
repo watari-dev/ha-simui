@@ -118,7 +118,19 @@ export interface Room {
   blocks: Block[];
 }
 
+/**
+ * A user-edited snapshot of an otherwise preset-generated surface (a category).
+ * Until a surface is overridden it renders live from its preset builder (read-only);
+ * once the user edits it, the override is persisted and editable like a room. Keyed
+ * in `DashboardConfig.overrides` by `category:<id>`.
+ */
+export interface SurfaceOverride {
+  blocks: Block[];
+}
+
 export interface DashboardConfig {
-  version: 2;
+  version: 3;
   rooms: Room[];
+  /** Per-surface edits to generated category surfaces. Key: `category:<id>`. */
+  overrides?: Record<string, SurfaceOverride>;
 }

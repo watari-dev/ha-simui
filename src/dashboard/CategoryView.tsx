@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+import { Check, ChevronLeft, Pencil, Plus, RotateCcw } from 'lucide-react';
 import { useAllStates } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
 import { SurfaceStrip } from './SurfaceStrip';
-import { StaticBlock } from './BlockChrome';
+import { BlockChrome, StaticBlock } from './BlockChrome';
+import { AddCardPanel } from './AddCardPanel';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { getPreset } from './presets/index';
 import type { Surface } from './presets/index';
@@ -39,19 +42,20 @@ const CATEGORY_TITLE: Record<string, string> = {
 
 /**
  * A composed cross-room device-category surface (DESIGN_PRINCIPLES §14, the second
- * navigation axis). Built from a preset builder when one exists, else a generic
- * fallback. Read-only chrome (back + title + strip); the blocks render through the
- * same vocabulary as a room, on the same grid.
+ * navigation axis). Built live from a preset builder; **read-only until you edit it**,
+ * at which point the generated blocks are snapshotted into a persisted, editable
+ * override (drag-reorder / resize / remove / add — the same chrome as a room).
+ * "Reset to preset" drops the override and goes back to the live surface.
  */
 export function CategoryView({ categoryId }: { categoryId: string }) {
   const states = useAllStates();
   const areaMap = useAreas();
-  const { goHome } = useDashboard();
+  const { config, goHome, editing, setEditing, reorderBlocks, addCard, createOverride, resetOverride } = useDashboard();
+  const [adding, setAdding] = useState(false);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // Rebuild the surface only when the entity SET (not live values) changes — each
-  // block subscribes to its own values, so rebuilding on every tick would remount
-  // every Chart/MetricSpark and churn the canvas. Mirrors HomeView's idSig memo.
-  // `areaMap` is entity-keyed (entityId → {area, floor}); pass it straight through.
+  // Rebuild the live surface only when the entity SET changes (idSig) — each block
+  // subscribes to its own values. areaMap is entity-keyed; pass it straight through.
   const idSig = useMemo(() => Object.keys(states).sort().join(','), [states]);
   const surface: Surface = useMemo(() => {
     const presetId = PRESET_FOR[categoryId];
@@ -61,23 +65,59 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, idSig, areaMap]);
 
+  // An override (a user-edited snapshot) takes over from the live surface.
+  const override = config?.overrides?.[`category:${categoryId}`];
+  const blocks = override ? override.blocks : surface.blocks;
+  const ids = blocks.map((b) => b.id);
+
   const title = CATEGORY_TITLE[categoryId] ?? categoryId;
   const ambient = AMBIENT_CATEGORIES.has(categoryId);
-
-  // The surface's own light ids → the field warms only to this category's lights.
   const surfaceLightIds = useMemo(
-    () =>
-      ambient
-        ? surface.blocks.flatMap((b) => b.entityIds).filter((id) => id.startsWith('light.'))
-        : [],
-    [ambient, surface],
+    () => (ambient ? blocks.flatMap((b) => b.entityIds).filter((id) => id.startsWith('light.')) : []),
+    [ambient, blocks],
   );
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const o = ids.indexOf(String(active.id));
+    const n = ids.indexOf(String(over.id));
+    if (o >= 0 && n >= 0) reorderBlocks(o, n);
+  };
+
+  // Entering edit on a live surface first snapshots it into an editable override.
+  const onEditToggle = () => {
+    if (editing) {
+      setEditing(false);
+      return;
+    }
+    if (!override) createOverride(categoryId, surface.blocks);
+    setEditing(true);
+  };
+  const onReset = () => {
+    resetOverride(categoryId);
+    setEditing(false);
+  };
 
   return (
     <div className="simui-app">
       <header className="simui-head">
         <button className="simui-back" onClick={goHome} aria-label="Back to home"><ChevronLeft size={18} /></button>
         <span className="simui-head-title">{title}</span>
+        <span className="simui-spacer" />
+        {editing && override && (
+          <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset to preset"><RotateCcw size={15} /></button>
+        )}
+        {editing && (
+          <button className="simui-iconbtn-h" onClick={() => setAdding(true)} aria-label="Add card"><Plus size={16} /></button>
+        )}
+        <button
+          className={`simui-iconbtn-h${editing ? ' active' : ''}`}
+          onClick={onEditToggle}
+          aria-label={editing ? 'Done editing' : 'Edit surface'}
+        >
+          {editing ? <Check size={16} /> : <Pencil size={15} />}
+        </button>
       </header>
       <div className={`simui-content${ambient ? ' simui-cat-content' : ''}`}>
         {ambient && <AmbientCanvas mode="field" lightIds={surfaceLightIds} maxOpacity={0.12} />}
@@ -85,15 +125,32 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
           {surface.statusStrip && surface.statusStrip.length > 0 && (
             <SurfaceStrip pills={surface.statusStrip} />
           )}
-          {surface.blocks.length ? (
-            <div className="simui-grid simui-surface-grid">
-              {surface.blocks.map((b) => <StaticBlock key={b.id} block={b} />)}
-            </div>
+          {blocks.length ? (
+            override ? (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                <SortableContext items={ids} strategy={rectSortingStrategy}>
+                  <div className="simui-grid simui-surface-grid">
+                    {blocks.map((b) => <BlockChrome key={b.id} block={b} editing={editing} />)}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="simui-grid simui-surface-grid">
+                {blocks.map((b) => <StaticBlock key={b.id} block={b} />)}
+              </div>
+            )
           ) : (
             <div className="simui-msg">Nothing in {title.toLowerCase()} yet.</div>
           )}
         </div>
       </div>
+      {adding && (
+        <AddCardPanel
+          existing={blocks.flatMap((b) => b.entityIds)}
+          onAdd={addCard}
+          onClose={() => setAdding(false)}
+        />
+      )}
     </div>
   );
 }
