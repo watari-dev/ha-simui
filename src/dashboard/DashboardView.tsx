@@ -5,6 +5,7 @@ import { CategoryView } from './CategoryView';
 import { Sheet } from '../components/Sheet';
 import { DetailContent } from './DetailContent';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { EditorOverlay } from '../editor/EditorOverlay';
 import { useEntity } from '../hass/context';
 import { friendly } from '../util';
 
@@ -23,6 +24,10 @@ export function DashboardView() {
       <ErrorBoundary compact label="Detail" resetKey={sheetEntityId ?? ''}>
         <SheetHost entityId={sheetEntityId} onClose={closeSheet} />
       </ErrorBoundary>
+      {/* The editor's floating chrome (toolbar / gallery / inspector / picker)
+          mounts once at the router level and self-gates on `editor.active`, so it
+          drives every surface (home / room / category) from a single instance. */}
+      <EditorOverlay />
     </>
   );
 

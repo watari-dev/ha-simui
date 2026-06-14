@@ -6,7 +6,6 @@ import { useAllStates } from '../hass/context';
 import { useAreas, useRegistry } from './areas';
 import { useDashboard } from './store';
 import { useEditor } from '../editor/store';
-import { EditorOverlay } from '../editor/EditorOverlay';
 import { EmptyState } from '../editor/chrome';
 import { SurfaceStrip } from './SurfaceStrip';
 import { BlockChrome, StaticBlock } from './BlockChrome';
@@ -162,7 +161,6 @@ export function CategoryView({ categoryId }: { categoryId: string }) {
           )}
         </div>
       </div>
-      <EditorOverlay />
     </div>
   );
 }

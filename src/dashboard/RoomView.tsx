@@ -1,20 +1,26 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { Check, ChevronLeft, Pencil, Plus } from 'lucide-react';
+import { Check, ChevronLeft, Pencil } from 'lucide-react';
 import { useAggregate } from '../hass/context';
 import { useDashboard } from './store';
-import { BlockChrome } from './BlockChrome';
-import { AddCardPanel } from './AddCardPanel';
+import { useEditor } from '../editor/store';
+import { EmptyState } from '../editor/chrome';
+import { BlockChrome, StaticBlock } from './BlockChrome';
 import { lightIdsOf, summarizeRoom } from './summary';
 import type { Room } from './types';
 
 export function RoomView({ room }: { room: Room }) {
-  const { editing, setEditing, reorderBlocks, addCard, goHome } = useDashboard();
-  const [adding, setAdding] = useState(false);
+  const { setEditing, goHome } = useDashboard();
+  const editor = useEditor();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const ids = room.blocks.map((b) => b.id);
+  // Rooms are always editable and have NO override — their blocks live directly on
+  // the room. While the editor is active we render its optimistic working copy
+  // (`dirtyBlocks`); the store seeds it from `room.blocks` on enter and commits
+  // edits straight back into the room (debounced).
+  const blocks = editor.active ? editor.dirtyBlocks : room.blocks;
+  const ids = blocks.map((b) => b.id);
   const lightIds = useMemo(() => lightIdsOf(room), [room]);
 
   const onDragEnd = (e: DragEndEvent) => {
@@ -22,46 +28,68 @@ export function RoomView({ room }: { room: Room }) {
     if (!over || active.id === over.id) return;
     const o = ids.indexOf(String(active.id));
     const n = ids.indexOf(String(over.id));
-    if (o >= 0 && n >= 0) reorderBlocks(o, n);
+    if (o >= 0 && n >= 0) editor.moveBlock(o, n);
+  };
+
+  // No snapshot: a room is already editable, so the store seeds `dirtyBlocks` from
+  // `room.blocks` immediately. We flip the dashboard `editing` flag in the same beat
+  // as `editor.enter()` so they start in lockstep.
+  const onEditToggle = () => {
+    if (editor.active) {
+      editor.exit();
+      return;
+    }
+    setEditing(true);
+    editor.enter();
+  };
+  const onBack = () => {
+    if (editor.active) editor.exit();
+    goHome();
   };
 
   return (
     <div className="simui-app">
       <header className="simui-head">
-        <button className="simui-back" onClick={goHome} aria-label="Back to home"><ChevronLeft size={18} /></button>
+        <button className="simui-back" onClick={onBack} aria-label="Back to home"><ChevronLeft size={18} /></button>
         <span className="simui-head-title">{room.name}</span>
         <RoomGlance room={room} lightIds={lightIds} />
         <span className="simui-spacer" />
-        {editing && (
-          <button className="simui-iconbtn-h" onClick={() => setAdding(true)} aria-label="Add card"><Plus size={16} /></button>
-        )}
+        {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
+            (mounted by DashboardView) — keep the header chrome minimal. */}
         <button
-          className={`simui-iconbtn-h${editing ? ' active' : ''}`}
-          onClick={() => setEditing(!editing)}
-          aria-label={editing ? 'Done editing' : 'Edit room'}
+          className={`simui-iconbtn-h${editor.active ? ' active' : ''}`}
+          onClick={onEditToggle}
+          aria-label={editor.active ? 'Done editing' : 'Edit room'}
         >
-          {editing ? <Check size={16} /> : <Pencil size={15} />}
+          {editor.active ? <Check size={16} /> : <Pencil size={15} />}
         </button>
       </header>
 
       <div className="simui-content simui-room">
         <RoomAmbient lightIds={lightIds} />
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={ids} strategy={rectSortingStrategy}>
+        {blocks.length ? (
+          editor.active ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext items={ids} strategy={rectSortingStrategy}>
+                <div className="simui-grid">
+                  {blocks.map((b) => <BlockChrome key={b.id} block={b} editing />)}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
             <div className="simui-grid">
-              {room.blocks.map((b) => <BlockChrome key={b.id} block={b} editing={editing} />)}
+              {blocks.map((b) => <StaticBlock key={b.id} block={b} />)}
             </div>
-          </SortableContext>
-        </DndContext>
+          )
+        ) : editor.active ? (
+          <EmptyState
+            title={`${room.name} is empty`}
+            onAddCard={() => editor.openGallery()}
+          />
+        ) : (
+          <div className="simui-msg">Nothing in {room.name} yet.</div>
+        )}
       </div>
-
-      {adding && (
-        <AddCardPanel
-          existing={room.blocks.flatMap((b) => b.entityIds)}
-          onAdd={addCard}
-          onClose={() => setAdding(false)}
-        />
-      )}
     </div>
   );
 }
