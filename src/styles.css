@@ -601,3 +601,53 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 /* ---- Worker 4 · album-art-aware media tile (DESIGN_DIRECTIONS §2.9) ---- */
 .simui-tile.is-album-tinted { background: color-mix(in srgb, var(--album-tint) 12%, var(--surface)); box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 1px color-mix(in srgb, var(--album-tint) 22%, transparent); }
 .simui-tile.is-album-tinted .simui-art { box-shadow: 0 2px 16px color-mix(in srgb, var(--album-tint) 38%, transparent); }
+
+/* === per-domain detail sheets (detail-sheets) === */
+/* Shared masthead — the big glanceable primary reading at the top of each sheet. */
+.simui-dh { display: flex; flex-direction: column; gap: 2px; }
+.simui-dh-value { display: flex; align-items: baseline; gap: 4px; font-size: 44px; font-weight: 300; line-height: 1; letter-spacing: -1px; color: var(--text); }
+.simui-dh-value.warm { color: var(--warm); }
+.simui-dh-value.cool { color: var(--cool); }
+.simui-dh-value.accent { color: var(--accent); }
+.simui-dh-value.warn { color: var(--warn); }
+.simui-dh-value.up { color: var(--up); }
+.simui-dh-value.down { color: var(--down); }
+.simui-dh-unit { font-size: 20px; font-weight: 400; color: var(--muted); }
+.simui-dh-sub { font-size: 13px; color: var(--muted); }
+.simui-dh-since { font-size: 12px; color: var(--muted); opacity: 0.7; }
+
+/* Labelled control field — a quiet uppercase label above its control. */
+.simui-detail-field { display: flex; flex-direction: column; gap: 8px; }
+.simui-detail-seg { flex-wrap: wrap; align-self: flex-start; max-width: 100%; }
+.simui-detail-chart .simui-metric { background: var(--surface-2); border-radius: 12px; padding: 12px; }
+
+/* Inline key/value pill row (e.g. light colour-mode read-out). */
+.simui-detail-pillrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.simui-detail-pilllabel { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 500; }
+.simui-detail-pillval { font-size: 13px; color: var(--text); }
+
+/* Button rows (cover open/stop/close, lock/unlock). */
+.simui-detail-buttons { display: flex; align-items: center; gap: 8px; }
+.simui-detail-buttons .simui-sbtn { width: 36px; height: 30px; }
+.simui-detail-buttons.wide { gap: 10px; }
+.simui-segbtn.lg { height: 38px; flex: 1; gap: 7px; font-size: 13px; }
+
+/* Media-player now-playing card. */
+.simui-md-now { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; background: var(--surface-2); }
+.simui-md-now.is-album-tinted { background: color-mix(in srgb, var(--album-tint) 14%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--album-tint) 24%, transparent); }
+.simui-md-art { flex: none; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; background: linear-gradient(135deg, #2b2350, #5b8cff 130%); }
+.simui-md-now.is-album-tinted .simui-md-art { box-shadow: 0 2px 18px color-mix(in srgb, var(--album-tint) 40%, transparent); }
+.simui-md-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.simui-md-title { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-md-artist { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.simui-md-state { margin-top: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+.simui-md-transport { display: flex; align-items: center; justify-content: center; gap: 22px; }
+.simui-md-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; background: none; color: var(--text); cursor: pointer; transition: color 0.12s ease; }
+.simui-md-btn:hover:not(:disabled) { color: var(--accent); }
+.simui-md-btn:disabled { opacity: 0.4; cursor: default; }
+.simui-md-btn.play { width: 48px; height: 48px; border-radius: 50%; background: var(--text); color: var(--surface); }
+.simui-md-btn.play:hover:not(:disabled) { color: var(--surface); opacity: 0.88; }
+.simui-md-volrow { display: flex; align-items: center; gap: 12px; }
+.simui-md-volrow .simui-slider { flex: 1; }
+.simui-md-volrow .simui-qc-val { flex: none; min-width: 38px; text-align: right; }
+/* === end per-domain detail sheets === */
