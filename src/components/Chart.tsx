@@ -266,6 +266,7 @@ function ChartCanvas({ spec, data }: { spec: ChartSpec; data: Series }) {
     if (!chart) return;
     try {
       let any = false;
+      let maxSec = 0;
       spec.series.forEach((s, i) => {
         const series = seriesRef.current[i];
         if (!series) return;
@@ -277,9 +278,28 @@ function ChartCanvas({ spec, data }: { spec: ChartSpec; data: Series }) {
         // Area & Line both consume LineData (SingleValueData); the union series
         // api types setData against every series shape, so narrow at the call.
         (series as ISeriesApi<'Line'>).setData(line);
-        if (line.length) any = true;
+        if (line.length) {
+          any = true;
+          const last = line[line.length - 1].time as number;
+          if (last > maxSec) maxSec = last;
+        }
       });
-      if (any) chart.timeScale().fitContent();
+      if (any) {
+        // Show the chart's WINDOW (anchored at the latest point), not fit-to-data.
+        // fitContent() stretches to the earliest point across all series, so a single
+        // stray/old sample squashes the real data into a sliver on one edge.
+        const span = spec.window.unit === 'd' ? spec.window.value * 86_400 : spec.window.value * 3_600;
+        const ts = chart.timeScale();
+        if (maxSec > 0 && span > 0) {
+          try {
+            ts.setVisibleRange({ from: (maxSec - span) as UTCTimestamp, to: maxSec as UTCTimestamp });
+          } catch {
+            ts.fitContent();
+          }
+        } else {
+          ts.fitContent();
+        }
+      }
     } catch {
       // Series/chart disposed between effects (StrictMode/resize race) — the next
       // data tick re-renders against the live chart.

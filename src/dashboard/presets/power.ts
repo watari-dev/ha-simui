@@ -129,12 +129,13 @@ export function buildPower(ctx: PresetContext): Surface {
     series.push({ entity: loadEntity.entity_id, name: leafName(loadEntity), fill: 'line', color: 'var(--warn)', strokeWidth: 2, axisId: 'power' });
   }
   if (battery.length) {
-    series.push({ entity: battery[0].entity_id, name: leafName(battery[0]), fill: 'line', color: 'var(--accent)', strokeWidth: 1, axisId: 'battery' });
+    // Battery POWER (signed W/kW) shares the power axis — it is NOT a 0-100 value, so
+    // a forced 0-100 opposite axis pushed the discharge (negative) line off-screen.
+    series.push({ entity: battery[0].entity_id, name: leafName(battery[0]), fill: 'line', color: 'var(--accent)', strokeWidth: 1, axisId: 'power' });
   }
 
   if (series.length) {
     const axes: ChartAxis[] = [{ id: 'power' }];
-    if (battery.length) axes.push({ id: 'battery', min: 0, max: 100, opposite: true });
     const chart: ChartSpec = {
       title: 'Power flow',
       window: { value: 24, unit: 'h' },

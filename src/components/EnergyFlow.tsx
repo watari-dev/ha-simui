@@ -112,12 +112,14 @@ interface Picked {
   soc?: string;
 }
 
-// ── Geometry. A 260×220 viewBox; Home at centre, three satellites on a cross. ──
+// ── Geometry. A 260×180 viewBox; Home at the hub, three satellites on a cross.
+// Kept tight vertically (no bottom node) so the diagram fills its card instead of
+// leaving an empty lower third. ──
 const VB_W = 260;
-const VB_H = 220;
-const HUB = { x: VB_W / 2, y: VB_H / 2 + 6 };
+const VB_H = 180;
+const HUB = { x: VB_W / 2, y: 104 };
 const POS: Record<Role, { x: number; y: number }> = {
-  solar: { x: VB_W / 2, y: 34 },
+  solar: { x: VB_W / 2, y: 36 },
   grid: { x: 40, y: HUB.y },
   battery: { x: VB_W - 40, y: HUB.y },
   load: HUB,
@@ -351,27 +353,17 @@ function FlowEdge({
   const y1 = from.y + uy * PAD;
   const x2 = to.x - ux * PAD;
   const y2 = to.y - uy * PAD;
-  // Midpoint for the value badge.
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-
   // The flowing dash always travels in the real direction of power: from the source
   // to the sink. When power flows OUT of Home (export/charge) the animation runs from
-  // Home outward; we encode that by swapping the dash direction class.
+  // Home outward; we encode that by swapping the dash direction class. The wire shows
+  // only direction + colour — the magnitude already lives under each node, so a
+  // mid-wire value badge would just duplicate it and collide with the dash.
   const cls = `simui-eflow-edge dir-${edge.dir}${edge.active ? ' is-active' : ''}${edge.dead ? ' is-dead' : ''}`;
   return (
     <g className={cls} style={{ ['--eflow-edge' as string]: edge.accent }}>
       <line className="simui-eflow-wire" x1={x1} y1={y1} x2={x2} y2={y2} />
       {edge.active && (
         <line className="simui-eflow-pulse" x1={x1} y1={y1} x2={x2} y2={y2} pathLength={100} />
-      )}
-      {!edge.dead && edge.value > 0 && (
-        <g className="simui-eflow-badge" transform={`translate(${mx} ${my})`}>
-          <text className="simui-eflow-badge-val" textAnchor="middle" dominantBaseline="central">
-            {fmt(edge.value)}
-            <tspan className="simui-eflow-badge-unit"> {unitFor(edge.value)}</tspan>
-          </text>
-        </g>
       )}
     </g>
   );

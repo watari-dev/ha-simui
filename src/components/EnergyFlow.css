@@ -19,15 +19,14 @@
   /* Cap + centre: a Powerwall-style flow object is a compact square-ish card, not a
      full-bleed banner. Without a cap, a span:'full' block stretches it to the row
      width and the fixed-viewBox SVG text scales up ~6×. */
-  max-width: 380px;
+  max-width: 440px;
   margin-inline: auto;
-  background: color-mix(in srgb, var(--text) 4%, var(--surface));
-  border: 1px solid var(--faint);
-  border-radius: 16px;
-  padding: 4px;
-  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+  background: var(--surface-raised);
+  border-radius: var(--r-surface);
+  padding: 8px;
+  box-shadow: var(--bezel);
   /* Hold the diagram's aspect so the absolute nodes line up with the SVG wires. */
-  aspect-ratio: 260 / 220;
+  aspect-ratio: 260 / 180;
   overflow: hidden;
 }
 
