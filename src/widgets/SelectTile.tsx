@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { domainOf, friendly, prettyState } from '../util';
 import './InputTile.css';
@@ -11,8 +12,11 @@ import './InputTile.css';
  * renders as a segmented control (reusing `.simui-seg`); a longer list collapses
  * to the themed dropdown (`.simui-fsel`). Both call `<domain>.select_option`.
  */
-export function SelectTile({ entity }: WidgetProps) {
+export function SelectTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Body tap honors an authored `tap`; display-only by default (option chooser
+  // lives in the inner segmented control / dropdown), so no fallback ⇒ inert.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const domain = domainOf(entity.entity_id); // 'select' | 'input_select'
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
@@ -40,7 +44,7 @@ export function SelectTile({ entity }: WidgetProps) {
   const segmented = options.length <= 4 && options.every((o) => o.length <= 12);
 
   return (
-    <Tile className="simui-input">
+    <Tile className="simui-input" onClick={onTap}>
       <div className="simui-row">
         <span className="simui-name" title={name}>{name}</span>
         {!segmented && (

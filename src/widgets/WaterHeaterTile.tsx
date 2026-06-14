@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react';
 import { ChevronDown, Droplet, Flame, Minus, Plus } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { clamp, friendly, prettyState } from '../util';
 
@@ -16,8 +17,11 @@ const WARM_MODES = new Set(['eco', 'electric', 'gas', 'heat_pump', 'high_demand'
  * inline operation-mode dropdown (reuses the themed `.simui-fsel` select). Icon
  * tints `warm` when a heating mode is active.
  */
-export function WaterHeaterTile({ entity }: WidgetProps) {
+export function WaterHeaterTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Body tap honors an authored `tap`; display-only by default (the temp stepper
+  // and operation-mode dropdown are the controls), so no fallback ⇒ inert.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
 
@@ -57,7 +61,7 @@ export function WaterHeaterTile({ entity }: WidgetProps) {
     void callService('water_heater', 'set_operation_mode', { operation_mode }, { entity_id: entity.entity_id });
 
   return (
-    <Tile className={heating ? 'is-on' : ''}>
+    <Tile className={heating ? 'is-on' : ''} onClick={onTap}>
       <div className="simui-row">
         <span className={`simui-ic${heating ? ' warm' : ''}`}>
           {heating ? <Flame size={16} strokeWidth={2} /> : <Droplet size={16} strokeWidth={2} />}

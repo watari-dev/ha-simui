@@ -3,6 +3,7 @@ import { Tile } from '../components/Tile';
 import { StateLine } from '../components/StateLine';
 import { TileFeatures } from '../components/TileFeatures';
 import type { TileFeature } from './tileContract';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState } from '../util';
 
@@ -24,7 +25,10 @@ const PENDING = new Set(['arming', 'pending', 'disarming']);
  * `disarmed` always offered. Icon + tint follow the security posture: armed =
  * accent, triggered = `down` (red), disarmed = neutral.
  */
-export function AlarmTile({ entity }: WidgetProps) {
+export function AlarmTile({ entity, actions }: WidgetProps) {
+  // Body tap honors an authored `tap`; display-only by default (arm/disarm lives
+  // in the alarm-modes control strip), so no fallback ⇒ inert.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
 
@@ -55,7 +59,7 @@ export function AlarmTile({ entity }: WidgetProps) {
   const cls = triggered ? 'is-unlocked' : armed ? 'is-on' : '';
 
   return (
-    <Tile className={cls}>
+    <Tile className={cls} onClick={onTap}>
       <div className="simui-row">
         <span className={`simui-ic${iconClass}`}><Icon size={15} strokeWidth={2} /></span>
         <span className="simui-name" title={name}>{name}</span>

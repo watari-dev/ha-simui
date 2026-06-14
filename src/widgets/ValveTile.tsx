@@ -2,6 +2,7 @@ import type { ChangeEvent, CSSProperties } from 'react';
 import { ChevronDown, ChevronUp, Square } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
@@ -13,8 +14,11 @@ const FEAT = { OPEN: 1, CLOSE: 2, STOP: 4, SET_POSITION: 8 };
  * valve gets a fill slider; a binary valve gets open/stop/close transport),
  * tinted `is-on` while open. `valve.*` services mirror `cover.*` 1:1.
  */
-export function ValveTile({ entity }: WidgetProps) {
+export function ValveTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Body tap honors an authored `tap`; display-only by default (actuation lives
+  // in the inner slider / transport buttons), so no fallback ⇒ inert.
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
 
@@ -43,7 +47,7 @@ export function ValveTile({ entity }: WidgetProps) {
     : undefined;
 
   return (
-    <Tile className={open ? 'is-on' : ''}>
+    <Tile className={open ? 'is-on' : ''} onClick={onTap}>
       <div className="simui-row">
         <span className="simui-name" title={name}>{name}</span>
         <span className="simui-spacer" />
