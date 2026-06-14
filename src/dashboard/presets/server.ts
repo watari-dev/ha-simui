@@ -58,6 +58,9 @@ function detect(states: HassEntity[]): Detected {
 // ── Health "what's wrong" list source (self-collapsing) ─────────────────────
 function attentionSource(): ListSource {
   return {
+    // This list DELIBERATELY surfaces maintenance entities (firmware updates, etc.)
+    // that the curation gate would otherwise drop — opt out so they're honoured.
+    includeNoise: true,
     include: [
       { domain: 'binary_sensor', name: '*container*', state: 'off' }, // a down container
       { domain: 'binary_sensor', name: '*backup*', state: 'on' }, // problem/stale flag

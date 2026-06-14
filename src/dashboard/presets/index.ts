@@ -10,7 +10,8 @@
 import type { Block, Condition, ListSource, Matcher } from '../types';
 import type { ColorToken, HassAction, TileFeature } from '../../widgets/tileContract';
 import type { HassEntities, HassEntity } from '../../types';
-import type { AreaMap } from '../areas';
+import type { AreaMap, RegistryMeta } from '../areas';
+import { isPrimaryEntity } from '../areas';
 import { domainOf, friendly } from '../../util';
 
 import { buildHome } from './home';
@@ -27,7 +28,9 @@ import { buildServer } from './server';
 // directly, or its `blocks` are dropped into a Room when the user "saves" it.
 
 /** entityId → its area + floor (FRAMEWORK.md §8). Re-exported from the resolver. */
-export type { AreaMap } from '../areas';
+export type { AreaMap, RegistryMeta } from '../areas';
+/** The shared curation gate (TODO Tier A) — re-exported so builders can curate directly. */
+export { isPrimaryEntity, isPrimary } from '../areas';
 
 /** One pill in a surface's top chrome (FRAMEWORK.md §6). Pure data; the strip renderer owns subscriptions. */
 export type StripPill =
@@ -44,10 +47,17 @@ export interface Surface {
   blocks: Block[];
 }
 
-/** Everything a builder needs. `areas` is optional (mock/dev has none). */
+/** Everything a builder needs. `areas` and `registry` are optional (mock/dev has none). */
 export interface PresetContext {
   states: HassEntities;
   areas?: AreaMap;
+  /**
+   * Per-entity registry curation metadata (TODO Tier A). When present, the shared
+   * scan helpers (`ofDomain`, `resolveSource`) exclude diagnostic/config/hidden/
+   * disabled entities in addition to the always-on entity_id pattern filter. When
+   * absent (dev/mock), only the pattern filter runs — surfaces never blank out.
+   */
+  registry?: RegistryMeta;
 }
 
 /** One entry in the gallery. `build` is pure and total — it always returns a Surface (possibly sparse). */
@@ -160,14 +170,25 @@ export function matches(e: HassEntity, m: Matcher, areaOf?: (id: string) => stri
   return true;
 }
 
-/** Resolve a ListSource against states → entity ids (include OR, exclude after). */
+/**
+ * Resolve a ListSource against states → entity ids (include OR, exclude after).
+ * The curation gate runs first on every candidate (TODO Tier A): diagnostic/config/
+ * hidden/disabled (when `meta` is supplied) and entity_id pattern noise (always)
+ * are dropped before include/exclude, so no list ever surfaces noise. `meta` is
+ * optional — without it only the pattern filter applies (dev/mock fallback).
+ */
 export function resolveSource(
   source: ListSource,
   states: HassEntities,
   areaOf?: (id: string) => string | undefined,
+  meta?: RegistryMeta,
 ): string[] {
+  // A source may opt out of the gate when it *intends* to surface noise/maintenance
+  // entities (e.g. the Server preset's update/attention lists). Default: gate on.
+  const gate = !source.includeNoise;
   const out: string[] = [];
   for (const e of Object.values(states)) {
+    if (gate && !isPrimaryEntity(e.entity_id, e, meta?.[e.entity_id])) continue;
     if (!source.include.some((m) => matches(e, m, areaOf))) continue;
     if (source.exclude?.some((m) => matches(e, m, areaOf))) continue;
     out.push(e.entity_id);
@@ -175,10 +196,15 @@ export function resolveSource(
   return out.sort();
 }
 
-/** All entities of a domain, friendly-name sorted. */
-export function ofDomain(states: HassEntities, domain: string): HassEntity[] {
+/**
+ * All PRIMARY entities of a domain, friendly-name sorted. The curation gate (TODO
+ * Tier A) excludes diagnostic/config/hidden/disabled (when `meta` is supplied) and
+ * entity_id pattern noise (always), so every builder that scans by domain is noise-
+ * free for free. `meta` is optional — without it only the pattern filter applies.
+ */
+export function ofDomain(states: HassEntities, domain: string, meta?: RegistryMeta): HassEntity[] {
   return Object.values(states)
-    .filter((e) => domainOf(e.entity_id) === domain)
+    .filter((e) => domainOf(e.entity_id) === domain && isPrimaryEntity(e.entity_id, e, meta?.[e.entity_id]))
     .sort((a, b) => friendly(a).localeCompare(friendly(b)));
 }
 

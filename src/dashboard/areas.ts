@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import type { HassEntities, HassEntity, HassSource } from '../types';
-import { friendly } from '../util';
+import { domainOf, friendly } from '../util';
 import { useHassSource } from '../hass/context';
 
 /** entityId -> the area (and its floor) it belongs to. */
@@ -16,6 +16,27 @@ export type AreaMap = Record<
   string,
   { areaId: string; areaName: string; floorId: string | null; floorName: string | null }
 >;
+
+/**
+ * Per-entity registry curation metadata (the curation gate — TODO Tier A). Keyed
+ * by entity_id, this is the subset of the entity registry that decides whether an
+ * entity is a *primary* surface (user-facing control / reading) vs. noise
+ * (diagnostics, config, hidden/disabled). `isPrimaryEntity` reads it.
+ *
+ * Only present when embedded with registry access; in dev/mock it is absent and
+ * curation falls back to entity_id pattern filtering (see `isPrimaryEntity`).
+ */
+export interface EntityMeta {
+  /** HA `entity_category`: 'diagnostic' | 'config' for non-primary surfaces, else null. */
+  entityCategory: string | null;
+  /** Hidden in the registry (`hidden_by` set) — kept out of dashboards. */
+  hidden: boolean;
+  /** Disabled in the registry (`disabled_by` set) — has no live state, never primary. */
+  disabled: boolean;
+}
+
+/** entityId -> its curation metadata (FRAMEWORK.md §8: never expose the raw registry). */
+export type RegistryMeta = Record<string, EntityMeta>;
 
 // --- Registry shapes (only the fields we join on). HA may add more; we ignore them.
 
@@ -40,6 +61,9 @@ interface EntityRegistryEntry {
   entity_id: string;
   device_id: string | null;
   area_id: string | null; // per-entity override; wins over the device's area
+  entity_category?: string | null; // 'diagnostic' | 'config' | null
+  hidden_by?: string | null; // set ⇒ hidden by user/integration
+  disabled_by?: string | null; // set ⇒ disabled (no live state)
 }
 
 // --- Name-keyword fallback (mirrors generateDefault.ts ROOM_KEYWORDS) ---------
@@ -76,13 +100,54 @@ export function heuristicAreas(states: HassEntities): AreaMap {
 
 // --- Registry resolver --------------------------------------------------------
 
+/** The raw registry lists, fetched once per source (or null when offline / no access). */
+interface RawRegistry {
+  areas: AreaRegistryEntry[];
+  devices: DeviceRegistryEntry[];
+  entities: EntityRegistryEntry[];
+  floors: FloorRegistryEntry[];
+}
+
 /**
- * Per-source memo so the three registry WS calls fire ONCE and every consumer
- * (the store at config-gen + each `useAreas`) shares one in-flight promise
- * (FRAMEWORK.md §8: resolve once per source). Keyed by the source object; a new
- * source (reconnect) gets a fresh fetch.
+ * Per-source memo so the registry WS calls fire ONCE and every consumer (the
+ * store at config-gen, each `useAreas`, each `useRegistry`) shares one in-flight
+ * promise (FRAMEWORK.md §8: resolve once per source). Keyed by the source object;
+ * a new source (reconnect) gets a fresh fetch. The raw fetch is cached separately
+ * so the area map and the curation meta both derive from a single round-trip.
  */
-const _cache = new WeakMap<HassSource, Promise<AreaMap>>();
+const _rawCache = new WeakMap<HassSource, Promise<RawRegistry | null>>();
+const _areaCache = new WeakMap<HassSource, Promise<AreaMap>>();
+const _metaCache = new WeakMap<HassSource, Promise<RegistryMeta>>();
+
+/** Fetch (and memoize) the raw registry lists; null when there is no access. */
+function fetchRawRegistry(source: HassSource): Promise<RawRegistry | null> {
+  let p = _rawCache.get(source);
+  if (!p) {
+    p = fetchRawRegistryUncached(source);
+    _rawCache.set(source, p);
+  }
+  return p;
+}
+
+async function fetchRawRegistryUncached(source: HassSource): Promise<RawRegistry | null> {
+  const { connection } = source;
+  if (!connection) return null;
+  try {
+    const [areas, devices, entities, floors] = await Promise.all([
+      connection.sendMessagePromise<AreaRegistryEntry[]>({ type: 'config/area_registry/list' }),
+      connection.sendMessagePromise<DeviceRegistryEntry[]>({ type: 'config/device_registry/list' }),
+      connection.sendMessagePromise<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' }),
+      // Floors are newer; tolerate a server that doesn't know the command.
+      connection
+        .sendMessagePromise<FloorRegistryEntry[]>({ type: 'config/floor_registry/list' })
+        .catch(() => [] as FloorRegistryEntry[]),
+    ]);
+    return { areas, devices, entities, floors };
+  } catch {
+    // No registry access (restricted token, demo, transient) — degrade cleanly.
+    return null;
+  }
+}
 
 /**
  * Resolve every entity to its area, memoized per source. Prefers the real HA
@@ -98,36 +163,18 @@ const _cache = new WeakMap<HassSource, Promise<AreaMap>>();
  * legacy / template) fall through to the heuristic so they still land somewhere.
  */
 export function resolveAreas(source: HassSource): Promise<AreaMap> {
-  let p = _cache.get(source);
+  let p = _areaCache.get(source);
   if (!p) {
     p = resolveAreasUncached(source);
-    _cache.set(source, p);
+    _areaCache.set(source, p);
   }
   return p;
 }
 
 async function resolveAreasUncached(source: HassSource): Promise<AreaMap> {
-  const { connection } = source;
-  if (!connection) return heuristicAreas(source.getStates());
-
-  let areas: AreaRegistryEntry[];
-  let devices: DeviceRegistryEntry[];
-  let entities: EntityRegistryEntry[];
-  let floors: FloorRegistryEntry[] = [];
-  try {
-    [areas, devices, entities, floors] = await Promise.all([
-      connection.sendMessagePromise<AreaRegistryEntry[]>({ type: 'config/area_registry/list' }),
-      connection.sendMessagePromise<DeviceRegistryEntry[]>({ type: 'config/device_registry/list' }),
-      connection.sendMessagePromise<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' }),
-      // Floors are newer; tolerate a server that doesn't know the command.
-      connection
-        .sendMessagePromise<FloorRegistryEntry[]>({ type: 'config/floor_registry/list' })
-        .catch(() => [] as FloorRegistryEntry[]),
-    ]);
-  } catch {
-    // No registry access (restricted token, demo, transient) — degrade cleanly.
-    return heuristicAreas(source.getStates());
-  }
+  const raw = await fetchRawRegistry(source);
+  if (!raw) return heuristicAreas(source.getStates());
+  const { areas, devices, entities, floors } = raw;
 
   const floorName = new Map<string, string>();
   for (const f of floors) floorName.set(f.floor_id, f.name || f.floor_id);
@@ -193,4 +240,131 @@ export function useAreas(): AreaMap | undefined {
   }, [source]);
 
   return areas;
+}
+
+// --- Registry curation gate (TODO Tier A) ------------------------------------
+//
+// One shared predicate so NO entity scan surfaces noise. The expensive, accurate
+// signal is the entity registry (entity_category / hidden_by / disabled_by); when
+// that is unavailable (dev/mock, restricted token) we degrade to entity_id PATTERN
+// filtering ONLY — never excluding everything, so a missing registry can't blank
+// the dashboard.
+
+/**
+ * Resolve per-entity curation metadata, memoized per source. Returns `{}` when the
+ * registry is unavailable — callers MUST treat an empty map as "no registry, use
+ * pattern fallback", never as "everything is noise".
+ */
+export function resolveRegistryMeta(source: HassSource): Promise<RegistryMeta> {
+  let p = _metaCache.get(source);
+  if (!p) {
+    p = resolveRegistryMetaUncached(source);
+    _metaCache.set(source, p);
+  }
+  return p;
+}
+
+async function resolveRegistryMetaUncached(source: HassSource): Promise<RegistryMeta> {
+  const raw = await fetchRawRegistry(source);
+  if (!raw) return {};
+  const meta: RegistryMeta = {};
+  for (const e of raw.entities) {
+    meta[e.entity_id] = {
+      entityCategory: e.entity_category ?? null,
+      hidden: e.hidden_by != null,
+      disabled: e.disabled_by != null,
+    };
+  }
+  return meta;
+}
+
+/**
+ * Resolve registry curation metadata once for the active HA source. `undefined`
+ * until the fetch settles; an empty object means "no registry access" (pattern
+ * fallback applies in `isPrimaryEntity`).
+ */
+export function useRegistry(): RegistryMeta | undefined {
+  const source = useHassSource();
+  const [meta, setMeta] = useState<RegistryMeta | undefined>(undefined);
+
+  useEffect(() => {
+    let live = true;
+    resolveRegistryMeta(source).then((m) => {
+      if (live) setMeta(m);
+    });
+    return () => {
+      live = false;
+    };
+  }, [source]);
+
+  return meta;
+}
+
+// Noise patterns on entity_id — the graceful fallback when no registry exists, and
+// an always-on backstop even when one does. These are integration-agnostic and
+// safe: they only match telemetry/maintenance entities a person never puts on a
+// dashboard, never primary controls or readings.
+const NOISE_ID_PATTERNS: RegExp[] = [
+  /^browser_mod_/i, // browser_mod_* helper entities
+  /\.browser_mod_/i, // domain.browser_mod_*
+  /_signal_strength$/i, // RSSI / link telemetry
+  /_link_?quality$/i, // Zigbee/Z-Wave LQI
+  /^update\./i, // update.* (firmware/HACS update entities)
+];
+
+// Restart / reboot / identify / update maintenance buttons & switches. These leak
+// onto Lights/System surfaces as noise; a person controls them from device pages.
+const MAINTENANCE_WORDS = /\b(restart|reboot|identify|update|firmware|re-?index)\b/i;
+const MAINTENANCE_DEVICE_CLASSES = new Set(['restart', 'identify', 'update']);
+
+/**
+ * The curation gate. `true` ⇒ the entity is a primary, user-facing surface and may
+ * appear in a scan; `false` ⇒ it is diagnostic/config/hidden/disabled or pattern
+ * noise and must be excluded.
+ *
+ * @param entityId the entity_id under test
+ * @param state    its live HassEntity, when available (used for device_class /
+ *                 friendly_name maintenance-button heuristics). Pass `undefined`
+ *                 if only the id is known.
+ * @param meta     per-entity registry curation metadata. When `undefined` (dev/mock
+ *                 or no registry access), ONLY entity_id pattern filtering applies —
+ *                 we never exclude everything for lack of a registry.
+ */
+export function isPrimaryEntity(
+  entityId: string,
+  state?: HassEntity,
+  meta?: EntityMeta,
+): boolean {
+  // 1. Registry truth (when we have it): diagnostic/config/hidden/disabled = noise.
+  if (meta) {
+    if (meta.entityCategory === 'diagnostic' || meta.entityCategory === 'config') return false;
+    if (meta.hidden || meta.disabled) return false;
+  }
+
+  // 2. entity_id pattern noise — always applied (the dev/mock fallback AND a
+  //    backstop for integrations that never set entity_category).
+  for (const rx of NOISE_ID_PATTERNS) if (rx.test(entityId)) return false;
+
+  // 3. Maintenance buttons/switches: restart / identify / reboot / update.
+  const domain = domainOf(entityId);
+  if (domain === 'button' || domain === 'switch') {
+    const dc = (state?.attributes.device_class as string | undefined) ?? undefined;
+    if (dc && MAINTENANCE_DEVICE_CLASSES.has(dc)) return false;
+    const hay = `${entityId} ${state ? friendly(state) : ''}`;
+    if (MAINTENANCE_WORDS.test(hay)) return false;
+  }
+
+  return true;
+}
+
+/**
+ * Convenience: look up an entity's meta in a `RegistryMeta` and run the gate.
+ * `meta` may be `undefined` (no registry) — pattern fallback still applies.
+ */
+export function isPrimary(
+  entityId: string,
+  state: HassEntity | undefined,
+  meta: RegistryMeta | undefined,
+): boolean {
+  return isPrimaryEntity(entityId, state, meta?.[entityId]);
 }

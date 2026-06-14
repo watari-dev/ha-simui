@@ -6,7 +6,7 @@
 // and members follow with the room prefix stripped to the leaf.
 import type { Block } from '../types';
 import type { PresetContext, Surface } from './index';
-import { blockId, groupByRoom } from './index';
+import { blockId, groupByRoom, isPrimary } from './index';
 import { friendly } from '../../util';
 
 const FEW_LIGHTS = 6; // at/under this, don't bother splitting by room
@@ -25,8 +25,11 @@ function orderRoomLights(ids: Array<{ id: string; name: string }>): string[] {
 }
 
 export function buildLights(ctx: PresetContext): Surface {
-  const { states, areas } = ctx;
-  const lights = Object.values(states).filter((e) => e.entity_id.startsWith('light.'));
+  const { states, areas, registry } = ctx;
+  // Curation gate (TODO Tier A): drop hidden/disabled/diagnostic lights before grouping.
+  const lights = Object.values(states).filter(
+    (e) => e.entity_id.startsWith('light.') && isPrimary(e.entity_id, e, registry),
+  );
 
   const surface: Surface = { blocks: [] };
   if (!lights.length) return surface;
