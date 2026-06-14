@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useAggregate, useEntityKeys, useHassSource } from '../hass/context';
 import { useActions } from './useActions';
+import { useRegistry } from './areas';
 import {
   ActionPill,
   ConditionalBadge,
@@ -78,13 +79,25 @@ function CountPillBound({ pill }: { pill: Extract<StripPill, { kind: 'count' }> 
   // (no domain filter) get `undefined` deps → compute every tick, as before.
   const source = useHassSource();
   const keysVersion = useEntityKeys();
+  const registry = useRegistry();
   const run = useActions();
   const candidates = useMemo(() => {
     const doms = sourceDomains(pill.source);
-    return doms ? keysOfDomains(source.getStates(), doms) : undefined;
+    const base = doms ? keysOfDomains(source.getStates(), doms) : undefined;
+    // Once the registry resolves (async), append a sentinel so the aggregate cache
+    // busts and recomputes WITH curation applied — otherwise a count cached before
+    // the registry loaded would keep counting hidden/diagnostic entities.
+    return base && registry ? [...base, undefined] : base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keysVersion, pill.source]);
-  const count = useAggregate((states) => resolveSource(pill.source, states).length, candidates);
+  }, [keysVersion, pill.source, registry]);
+  // Curate exactly like the preset builders do (diagnostic/config/hidden/disabled +
+  // the always-on noise patterns), so "3 lights on" counts real room lights, not the
+  // "Screen"/helper entities a big real home is full of. `registry` is undefined in
+  // dev/mock, where only the pattern filter applies — counts never blank out.
+  const count = useAggregate(
+    (states) => resolveSource(pill.source, states, undefined, registry).length,
+    candidates,
+  );
   // A pill with a `path` taps through to its filtered category surface; without one
   // it stays a glance-only readout (disabled).
   const onTap = pill.path ? () => run({ action: 'navigate', path: pill.path! }) : undefined;
