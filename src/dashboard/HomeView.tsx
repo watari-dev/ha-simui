@@ -5,7 +5,7 @@ import { Check, Pencil, RotateCcw } from 'lucide-react';
 import { useAggregate, useAllStates } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
-import { useEditor } from '../editor/store';
+import { useEditableSurface } from './useEditableSurface';
 import { EmptyState } from '../editor/chrome';
 import { RoomCard } from './RoomCard';
 import { SurfaceStrip } from './SurfaceStrip';
@@ -24,8 +24,7 @@ function greeting(): string {
 }
 
 export function HomeView() {
-  const { config, openRoom, setEditing, createHomeOverride, resetHomeOverride } = useDashboard();
-  const editor = useEditor();
+  const { config, openRoom } = useDashboard();
   const states = useAllStates();
   const areaMap = useAreas();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -47,35 +46,24 @@ export function HomeView() {
   );
 
   // Read-only until edited; an override (a user-edited snapshot) takes over from the
-  // live summary. While the editor is active we render its optimistic working copy
-  // (`dirtyBlocks`); the editor commits edits back into the override (debounced).
+  // live summary. The shared hook resolves the rendered block list (editor working
+  // copy while active, else the override, else the live summary) and the edit
+  // lifecycle (snapshot-on-enter, reset-to-preset).
   const override = config?.overrides?.['home'];
-  const blocks = editor.active ? editor.dirtyBlocks : override ? override.blocks : surface.blocks;
+  const { blocks, active, onEditToggle, onReset, moveBlock, openGallery, openTemplates } =
+    useEditableSurface({
+      surface: { kind: 'home' },
+      surfaceBlocks: surface.blocks,
+      override: override?.blocks,
+    });
   const ids = blocks.map((b) => b.id);
 
-  // Entering edit on the live summary first snapshots it into an editable override,
-  // then hands control to the editor store (it seeds its working copy from the
-  // override once the snapshot materialises). We flip the dashboard `editing` flag
-  // in the same beat so they start in lockstep.
-  const onEditToggle = () => {
-    if (editor.active) {
-      editor.exit();
-      return;
-    }
-    if (!override) createHomeOverride(surface.blocks);
-    setEditing(true);
-    editor.enter();
-  };
-  const onReset = () => {
-    editor.exit({ discard: true });
-    resetHomeOverride();
-  };
   const onDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    const o = ids.indexOf(String(active.id));
+    const { active: dragged, over } = e;
+    if (!over || dragged.id === over.id) return;
+    const o = ids.indexOf(String(dragged.id));
     const n = ids.indexOf(String(over.id));
-    if (o >= 0 && n >= 0) editor.moveBlock(o, n);
+    if (o >= 0 && n >= 0) moveBlock(o, n);
   };
 
   if (!config) return null;
@@ -86,17 +74,17 @@ export function HomeView() {
         <span className="simui-head-title">{greeting()}</span>
         <HouseGlance config={config} />
         <span className="simui-spacer" />
-        {editor.active && override && (
+        {active && override && onReset && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset home"><RotateCcw size={15} /></button>
         )}
         {/* Add / Undo / Redo / Save live in the floating EditorToolbar while editing
             (mounted by DashboardView) — keep the header chrome minimal. */}
         <button
-          className={`simui-iconbtn-h${editor.active ? ' active' : ''}`}
+          className={`simui-iconbtn-h${active ? ' active' : ''}`}
           onClick={onEditToggle}
-          aria-label={editor.active ? 'Done editing' : 'Edit home'}
+          aria-label={active ? 'Done editing' : 'Edit home'}
         >
-          {editor.active ? <Check size={16} /> : <Pencil size={15} />}
+          {active ? <Check size={16} /> : <Pencil size={15} />}
         </button>
       </header>
       <div className="simui-content simui-home-content">
@@ -106,7 +94,7 @@ export function HomeView() {
             <SurfaceStrip pills={surface.statusStrip} />
           )}
           {blocks.length > 0 ? (
-            editor.active ? (
+            active ? (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={ids} strategy={rectSortingStrategy}>
                   <div className="simui-grid simui-surface-grid simui-home-summary">
@@ -119,11 +107,11 @@ export function HomeView() {
                 {blocks.map((b) => <StaticBlock key={b.id} block={b} />)}
               </div>
             )
-          ) : editor.active ? (
+          ) : active ? (
             <EmptyState
               title="Your home summary is empty"
-              onAddCard={() => editor.openGallery()}
-              onPickTemplate={() => editor.openTemplates()}
+              onAddCard={() => openGallery()}
+              onPickTemplate={() => openTemplates()}
             />
           ) : null}
           <div className="simui-rooms-head">Rooms</div>
