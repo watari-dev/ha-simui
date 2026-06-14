@@ -1,0 +1,229 @@
+/* Card Gallery — the "add a card" catalogue (SPEC_EDITOR §gallery).
+   Scoped under .simui-root so nothing leaks into HA's frontend; consumes the
+   existing theme tokens (--surface / --faint / --accent / --muted / --radius)
+   so it inherits hass.themes when embedded. Dark-first, minimal motion. */
+
+/* ── Modal shell (Sheet-style portal) ─────────────────────────────────────── */
+.simui-root.simui-gallery-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.simui-gallery {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 920px;
+  max-height: 88vh;
+  background: var(--surface);
+  border: 1px solid var(--faint);
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 720px) {
+  .simui-root.simui-gallery-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+  .simui-gallery {
+    border-radius: 18px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ── Header / search ──────────────────────────────────────────────────────── */
+.simui-gallery-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--faint);
+  background: var(--surface);
+}
+
+.simui-gallery-search {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.simui-gallery-search-ic {
+  position: absolute;
+  left: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.simui-gallery-input {
+  flex: 1;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--faint);
+  border-radius: 9px;
+  padding: 9px 11px 9px 34px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+.simui-gallery-input::placeholder { color: var(--muted); }
+.simui-gallery-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--faint));
+}
+
+/* Screen-reader-only dialog title (the search box is the visible affordance). */
+.simui-gallery-title-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── The catalogue wall ───────────────────────────────────────────────────── */
+.simui-gallery-grid {
+  overflow: auto;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.simui-gallery-empty {
+  grid-column: 1 / -1;
+  padding: 40px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── One catalogue card ───────────────────────────────────────────────────── */
+.simui-gallery-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  text-align: left;
+  background: color-mix(in srgb, var(--text) 3%, var(--surface));
+  border: 1px solid var(--faint);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+.simui-gallery-card:hover {
+  background: color-mix(in srgb, var(--text) 6%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--faint));
+}
+.simui-gallery-card:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--faint));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.simui-gallery-card:active {
+  background: color-mix(in srgb, var(--text) 8%, var(--surface));
+}
+.simui-gallery-card[draggable='true'] { cursor: grab; }
+.simui-gallery-card[draggable='true']:active { cursor: grabbing; }
+
+/* ── Live preview frame ───────────────────────────────────────────────────── */
+.simui-gallery-preview {
+  position: relative;
+  height: 116px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--text) 4%, transparent), transparent 70%),
+    var(--bg);
+  border-bottom: 1px solid var(--faint);
+}
+/* The real BlockBody renders here, scaled down and made inert. pointer-events:none
+   keeps it a *preview* — clicks fall through to the card's onClick (add). */
+.simui-gallery-preview-scale {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: calc((100% - 24px) / 0.78);
+  transform: scale(0.78);
+  transform-origin: top left;
+  pointer-events: none;
+  user-select: none;
+}
+/* Inside a preview a chart should never try to size to a real (zero) height. */
+.simui-gallery-preview-scale .simui-chart,
+.simui-gallery-preview-scale .simui-metric-wall { min-height: 0; }
+
+/* Quiet fallback when there's nothing live to preview (or a render throws). */
+.simui-gallery-preview-stub,
+.simui-eb-compact.simui-gallery-stub {
+  height: 100%;
+}
+.simui-gallery-preview-stub {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.simui-gallery-stub-ic {
+  display: inline-flex;
+  color: color-mix(in srgb, var(--text) 40%, transparent);
+}
+.simui-gallery-stub-label {
+  font-size: 11px;
+  letter-spacing: 0.2px;
+}
+
+/* ── Meta (label + description) ───────────────────────────────────────────── */
+.simui-gallery-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 7px;
+  padding: 10px 12px 12px;
+}
+.simui-gallery-card-ic {
+  display: inline-flex;
+  color: var(--muted);
+}
+.simui-gallery-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--text);
+}
+.simui-gallery-card-desc {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simui-gallery-card { transition: none; }
+}

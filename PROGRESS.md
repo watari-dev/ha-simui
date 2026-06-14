@@ -14,6 +14,21 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Editor subsystem fan-out (7 Opus agents, ~732k tokens)** — the real "own the editor" build
+  (option A). Foundation wrote `SPEC_EDITOR.md` + `src/editor/types.ts`: config **v4** via an
+  *optional inline* `tiles?: Record<entityId, TileConfig>` on each block (per-leaf
+  name/icon/color/features/actions) ⇒ every v3 block is already a valid v4 block (**zero
+  migration**); plus the full `EditorActions`/`EditorState` API and clean controlled prop
+  contracts. Three components built (isolated in `src/editor/`, all typecheck clean):
+  **CardGallery** (add-card catalogue with *live previews from the user's real entities*, via
+  the real `BlockBody` renderer), **Inspector** (per-block + per-tile config — the form
+  replacement), **EntityPicker** (faceted + virtualized over thousands of entities). Three
+  build-plan specs: `SPEC_LAYOUT.md` (12-col grid, drag move/resize, `{surfaces}` unification),
+  `SPEC_DETAIL.md` (more-info depth), `SPEC_EXTENSIBILITY.md` (card-type registry +
+  framework-for-others + milestone cut). `tsc --noEmit` green. **Not yet wired** — next: the
+  editor store (`EditorActions` over `mutateBlocks`), the `CardKind` catalogue, the editor
+  host, and the edit → gallery → drop → inspector flow.
+
 - **Framework fixes — editable Home + no horizontal scroll** (refocus on the editor per
   owner feedback). (1) **Horizontal scroll killed** — the living `.simui-ambient-canvas`
   had negative *horizontal* insets (`-16px`) that overflowed the viewport (the side-to-side

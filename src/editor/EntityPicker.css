@@ -1,0 +1,395 @@
+/* EntityPicker — faceted, virtualized entity chooser.
+   Scoped under .simui-root (the panel root) so nothing leaks into HA's frontend.
+   Dark-first, monochrome + single accent (color = selection state only), hairline
+   borders, tabular numerals, minimal motion. Reuses the .simui-modal overlay +
+   .simui-iconbtn-h button from the global sheet; everything else is local (ep-*).
+
+   The list viewport height (.ep-list) is the source of truth that the component's
+   VIEWPORT_H constant mirrors — keep them in sync (360px). Rows are a fixed 44px
+   (ROW_H), which is what the windowing math assumes. */
+
+/* Overlay tweaks — top-align so the tall picker has room and feels like a command
+   palette rather than a centered alert. */
+.simui-root .ep-overlay {
+  align-items: flex-start;
+  padding-top: max(8vh, 40px);
+}
+
+.simui-root .ep-card {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: min(80vh, 720px);
+  background: var(--surface);
+  border: 1px solid var(--faint);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Header / search ─────────────────────────────────────────────────────── */
+.simui-root .ep-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--faint);
+}
+.simui-root .ep-searchwrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.simui-root .ep-search-ico {
+  position: absolute;
+  left: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.simui-root .ep-search {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--faint);
+  border-radius: 10px;
+  padding: 9px 32px 9px 33px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+.simui-root .ep-search::placeholder { color: var(--muted); }
+.simui-root .ep-search:focus {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--faint));
+}
+.simui-root .ep-search-clear {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.simui-root .ep-search-clear:hover { color: var(--text); background: var(--surface-2); }
+
+/* ── Body: facet rail + result list ──────────────────────────────────────── */
+.simui-root .ep-body {
+  display: grid;
+  grid-template-columns: 184px 1fr;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Facet rail */
+.simui-root .ep-facets {
+  border-right: 1px solid var(--faint);
+  padding: 12px 10px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.simui-root .ep-facet-group { display: flex; flex-direction: column; gap: 8px; }
+.simui-root .ep-facet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 0 2px;
+}
+.simui-root .ep-facet-clear {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.simui-root .ep-facet-empty { color: var(--muted); font-size: 12px; padding: 0 2px; }
+
+.simui-root .ep-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.simui-root .ep-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--faint);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.simui-root .ep-chip:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 18%, var(--faint));
+}
+.simui-root .ep-chip.is-on {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--faint));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.simui-root .ep-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simui-root .ep-chip-count {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  font-size: 10px;
+  color: var(--muted);
+}
+.simui-root .ep-chip.is-on .ep-chip-count {
+  color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+}
+
+.simui-root .ep-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+  margin-top: auto;
+}
+.simui-root .ep-toggle input { accent-color: var(--accent); cursor: pointer; }
+.simui-root .ep-toggle:hover { color: var(--text); }
+
+/* ── Virtualized list ────────────────────────────────────────────────────── */
+.simui-root .ep-list {
+  height: 360px; /* === VIEWPORT_H in EntityPicker.tsx */
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  outline: none;
+  /* contain layout so the tall spacer never reflows siblings */
+  contain: strict;
+}
+/* The spacer sizes the scroll track to the FULL list height; the window is the
+   small absolutely-positioned slice of rows actually rendered. */
+.simui-root .ep-spacer { position: relative; width: 100%; }
+.simui-root .ep-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* translateY set inline per scroll position */
+  will-change: transform;
+}
+
+.simui-root .ep-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px; /* === ROW_H */
+  padding: 0 14px;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--faint) 55%, transparent);
+  /* no transition on background — selection/active "appear", not animate */
+}
+.simui-root .ep-row.is-active { background: var(--surface-2); }
+.simui-root .ep-row:hover { background: var(--surface-2); }
+.simui-root .ep-row.is-selected {
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+.simui-root .ep-row.is-selected.is-active {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+.simui-root .ep-row.is-unavailable { opacity: 0.42; }
+.simui-root .ep-row.is-existing .ep-row-name { color: var(--muted); }
+
+/* Checkbox / radio affordance */
+.simui-root .ep-check {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 60%, var(--faint));
+  border-radius: 5px;
+  color: #fff;
+}
+.simui-root .ep-check.is-radio { border-radius: 999px; }
+.simui-root .ep-row.is-selected .ep-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.simui-root .ep-row-ico {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  color: var(--muted);
+}
+.simui-root .ep-row.is-selected .ep-row-ico { color: var(--accent); }
+
+.simui-root .ep-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+.simui-root .ep-row-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simui-root .ep-row-id {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.simui-root .ep-row-state {
+  flex: 0 0 auto;
+  max-width: 120px;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.simui-root .ep-hl {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.simui-root .ep-badge {
+  flex: 0 0 auto;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--faint));
+  border-radius: 5px;
+  padding: 1px 5px;
+  line-height: 1.4;
+}
+.simui-root .ep-badge-soft {
+  color: var(--muted);
+  border-color: var(--faint);
+}
+
+.simui-root .ep-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.simui-root .ep-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--faint);
+}
+.simui-root .ep-selcount {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.simui-root .ep-foot-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.simui-root .ep-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--faint);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.simui-root .ep-btn-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+.simui-root .ep-btn-ghost:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 18%, var(--faint));
+}
+.simui-root .ep-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.simui-root .ep-btn-primary:hover {
+  background: color-mix(in srgb, #fff 8%, var(--accent));
+}
+.simui-root .ep-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Focus visibility (keyboard) ─────────────────────────────────────────── */
+.simui-root .ep-chip:focus-visible,
+.simui-root .ep-btn:focus-visible,
+.simui-root .ep-search-clear:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}
+
+/* ── Narrow / phone: collapse the facet rail above the list ──────────────── */
+@media (max-width: 560px) {
+  .simui-root .ep-card { width: 100%; max-height: 92vh; }
+  .simui-root .ep-overlay { padding: 0; align-items: stretch; }
+  .simui-root .ep-card { border-radius: 0; }
+  .simui-root .ep-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .simui-root .ep-facets {
+    border-right: 0;
+    border-bottom: 1px solid var(--faint);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 16px;
+    max-height: 40vh;
+  }
+  .simui-root .ep-toggle { margin-top: 0; }
+  .simui-root .ep-list { height: auto; flex: 1; min-height: 0; }
+}

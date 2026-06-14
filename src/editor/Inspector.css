@@ -1,0 +1,583 @@
+/* Inspector — the per-selection block/tile config editor (SPEC_EDITOR.md §inspector).
+ *
+ * A right-rail on desktop, a bottom sheet on phone. Minimalist per DESIGN_PRINCIPLES:
+ * monochrome base, hairline dividers (not boxes), one accent reserved for the active
+ * control, tabular numerals on every value, fast minimal motion. Co-located styles —
+ * NOT in the global stylesheet — so the editor subsystem stays self-contained.
+ */
+
+.simui-insp {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #15171c);
+  color: var(--text, #edeef2);
+  border: 1px solid var(--faint, #23262e);
+  box-sizing: border-box;
+  font-size: 13px;
+  /* Appears, doesn't perform (DESIGN_PRINCIPLES §11). */
+  animation: simui-insp-in 0.14s ease;
+}
+
+/* Desktop: a right rail docked to the viewport edge. */
+@media (min-width: 721px) {
+  .simui-insp {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 332px;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0;
+  }
+}
+
+/* Phone: a bottom sheet (DESIGN_PRINCIPLES §14). */
+@media (max-width: 720px) {
+  .simui-insp {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 78vh;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 18px 18px 0 0;
+  }
+}
+
+@keyframes simui-insp-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── header ──────────────────────────────────────────────────────────────── */
+
+.simui-insp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--faint, #23262e);
+  flex: none;
+}
+
+.simui-insp-kicker {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted, #8a909c);
+  font-weight: 500;
+}
+
+.simui-insp-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text, #edeef2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.simui-insp-head-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.simui-insp-close {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--muted, #8a909c);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-insp-close:hover {
+  color: var(--text, #edeef2);
+  border-color: color-mix(in srgb, var(--text, #edeef2) 20%, var(--faint, #23262e));
+}
+
+/* ── body / scroll ───────────────────────────────────────────────────────── */
+
+.simui-insp-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 14px 16px;
+  flex: 1;
+}
+
+.simui-insp-empty {
+  padding: 32px 16px;
+  color: var(--muted, #8a909c);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── field groups & labels ───────────────────────────────────────────────── */
+
+.simui-insp-section {
+  padding: 14px 0;
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-insp-section:first-child {
+  border-top: none;
+}
+
+.simui-insp-section-head {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted, #8a909c);
+  font-weight: 500;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.simui-insp-field {
+  margin-bottom: 12px;
+}
+.simui-insp-field:last-child {
+  margin-bottom: 0;
+}
+
+.simui-insp-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+  margin-bottom: 5px;
+}
+
+.simui-insp-hint {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  opacity: 0.75;
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── inputs ──────────────────────────────────────────────────────────────── */
+
+.simui-insp-input,
+.simui-insp-select,
+.simui-insp-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg, #0a0b0d);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: var(--text, #edeef2);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+.simui-insp-input:focus,
+.simui-insp-select:focus,
+.simui-insp-textarea:focus {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 50%, var(--faint, #23262e));
+}
+.simui-insp-input::placeholder {
+  color: var(--muted, #8a909c);
+}
+.simui-insp-textarea {
+  resize: vertical;
+  min-height: 56px;
+  font-variant-numeric: tabular-nums;
+}
+.simui-insp-input.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.simui-insp-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.simui-insp-row > .simui-insp-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* ── segmented control (span / axis / orientation) ──────────────────────── */
+
+.simui-insp-seg {
+  display: flex;
+  gap: 4px;
+  background: var(--bg, #0a0b0d);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 9px;
+  padding: 3px;
+}
+.simui-insp-seg.wrap {
+  flex-wrap: wrap;
+}
+.simui-insp-seg-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.simui-insp-seg-btn:hover {
+  color: var(--text, #edeef2);
+}
+.simui-insp-seg-btn.active {
+  background: var(--surface-2, #1b1e25);
+  color: var(--text, #edeef2);
+}
+
+/* ── color swatch grid ───────────────────────────────────────────────────── */
+
+.simui-insp-swatches {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+}
+.simui-insp-swatch {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--sw, transparent);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.simui-insp-swatch:hover {
+  transform: scale(1.06);
+}
+.simui-insp-swatch.active {
+  box-shadow: 0 0 0 2px var(--surface, #15171c), 0 0 0 3.5px var(--accent, #5b8cff);
+}
+.simui-insp-swatch.none {
+  background:
+    linear-gradient(135deg, transparent 45%, var(--muted, #8a909c) 46%, var(--muted, #8a909c) 54%, transparent 55%);
+}
+
+/* ── lucide icon picker ──────────────────────────────────────────────────── */
+
+.simui-insp-iconfield {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.simui-insp-iconbtn {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--bg, #0a0b0d);
+  color: var(--text, #edeef2);
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.simui-insp-iconbtn:hover,
+.simui-insp-iconbtn.open {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+
+.simui-insp-iconpop {
+  margin-top: 8px;
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 11px;
+  background: var(--bg, #0a0b0d);
+  padding: 8px;
+}
+.simui-insp-iconsearch {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface, #15171c);
+  border: 1px solid var(--faint, #23262e);
+  border-radius: 8px;
+  padding: 6px 9px;
+  color: var(--text, #edeef2);
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 8px;
+}
+.simui-insp-iconsearch:focus {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 50%, var(--faint, #23262e));
+}
+.simui-insp-icongrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-height: 168px;
+  overflow-y: auto;
+}
+.simui-insp-iconcell {
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  cursor: pointer;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+.simui-insp-iconcell:hover {
+  color: var(--text, #edeef2);
+  background: var(--surface-2, #1b1e25);
+}
+.simui-insp-iconcell.active {
+  color: var(--accent, #5b8cff);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 40%, var(--faint, #23262e));
+}
+.simui-insp-iconempty {
+  grid-column: 1 / -1;
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted, #8a909c);
+}
+
+/* ── checkbox / toggle row ───────────────────────────────────────────────── */
+
+.simui-insp-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text, #edeef2);
+  user-select: none;
+}
+.simui-insp-check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 5px;
+  border: 1px solid var(--faint, #23262e);
+  background: var(--bg, #0a0b0d);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.simui-insp-check input:checked {
+  background: var(--accent, #5b8cff);
+  border-color: var(--accent, #5b8cff);
+}
+.simui-insp-check input:checked::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 1.5px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ── members list ────────────────────────────────────────────────────────── */
+
+.simui-insp-members {
+  display: flex;
+  flex-direction: column;
+}
+.simui-insp-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+}
+.simui-insp-member + .simui-insp-member {
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-insp-member-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.simui-insp-member-id {
+  font-size: 11px;
+  color: var(--muted, #8a909c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.simui-insp-member-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.simui-insp-member-x {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted, #8a909c);
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-insp-member-x:hover {
+  color: var(--down, #f0735e);
+  border-color: color-mix(in srgb, var(--down, #f0735e) 35%, var(--faint, #23262e));
+}
+
+/* ── chart series rows ───────────────────────────────────────────────────── */
+
+.simui-insp-series {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+}
+.simui-insp-series + .simui-insp-series {
+  border-top: 1px solid var(--faint, #23262e);
+}
+.simui-insp-series-swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--sw, var(--muted, #8a909c));
+}
+.simui-insp-series-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.simui-insp-series-fill {
+  margin-left: auto;
+  flex: none;
+}
+
+/* ── buttons ─────────────────────────────────────────────────────────────── */
+
+.simui-insp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--text, #edeef2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+.simui-insp-btn:hover {
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+.simui-insp-btn.ghost {
+  color: var(--muted, #8a909c);
+}
+.simui-insp-btn.ghost:hover {
+  color: var(--text, #edeef2);
+}
+.simui-insp-btn.danger {
+  color: var(--down, #f0735e);
+}
+.simui-insp-btn.danger:hover {
+  border-color: color-mix(in srgb, var(--down, #f0735e) 40%, var(--faint, #23262e));
+  background: color-mix(in srgb, var(--down, #f0735e) 7%, transparent);
+}
+
+.simui-insp-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--faint, #23262e);
+  flex: none;
+}
+.simui-insp-footer-row {
+  display: flex;
+  gap: 8px;
+}
+.simui-insp-footer-row > .simui-insp-btn {
+  flex: 1;
+}
+
+/* ── action editor (tap / hold / etc.) ───────────────────────────────────── */
+
+.simui-insp-action {
+  margin-bottom: 12px;
+}
+.simui-insp-action:last-child {
+  margin-bottom: 0;
+}
+.simui-insp-action-detail {
+  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* feature add/remove pills */
+.simui-insp-feats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.simui-insp-feat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--faint, #23262e);
+  background: transparent;
+  color: var(--muted, #8a909c);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.simui-insp-feat:hover {
+  color: var(--text, #edeef2);
+}
+.simui-insp-feat.active {
+  color: var(--text, #edeef2);
+  border-color: color-mix(in srgb, var(--accent, #5b8cff) 45%, var(--faint, #23262e));
+}
+.simui-insp-feat-x {
+  display: inline-flex;
+  color: var(--muted, #8a909c);
+}
