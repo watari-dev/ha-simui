@@ -14,6 +14,28 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
 
 ## Shipped
 
+- **Competitiveness batch — 6-agent fan-out (worktree-isolated, merged onto `design-overhaul`)** —
+  one parallel sweep across the backlog; `tsc --noEmit` clean and `npm run build` green (897 kB / 214 kB
+  gzip), verified headless (Home + category nav + Living Room + the new light detail Sheet, zero console
+  errors). Landed: (1) **Registry curation gate** — `isPrimaryEntity` in `areas.ts` drops diagnostic/
+  config/hidden/disabled + id-pattern noise (`browser_mod_*`, `*_signal_strength`/`_linkquality`,
+  `update.*`, restart/identify buttons); `RegistryMeta` threaded through `PresetContext`, applied in
+  `ofDomain`/`resolveSource`/`generateDefault`/builders, wired into `store`+`CategoryView`; pattern-only
+  fallback when no registry; `ListSource.includeNoise` opt-out. (2) **Full `unavailable`/`unknown`
+  states** — extended `.is-unavailable` from `EntityRow`/`SliderTile` to `StatusBoardTile`, `MetricSpark`,
+  and all domain widgets (dimmed, placeholder, no controls, no fake history). (3) **Per-domain detail
+  Sheets** — `DetailContent` now dispatches to `detail/{Light,Climate,Media,Cover,Lock,Sensor}Detail`,
+  composed from existing primitives (BloomStudio / ExpandableChart / QuickControls), attribute-table
+  fallback. (4) **Six new widgets** — Camera, Weather, Gauge (opt-in), Action (scene/script/button/
+  input_button), Fan, Vacuum, registered in `widgets/index.ts`. (5) **Error boundaries + reconnect
+  banner** — app-level + per-surface `ErrorBoundary` (compact fallback + `resetKey`); `ConnectionBanner`
+  + `useConnectionStatus`. (6) **A11y + reduced-motion** — ARIA/keyboard on the custom controls, a shared
+  `--focus-ring`, global `prefers-reduced-motion`. *Domain-correct service calls* were assessed as already
+  idiomatic here (per-widget `useCallService` + TileFeatures + the detail Sheets); a stale agent's parallel
+  `services.ts`/`useActions` rewrite was **discarded** as an architecture misfit. The **⌘K command palette**
+  differentiator was dropped from the docs (Home Assistant already ships a quick-bar). *Process note:* the
+  first fan-out's worktrees were created from a stale base (`0d231f4`); three agents self-corrected and were
+  merged, four were re-run against the correct tip with a `git reset --hard` safeguard.
 - **Competitiveness sprint (in progress, [`ROADMAP.md`](ROADMAP.md))** — (1) **`area_id` + floor fix**:
   the resolver + all preset builders are now entity-keyed (HA doesn't put `area_id` in state — the
   bug); `areas.ts` resolves the floor registry; `GroupBlock` `axis:'floor'` buckets by floor — so on

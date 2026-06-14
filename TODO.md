@@ -6,9 +6,11 @@ direction), and [AGENTS.md](AGENTS.md) (vision). `[x]` done · `[~]` partial · 
 
 **Status:** the engine + navigation shell + design (Phases 1–3) are built and on the
 `design-overhaul` branch / [PR #1](https://github.com/watari-dev/ha-simui/pull/1). The
-**competitiveness sprint** is underway: real-area grouping, unavailable states, and editable
-category surfaces are in; the editor (Inspector / add-block / gallery picker), widget parity,
-multi-dashboard, and ship-readiness are next.
+**competitiveness sprint** has landed a large batch: real-area grouping, the **registry curation
+gate**, full **unavailable/unknown** states, **per-domain detail Sheets**, six new **widgets**
+(camera/weather/gauge/action/fan/vacuum), domain-correct service calls, **error boundaries +
+reconnect banner**, and an **a11y + reduced-motion** pass. Next: the editor (Inspector / add-block /
+gallery picker), the `{ surfaces }` unification, live-tick profiling, multi-dashboard, and release hygiene.
 
 ---
 
@@ -19,13 +21,15 @@ The must-have checklist (ROADMAP §2), by tier.
 
 ### Tier A — correctness + scale on a real home (stop looking broken)
 - [x] **`area_id` + floor axis** — entity-keyed resolver + builders; floor registry; `axis:'floor'`.
-- [ ] **Registry curation gate** — exclude diagnostic/config (`entity_category`), hidden/disabled,
-      and noise (`browser_mod_*`, `*_signal_strength`, `update.*`, restart/identify buttons) from
-      every entity scan. Needs registry flags threaded through `PresetContext` (like the AreaMap):
-      extend `areas.ts` to also return `entity_category`/`hidden` per entity, add `isPrimaryEntity`,
-      apply in the shared scan helpers (`ofDomain`/`resolveSource`/builders).
-- [~] **`unavailable`/`unknown` states** — done in `EntityRow` + `SliderTile` (`.is-unavailable`).
-      TODO: extend to `StatusBoardTile`, `MetricSpark`, and the domain widgets.
+- [x] **Registry curation gate** — `isPrimaryEntity`/`isPrimary` in `areas.ts` excludes diagnostic/
+      config (`entity_category`), hidden/disabled, and id-pattern noise (`browser_mod_*`,
+      `*_signal_strength`/`*_linkquality`, `update.*`, restart/identify/update buttons). `RegistryMeta`
+      fetched via the entity registry, threaded through `PresetContext`, applied in `ofDomain`/
+      `resolveSource` + `generateDefault` + the direct builder scans; wired into `store`+`CategoryView`.
+      Graceful pattern-only fallback when no registry (dev/mock). `ListSource.includeNoise` opt-out.
+- [x] **`unavailable`/`unknown` states** — `.is-unavailable` now applied across `EntityRow`,
+      `SliderTile`, `StatusBoardTile`, `MetricSpark`, and every domain widget: dimmed, placeholder
+      (`—`/`Unavailable`), no controls, no fabricated sparkline/history while dead.
 - [ ] **Profile + de-jank the live tick** — measure render counts at scale; kill the per-render
       `idSig` string join and O(all-entities) aggregate recompute (memoise the entity-key set; only
       recompute aggregates whose inputs changed). Validate 60fps on ~6k entities.
@@ -57,27 +61,33 @@ The must-have checklist (ROADMAP §2), by tier.
 - [ ] **Multi-dashboard / named views** — evolve the model to multiple named dashboards/views with
       a quiet top-chrome switcher (not a sidebar); default-dashboard selection; sidebar panel
       registration. (Depends on the `{ surfaces }` model.)
-- [ ] **Missing widgets** (compose, don't port): **camera** + **camera wall** (the sanctioned
-      tiling exception) · **weather** · **gauge** · generalized **action/button tile** (scene/script/
-      button/input_button) · **editable helpers** (number/select/text/datetime) · **alarm-panel**
-      control on-surface · **fan** / **vacuum** / **valve** · **person/device_tracker** presence ·
-      **calendar** · **markdown** · picture-glance.
-- [ ] **Real per-domain detail Sheets** — `DetailContent` is widget + raw-attribute dump for most
-      domains; give each domain a proper more-info tier.
-- [ ] **Domain-correct service calls** — cover position, fan percentage/preset, lock code, media
-      transport/source, alarm arm/disarm, number/select set (not a 7-domain toggle allowlist).
+- [~] **Missing widgets** (compose, don't port): **camera** ✓ · **weather** ✓ · **gauge** ✓ (opt-in)
+      · generalized **action/button tile** ✓ (scene/script/button/input_button) · **fan** ✓ /
+      **vacuum** ✓. TODO: **camera wall** (the sanctioned tiling exception) · **editable helpers**
+      (number/select/text/datetime) · **alarm-panel** control on-surface · **valve** · **person/
+      device_tracker** presence · **calendar** · **markdown** · picture-glance.
+- [~] **Real per-domain detail Sheets** — custom more-info tiers shipped for light / climate /
+      media_player / cover / lock / sensor (+ binary_sensor), composed from existing primitives
+      (`BloomStudio`/`ExpandableChart`/…), with attribute-table fallback. TODO: fan / vacuum / alarm.
+- [x] **Domain-correct service calls** — covered idiomatically: widgets call `useCallService`
+      directly (cover position/open/stop, media transport/volume/source, lock, fan %), `TileFeatures`/
+      `QuickControls` add climate/cover/fan/lock/alarm, and the detail Sheets do the deep per-domain
+      controls. (number/select/helper *set* remains under "editable helpers" above.)
 
 ### Tier D — ship-readiness (a stranger can install + trust it)
-- [~] **Error boundaries** — `Chart` is wrapped. TODO: app-level + per-surface `ErrorBoundary` +
-      a reconnecting/connection-lost banner (one bad widget must not blank the panel).
+- [x] **Error boundaries** — app-level + per-surface (`HomeView`/`RoomView`/Sheet) `ErrorBoundary`
+      with compact inline fallback + route-derived `resetKey`; `ConnectionBanner` + `useConnectionStatus`
+      reconnect banner (auto-hides when live, `'live'` in dev/mock). One bad widget no longer blanks the panel.
 - [ ] **Adaptive shell** — consume HA's `narrow` (currently discarded); reflow nav phone/tablet/desktop.
 - [ ] **URL / route persistence** — Back + reload restore the view (precondition for kiosk deep-links).
 - [ ] **Release hygiene** — LICENSE, version sync, tagged release + CHANGELOG, README rewrite +
       screenshots (gates any non-owner install).
 - [ ] **Settings / options flow** + a reset-layout escape hatch.
-- [ ] **Accessibility pass** — keyboard/focus-visible, contrast, screen-reader on the custom
-      controls (wheel/dial/charts/drag-tiles); a **reduced-motion** pass (we currently exceed our
-      own minimal-motion principle).
+- [~] **Accessibility pass** — done: ARIA + keyboard on the custom controls (slider/dial roles +
+      value/arrow-keys, `role=dialog`+focus-trap+Esc on Sheet, `role=menu`+arrow-nav on ContextMenu,
+      `SliderTile` keyboard nudge, Chart labelled/canvas `aria-hidden`), a shared `--focus-ring`
+      `:focus-visible` token, and a global `prefers-reduced-motion` block. TODO: contrast audit +
+      full screen-reader pass.
 
 ---
 
@@ -129,4 +139,7 @@ The must-have checklist (ROADMAP §2), by tier.
   status board + `AttentionStrip`, drag-to-set `SliderTile`, living `AmbientCanvas`.
 - **Design Phase 3** — `BloomStudio` (`ColorWheel` + `TempDial`), album-art media tint, dot-matrix canvas.
 - **Competitiveness sprint** — `area_id`+floor fix, unavailable states, editable category surfaces (overrides, v2→v3).
+- **Competitiveness batch** — registry curation gate (`isPrimaryEntity`), full unavailable/unknown states,
+  per-domain detail Sheets (`detail/*`), six widgets (camera/weather/gauge/action/fan/vacuum), error
+  boundaries + `ConnectionBanner`, a11y + reduced-motion. (Built via a worktree-isolated agent fan-out.)
 - **Docs** — INSPIRATION / FRAMEWORK / PRESETS / DESIGN_DIRECTIONS / ROADMAP; AGENTS/DESIGN_PRINCIPLES reframed.
