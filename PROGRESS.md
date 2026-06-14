@@ -42,8 +42,21 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
     `cool` role → `--cool`. True boundaries (sheet/modal/ctxmenu/conn-banner) keep their hairline.
   - **Verified live** in `npm run dev` across home/lights/sensors/room + gallery/sheet/ctxmenu/
     editor; `npm run build` passes. **Still needs embedded-HA verification** for R1 (right-click)
-    and R3 (see-through), which only reproduce inside HA — rebuild the integration bundle
-    (`npm run build:integration`) and load in HA to confirm.
+    and R3 (see-through), which only reproduce inside HA — the integration bundle
+    (`custom_components/simui/simui-panel.js`) is rebuilt + committed, so load it in HA to confirm.
+  - **Follow-ups shipped** (merged to main, bundle rebuilt):
+    - *Real-home hardening:* pressure-tested the highlight aggregates against the owner's HA
+      (6,257 entities); the strip now applies registry curation like the builders do
+      (drops hidden/diagnostic, e.g. "Screen" lights) — no-op in dev.
+    - *Power surface:* decluttered the energy-flow object (removed redundant mid-wire value
+      badges, tighter viewBox, bigger card); fixed the chart's battery series (was pinned to a
+      0-100 SOC axis → off-screen) onto the shared power axis; charts now show their WINDOW
+      instead of fit-to-data.
+    - *Media surface:* new `presets/media.ts` — curated + mirror-deduped now-playing transport
+      cards over a speaker list (was a 180-entity fallback dump on the real home).
+    - *Phase 4 finish:* retired control-chrome hairline borders (segments / range toggle /
+      selects / toggles / search). Deferred the 4px-spacing snap + type-token reconciliation
+      (low-visibility, broad regression risk).
 
 - **Editor MVP wired — the "add a card" gallery works end-to-end** (the make-or-break feature).
   `src/editor/cardKinds.ts` (catalogue: Group / List / History chart / Hero / Card, each a valid
