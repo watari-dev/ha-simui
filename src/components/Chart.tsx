@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AreaSeries,
   ColorType,
@@ -14,9 +14,27 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { ChartSpec, ChartSeries, ChartAxis } from '../dashboard/types';
-import { useHistory } from '../hass/history';
+import { useHistory, type HistoryWindow } from '../hass/history';
 import { useEntity } from '../hass/context';
 import { formatNumber } from '../util';
+
+/**
+ * The always-on chart's range control (24h / 7d / 30d). Mirrors the toggle in
+ * `ExpandableChart`'s Sheet — kept here as a tiny local twin rather than a shared
+ * import, since ExpandableChart owns the canonical copy and this is a one-off.
+ */
+type ChartRange = '24h' | '7d' | '30d';
+
+const RANGES: { id: ChartRange; label: string; window: HistoryWindow }[] = [
+  { id: '24h', label: '24h', window: { value: 24, unit: 'h' } },
+  { id: '7d', label: '7d', window: { value: 7, unit: 'd' } },
+  { id: '30d', label: '30d', window: { value: 30, unit: 'd' } },
+];
+
+/** Map a window to its nearest range id (for the toggle's initial selection). */
+function rangeIdFor(w: HistoryWindow): ChartRange {
+  return RANGES.find((r) => r.window.value === w.value && r.window.unit === w.unit)?.id ?? '24h';
+}
 
 /**
  * The TradingView-grade history block (FRAMEWORK.md §5). A thin, theme-aware
@@ -27,19 +45,53 @@ import { formatNumber } from '../util';
  * The HEADER row is the glance layer (REQUIRED when `header.showCurrent`): each
  * series' current value, tabular and tinted by its series color. The chart is
  * the *expand* tier; `Sparkline.tsx` is the glance tier on a tile.
+ *
+ * When `rangeToggle` is set, the header also carries a compact 24h/7d/30d
+ * segmented control (the same one ExpandableChart shows in its Sheet) that
+ * re-windows the feed locally — so the always-on flow chart gains range control
+ * without opening a sheet. Defaults to off, keeping mini-charts toggle-free.
  */
-export function Chart({ spec }: { spec: ChartSpec }) {
-  const entities = useMemo(() => spec.series.map((s) => s.entity), [spec.series]);
-  const data = useHistory(entities, spec.window);
+export function Chart({ spec, rangeToggle = false }: { spec: ChartSpec; rangeToggle?: boolean }) {
+  const [range, setRange] = useState<ChartRange>(() => rangeIdFor(spec.window));
+  const win = rangeToggle
+    ? RANGES.find((r) => r.id === range)?.window ?? spec.window
+    : spec.window;
+
+  // Re-window the spec the canvas + feed consume so the toggle drives a fresh
+  // recorder fetch, exactly as ExpandableChart re-windows its passed spec.
+  const liveSpec = useMemo<ChartSpec>(
+    () => (win === spec.window ? spec : { ...spec, window: win }),
+    [spec, win],
+  );
+
+  const entities = useMemo(() => liveSpec.series.map((s) => s.entity), [liveSpec.series]);
+  const data = useHistory(entities, liveSpec.window);
 
   const chartLabel =
     spec.title ?? `History chart: ${spec.series.map((s) => s.name ?? seriesLabel(s.entity)).join(', ')}`;
+  const showHead = spec.title || spec.header.showCurrent || rangeToggle;
 
   return (
     <div className="simui-chart" role="group" aria-label={chartLabel}>
-      {(spec.title || spec.header.showCurrent) && (
+      {showHead && (
         <div className="simui-chart-head">
           {spec.title && <span className="simui-chart-title">{spec.title}</span>}
+          {rangeToggle && (
+            <div className="simui-range-toggle" role="tablist" aria-label="Chart range">
+              {RANGES.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={range === r.id}
+                  className={`simui-range-btn${range === r.id ? ' active' : ''}`}
+                  onClick={() => setRange(r.id)}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
           {spec.header.showCurrent && (
             <div className="simui-chart-readout">
               {spec.series.map((s, i) => (
@@ -54,7 +106,7 @@ export function Chart({ spec }: { spec: ChartSpec }) {
           )}
         </div>
       )}
-      <ChartCanvas spec={spec} data={data} />
+      <ChartCanvas spec={liveSpec} data={data} />
     </div>
   );
 }

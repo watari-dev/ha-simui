@@ -6,7 +6,8 @@ import { LauncherTile } from '../../components/EntityTile';
 import { iconFor } from '../../components/icons';
 import { EntityRow } from '../EntityRow';
 import { ExpandableChart } from '../../components/ExpandableChart';
-import type { MetricBand } from '../../components/MetricSpark';
+import { MetricSpark, type MetricBand } from '../../components/MetricSpark';
+import { useHistory, type HistoryWindow } from '../../hass/history';
 import { SliderTile } from '../../components/SliderTile';
 import { StatusBoardTile } from '../../components/StatusBoardTile';
 import { useDashboard } from '../store';
@@ -243,18 +244,37 @@ function accentFor(e: HassEntity | undefined): string {
   }
 }
 
+// The wall's shared spark window — must match MetricSpark's own default (24h) so
+// the batched feed is interchangeable with a cell's self-fetch.
+const WALL_WINDOW: HistoryWindow = { value: 24, unit: 'h' };
+
 function MetricWall({ block }: { block: Block }) {
   const states = useHassSource().getStates();
+  const ids = block.entityIds;
+  // Batch: ONE recorder fetch for the whole wall instead of N (one per cell).
+  // Each cell receives its slice as `history`, so MetricSpark skips its own fetch.
+  // The full chart in the expand Sheet still fetches its own range via `entityId`.
+  const batched = useHistory(ids, WALL_WINDOW);
   return (
     <div className="simui-surface">
       {block.title && (
         <div className="simui-surface-head"><span>{block.title}</span></div>
       )}
       <div className="simui-metric-wall">
-        {block.entityIds.map((id) => {
+        {ids.map((id) => {
           const e = states[id];
+          const band = bandFor(e);
+          const accent = accentFor(e);
           return (
-            <ExpandableChart key={id} entityId={id} band={bandFor(e)} accent={accentFor(e)} />
+            <ExpandableChart key={id} entityId={id} band={band} accent={accent}>
+              <MetricSpark
+                entityId={id}
+                band={band}
+                accent={accent}
+                window={WALL_WINDOW}
+                history={batched[id] ?? []}
+              />
+            </ExpandableChart>
           );
         })}
       </div>

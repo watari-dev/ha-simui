@@ -1,6 +1,6 @@
 import { type CSSProperties, type KeyboardEvent, type MouseEvent, useMemo } from 'react';
 import { useEntity } from '../hass/context';
-import { useHistory, type HistoryWindow } from '../hass/history';
+import { useHistory, type HistoryPoint, type HistoryWindow } from '../hass/history';
 import { formatNumber, friendly } from '../util';
 
 /**
@@ -41,19 +41,28 @@ export interface MetricSparkProps {
   accent?: string;
   /** Smart-click → expand to the full chart (wired by ExpandableChart). */
   onExpand?: () => void;
+  /**
+   * Pre-fetched history for this cell. When supplied (e.g. a MetricWall that
+   * batches one `useHistory` across all cells), the cell uses it directly and
+   * skips its own fetch. Omit ⇒ the cell fetches its own history (back-compat).
+   */
+  history?: HistoryPoint[];
 }
 
 const DEFAULT_WINDOW: HistoryWindow = { value: 24, unit: 'h' };
 const SPARK_W = 140;
 const SPARK_H = 40;
 
-export function MetricSpark({ entityId, band, window, name, accent, onExpand }: MetricSparkProps) {
+export function MetricSpark({ entityId, band, window, name, accent, onExpand, history }: MetricSparkProps) {
   const entity = useEntity(entityId);
   const win = window ?? DEFAULT_WINDOW;
   const dead = !!entity && (entity.state === 'unavailable' || entity.state === 'unknown');
-  // When dead, request no history so the cell can't draw or record a trend.
-  const series = useHistory(dead ? [] : [entityId], win);
-  const points = series[entityId];
+  // A batched wall passes `history` in; this cell then fetches nothing (empty id
+  // set ⇒ no WS call). Otherwise it fetches its own. When dead, request no
+  // history either way so the cell can't draw or record a trend.
+  const batched = history !== undefined;
+  const series = useHistory(dead || batched ? [] : [entityId], win);
+  const points = dead ? undefined : batched ? history : series[entityId];
 
   const unit = entity?.attributes.unit_of_measurement as string | undefined;
   const raw = entity?.state;
