@@ -2,6 +2,7 @@ import { Home, Play, Square } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { StateLine } from '../components/StateLine';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
@@ -10,8 +11,11 @@ const FEAT = { PAUSE: 4, STOP: 8, RETURN_HOME: 16, START: 8192 };
 
 const ACTIVE = new Set(['cleaning', 'returning']);
 
-export function VacuumTile({ entity }: WidgetProps) {
+export function VacuumTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Display-only body today — only the inner transport buttons act. Honor an
+  // authored `tap`, else inert (fallback undefined ⇒ byte-for-byte unchanged).
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const active = ACTIVE.has(entity.state);
   const name = friendly(entity);
@@ -21,7 +25,7 @@ export function VacuumTile({ entity }: WidgetProps) {
 
   if (dead) {
     return (
-      <Tile className="simui-vacuum is-unavailable">
+      <Tile className="simui-vacuum is-unavailable" onClick={onTap}>
         <div className="simui-row">
           <span className="simui-name" title={name}>{name}</span>
           <span className="simui-spacer" />
@@ -32,7 +36,7 @@ export function VacuumTile({ entity }: WidgetProps) {
   }
 
   return (
-    <Tile className={`simui-vacuum${active ? ' is-on' : ''}`}>
+    <Tile className={`simui-vacuum${active ? ' is-on' : ''}`} onClick={onTap}>
       <div className="simui-row">
         <span className="simui-name" title={name}>{name}</span>
         <span className="simui-spacer" />

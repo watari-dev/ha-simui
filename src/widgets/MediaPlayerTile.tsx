@@ -2,13 +2,17 @@ import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useAlbumTint, albumTintStyle } from '../components/useAlbumTint';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState, supportsFeature } from '../util';
 
 const FEAT = { PREV: 16, NEXT: 32 };
 
-export function MediaPlayerTile({ entity }: WidgetProps) {
+export function MediaPlayerTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Display-only body today — only the inner transport buttons act. Honor an
+  // authored `tap`, else inert (fallback undefined ⇒ byte-for-byte unchanged).
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const a = entity.attributes;
   const st = entity.state;
   const dead = st === 'unavailable' || st === 'unknown';
@@ -16,7 +20,7 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
   // Dead device — dim, no transport (play/pause/skip) so it can't look playable.
   if (dead) {
     return (
-      <Tile className="is-unavailable">
+      <Tile className="is-unavailable" onClick={onTap}>
         <div className="simui-row">
           <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
           <span className="simui-spacer" />
@@ -37,7 +41,7 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
 
   if (!hasMedia) {
     return (
-      <Tile>
+      <Tile onClick={onTap}>
         <div className="simui-row">
           <span className="simui-name" title={friendly(entity)}>{friendly(entity)}</span>
           <span className="simui-spacer" />
@@ -51,7 +55,7 @@ export function MediaPlayerTile({ entity }: WidgetProps) {
   }
 
   return (
-    <Tile style={albumTintStyle(tint)} className={tint ? 'is-album-tinted' : ''}>
+    <Tile style={albumTintStyle(tint)} className={tint ? 'is-album-tinted' : ''} onClick={onTap}>
       <div className="simui-np">
         {pic ? <img className="simui-art" src={pic} alt="" /> : <div className="simui-art" />}
         <div className="simui-np-body">

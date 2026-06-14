@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { VideoOff } from 'lucide-react';
 import { Tile } from '../components/Tile';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { friendly, prettyState } from '../util';
 
@@ -13,7 +14,10 @@ const REFRESH_MS = 10_000;
  * without pulling a full stream. A dead camera dims via `.is-unavailable` and
  * shows a clean placeholder (never a broken/stale frame).
  */
-export function CameraTile({ entity }: WidgetProps) {
+export function CameraTile({ entity, actions }: WidgetProps) {
+  // Display-only still today — honor an authored `tap`, else inert (fallback
+  // undefined ⇒ byte-for-byte unchanged, e.g. opens the camera Sheet when set).
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const base = entity.attributes.entity_picture as string | undefined;
   const [tick, setTick] = useState(() => Date.now());
@@ -30,7 +34,7 @@ export function CameraTile({ entity }: WidgetProps) {
   const name = friendly(entity);
 
   return (
-    <Tile className={`simui-camera${dead ? ' is-unavailable' : ''}`}>
+    <Tile className={`simui-camera${dead ? ' is-unavailable' : ''}`} onClick={onTap}>
       <div className="simui-cam-frame">
         {src && !dead ? (
           <img className="simui-cam-img" src={src} alt={name} loading="lazy" />

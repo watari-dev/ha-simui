@@ -2,6 +2,7 @@ import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { Tile } from '../components/Tile';
 import { useCallService } from '../hass/context';
+import { useTapHandler } from '../runtime';
 import type { WidgetProps } from '../types';
 import { clamp, domainOf, formatNumber, friendly } from '../util';
 import './InputTile.css';
@@ -12,8 +13,11 @@ import './InputTile.css';
  * sensible range) gets a −/+ stepper. Both call `<domain>.set_value`. The current
  * value uses tabular numerals; the unit dims after it.
  */
-export function NumberTile({ entity }: WidgetProps) {
+export function NumberTile({ entity, actions }: WidgetProps) {
   const callService = useCallService();
+  // Display-only body today — only the inner slider/steppers act. Honor an
+  // authored `tap`, else inert (fallback undefined ⇒ byte-for-byte unchanged).
+  const onTap = useTapHandler(entity.entity_id, actions, undefined);
   const domain = domainOf(entity.entity_id); // 'number' | 'input_number'
   const dead = entity.state === 'unavailable' || entity.state === 'unknown';
   const name = friendly(entity);
@@ -29,7 +33,7 @@ export function NumberTile({ entity }: WidgetProps) {
 
   if (dead) {
     return (
-      <Tile className="is-unavailable simui-input">
+      <Tile className="is-unavailable simui-input" onClick={onTap}>
         <div className="simui-row">
           <span className="simui-name" title={name}>{name}</span>
           <span className="simui-spacer" />
@@ -54,7 +58,7 @@ export function NumberTile({ entity }: WidgetProps) {
   };
 
   return (
-    <Tile className="simui-input">
+    <Tile className="simui-input" onClick={onTap}>
       <div className="simui-row">
         <span className="simui-name" title={name}>{name}</span>
         <span className="simui-spacer" />
