@@ -1,0 +1,175 @@
+/* EnergyFlow — a Powerwall-style power-flow object: Solar / Home / Grid / Battery
+ * on a four-node cross, with live values on each wire. Co-located; imported from
+ * EnergyFlow.tsx. HA-theme vars only.
+ *
+ * Sign-convention ASSUMPTIONS (flagged for the integrator): the colour + direction
+ * of the grid and battery edges follow the Tesla Powerwall idiom — a POSITIVE grid
+ * power reading = importing, a POSITIVE battery reading = discharging. Inverters that
+ * report the opposite sign are handled by `options.energyFlow.gridSign / batterySign`
+ * (= -1). SOC (battery %) is detected by a `charge`/`soc`/`_level` id, never a
+ * `_now`/`power` id. Magnitudes are normalised to kW (a `W` unit ÷ 1000).
+ *
+ * Design language: Linear restraint (faint base wires, one accent per active edge),
+ * tabular figures, minimal motion (only ACTIVE wires animate, and not under
+ * prefers-reduced-motion — the value simply appears). */
+
+.simui-eflow {
+  position: relative;
+  width: 100%;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border: 1px solid var(--faint);
+  border-radius: 16px;
+  padding: 4px;
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+  /* Hold the diagram's aspect so the absolute nodes line up with the SVG wires. */
+  aspect-ratio: 260 / 220;
+  overflow: hidden;
+}
+
+.simui-eflow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Wires ─────────────────────────────────────────────────────────────────── */
+.simui-eflow-wire {
+  stroke: var(--faint);
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* The coloured overlay on an active edge — full-strength accent. */
+.simui-eflow-edge.is-active .simui-eflow-pulse {
+  stroke: var(--eflow-edge, var(--accent));
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.95;
+  /* A travelling dash: a short lit segment chasing along the wire. pathLength=100
+     normalises the dash maths regardless of the actual line length. */
+  stroke-dasharray: 14 86;
+  animation: simui-eflow-dash 1.7s linear infinite;
+}
+
+/* Power flowing OUT of Home (export / charging) runs the dash the other way. */
+.simui-eflow-edge.dir-out.is-active .simui-eflow-pulse {
+  animation-direction: reverse;
+}
+
+/* Idle / dead edges: no overlay rendered (component omits it); base wire only. */
+.simui-eflow-edge.is-dead .simui-eflow-wire { opacity: 0.4; }
+
+@keyframes simui-eflow-dash {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Edge value badge (mid-wire, tabular) ──────────────────────────────────── */
+.simui-eflow-badge-val {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+.simui-eflow-edge.is-active .simui-eflow-badge-val {
+  fill: var(--eflow-edge, var(--text));
+}
+.simui-eflow-badge-unit {
+  font-size: 9px;
+  font-weight: 500;
+  fill: var(--muted);
+}
+
+/* ── Nodes (HTML over the SVG) ─────────────────────────────────────────────── */
+.simui-eflow-nodes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.simui-eflow-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 60px;
+  text-align: center;
+}
+
+.simui-eflow-node-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--eflow-node, var(--muted));
+  background: color-mix(in srgb, var(--eflow-node, var(--text)) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--eflow-node, var(--faint)) 22%, var(--faint));
+}
+
+.simui-eflow-node.role-load .simui-eflow-node-ic {
+  /* Home is the hub — slightly larger, neutral. */
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+.simui-eflow-node-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.simui-eflow-node-val {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+}
+.simui-eflow-node-unit {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 1px;
+}
+
+.simui-eflow-node-soc {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Graceful degradation — a missing/unavailable node dims and reads "—". */
+.simui-eflow-node.is-dead {
+  opacity: 0.42;
+}
+.simui-eflow-node.is-dead .simui-eflow-node-ic {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border-color: var(--faint);
+}
+
+/* ── Minimal motion: honour the OS reduced-motion preference (state appears). ── */
+@media (prefers-reduced-motion: reduce) {
+  .simui-eflow-edge.is-active .simui-eflow-pulse {
+    animation: none;
+    /* Static lit wire instead of a chasing dash — direction still reads via colour. */
+    stroke-dasharray: none;
+    opacity: 0.85;
+  }
+}

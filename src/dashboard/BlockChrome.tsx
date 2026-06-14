@@ -10,6 +10,7 @@ import { ListBlock } from './blocks/ListBlock';
 import { CardBlock } from './blocks/CardBlock';
 import { ChartBlock } from './blocks/ChartBlock';
 import { StatBlock } from './blocks/StatBlock';
+import { EnergyFlow } from '../components/EnergyFlow';
 import { AttentionStrip } from '../components/StatusBoardTile';
 import { ResizeHandle } from '../editor/resize/ResizeHandle';
 import type { Block, BlockSpan, Condition } from './types';
@@ -26,10 +27,12 @@ export function BlockBody({ block }: { block: Block }) {
     case 'list': return <ListBlock block={block} />;
     case 'chart': return <ChartBlock block={block} />;
     case 'card': {
-      // Display-only kinds (stat/gauge/section/divider) serialise as type:'card'
-      // and self-identify via options.statVariant — the novel-card seam.
-      const v = (block as { options?: { statVariant?: string } }).options?.statVariant;
-      return v ? <StatBlock block={block} /> : <CardBlock block={block} />;
+      // Display-only kinds serialise as type:'card' and self-identify via an
+      // options flag — the novel-card seam. `energyFlow` ⇒ the Powerwall-style
+      // flow object; `statVariant` ⇒ a stat/gauge/section/divider leaf.
+      const opts = (block as { options?: { statVariant?: string; energyFlow?: unknown } }).options;
+      if (opts?.energyFlow) return <EnergyFlow block={block} />;
+      return opts?.statVariant ? <StatBlock block={block} /> : <CardBlock block={block} />;
     }
     case 'attention': return <AttentionStrip entities={block.entityIds} />;
     default: return null;

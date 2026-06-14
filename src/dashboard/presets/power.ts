@@ -4,7 +4,7 @@
 //
 // Degradation: no per-circuit metering → just the flow chart (whole-home draw +
 // solar). No solar → single-series consumption. No battery → drop that series.
-import type { ChartAxis, ChartSeries, ChartSpec } from '../types';
+import type { Block, ChartAxis, ChartSeries, ChartSpec } from '../types';
 import type { HassEntity } from '../../types';
 import type { PresetContext, Surface } from './index';
 import { blockId, isLive, leafName, isPrimary } from './index';
@@ -57,6 +57,53 @@ export function buildPower(ctx: PresetContext): Surface {
   // Prefer an explicit whole-home load; else the largest non-circuit reading.
   const load = byRole.get('load') ?? [];
   const circuits = byRole.get('circuit') ?? [];
+
+  // Battery state-of-charge (a `%` battery sensor) — not a power reading, so it sits
+  // outside `powerSensors`. The flow object renders it as the battery fill.
+  const socEntity = Object.values(states).find(
+    (e) =>
+      domainOf(e.entity_id) === 'sensor' &&
+      isLive(e) &&
+      primary(e) &&
+      e.attributes.unit_of_measurement === '%' &&
+      (e.attributes.device_class === 'battery' || matchName(e, /charge|state_of_charge|soc/i)),
+  );
+
+  // The shared `roleOf` lacks a `site`/`mains` grid alias (e.g. Tesla's
+  // `sensor.powerwall_site_now`), so such a feed lands in `circuits`. Recover it for
+  // the flow object without disturbing the chart's role buckets.
+  const gridEntity =
+    grid[0] ?? circuits.find((e) => matchName(e, /grid|site|mains|utility|feed/i));
+
+  // 0. Powerwall-style flow object — only for a REAL energy system (solar plus a
+  // battery and/or grid feed). A lone consumption sensor isn't worth a diagram, so
+  // most homes (no solar/battery) emit nothing here and fall straight to the chart.
+  if (solar.length && (battery.length || gridEntity || socEntity)) {
+    const flowIds: string[] = [];
+    if (solar.length) flowIds.push(solar[0].entity_id);
+    if (load.length) flowIds.push(load[0].entity_id);
+    if (gridEntity) flowIds.push(gridEntity.entity_id);
+    if (battery.length) flowIds.push(battery[0].entity_id);
+    if (socEntity) flowIds.push(socEntity.entity_id);
+    surface.blocks.push({
+      id: blockId('power-flow-object'),
+      type: 'card',
+      title: 'Energy flow',
+      entityIds: flowIds,
+      span: 'full',
+      // The novel-card seam (BlockChrome routes a `type:'card'` block with this flag
+      // to <EnergyFlow>). Explicit role assignment removes any classifier ambiguity;
+      // batterySoc names the `%` fill sensor.
+      options: {
+        energyFlow: true,
+        solar: solar[0]?.entity_id,
+        load: load[0]?.entity_id,
+        grid: gridEntity?.entity_id,
+        battery: battery[0]?.entity_id,
+        batterySoc: socEntity?.entity_id,
+      },
+    } as Block);
+  }
 
   // StatusStrip: live whole-home draw + solar (status tiles read the value live).
   const strip: Surface['statusStrip'] = [];
