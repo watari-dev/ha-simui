@@ -205,6 +205,21 @@ now **specified** (INSPIRATION / FRAMEWORK / PRESETS). The owner's **real** HA i
   replication; block owns layout / tile owns entity; Energy + Power merged; Server preset =
   native controls only (no iframes).
 
+- **Editor loop activated (the framework's make-or-break)** — the decoupled editor store
+  (`src/editor/store.tsx`, `EditorProvider`) is now wired live on category surfaces. Entering
+  edit snapshots the live preset into an editable **override**, seeds an optimistic working copy
+  (`dirtyBlocks`), and commits back through the dashboard store's new atomic `mutateBlocks` seam
+  (debounced 350ms). `CategoryView` + `BlockChrome` drive the store: select a block (capture-layer
+  tap → selection ring + **Inspector**), resize via the span control (`resizeBlock`), drag-reorder
+  (`moveBlock`), add via the **CardGallery** (live `BlockBody` previews of each kind → insert →
+  auto-select → inspector), and **⌘Z undo**. `EditorOverlay` hosts the gallery/inspector/picker
+  per `editor.panel`. Fixed the `active`↔`editing` mirror (external nav now tears the editor down,
+  not fights it) and the gallery's nested-`<button>` hydration bug (cards are focusable
+  `role=button` divs). **Verified end-to-end in-browser**: enter → select → inspector → resize →
+  add → undo → exit, console clean. Next: generalize the loop to Room/Home surfaces + integrate
+  the wave-3 modules (more card kinds, richer inspector, action editor, drag-resize handles,
+  template gallery, faceted picker, editor chrome).
+
 ## Notes / gotchas
 
 - **Two HA MCPs:** `simbas-home-assistant` = the owner's real home (use this);
