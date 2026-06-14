@@ -77,6 +77,7 @@ export function CountPill({
   iconOff,
   activeColor = 'warm',
   onTap,
+  zeroText,
 }: {
   label: string;
   count: number;
@@ -84,9 +85,12 @@ export function CountPill({
   iconOff: ReactNode;
   activeColor?: ColorToken;
   onTap?: () => void;
+  /** When the count is 0, show this calm text instead of "0 {label}" (e.g. "Secure"). */
+  zeroText?: string;
 }) {
   const active = count > 0;
   const style = active ? ({ '--pill-accent': tokenVar(activeColor) } as CSSProperties) : undefined;
+  const showZero = !active && zeroText != null;
   return (
     <button
       type="button"
@@ -94,13 +98,19 @@ export function CountPill({
       style={style}
       onClick={onTap}
       onKeyDown={activate(onTap)}
-      aria-label={`${count} ${label}`}
+      aria-label={showZero ? zeroText : `${count} ${label}`}
       aria-pressed={active}
       disabled={!onTap}
     >
       <span className="simui-pill-ic">{active ? iconOn : iconOff}</span>
-      <span className="simui-pill-num">{count}</span>
-      <span className="simui-pill-label">{label}</span>
+      {showZero ? (
+        <span className="simui-pill-label">{zeroText}</span>
+      ) : (
+        <>
+          <span className="simui-pill-num">{count}</span>
+          <span className="simui-pill-label">{label}</span>
+        </>
+      )}
     </button>
   );
 }

@@ -34,7 +34,7 @@ export { isPrimaryEntity, isPrimary } from '../areas';
 
 /** One pill in a surface's top chrome (FRAMEWORK.md §6). Pure data; the strip renderer owns subscriptions. */
 export type StripPill =
-  | { kind: 'count'; icon: string; label: string; source: ListSource; accent?: ColorToken }
+  | { kind: 'count'; icon: string; label: string; source: ListSource; accent?: ColorToken; path?: string; zeroText?: string }
   | { kind: 'nav'; icon: string; label: string; path: string; accent?: ColorToken }
   | { kind: 'action'; icon: string; label: string; action: HassAction; accent?: ColorToken }
   | { kind: 'conditional'; icon: string; label: string; visibleWhen: Condition; accent?: ColorToken }

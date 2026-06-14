@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { MonitorPlay, Pencil, RotateCcw } from 'lucide-react';
-import { useAggregate, useHassSource, useEntityKeys } from '../hass/context';
+import { useHassSource, useEntityKeys } from '../hass/context';
 import { useAreas } from './areas';
 import { useDashboard } from './store';
 import { useKioskOptional } from './kioskMode';
@@ -14,7 +14,6 @@ import { BlockChrome, StaticBlock } from './BlockChrome';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { buildHome } from './presets/home';
 import type { Surface } from './presets/index';
-import type { DashboardConfig } from './types';
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -75,7 +74,6 @@ export function HomeView() {
     <div className="simui-app simui-home">
       <header className="simui-head">
         <span className="simui-head-title">{greeting()}</span>
-        <HouseGlance config={config} />
         <span className="simui-spacer" />
         {active && override && onReset && (
           <button className="simui-iconbtn-h" onClick={onReset} aria-label="Reset home"><RotateCcw size={15} /></button>
@@ -135,20 +133,4 @@ export function HomeView() {
       </div>
     </div>
   );
-}
-
-function HouseGlance({ config }: { config: DashboardConfig }) {
-  // The home's light ids are the only entity inputs → deps-scope the count + string
-  // build so an unrelated tick (sensors, energy) skips it. `config` is stable; a
-  // rooms change re-renders this and rebuilds `lightIds`.
-  const lightIds = useMemo(
-    () => config.rooms.flatMap((r) => r.blocks.flatMap((b) => b.entityIds)).filter((id) => id.startsWith('light.')),
-    [config],
-  );
-  const summary = useAggregate((states) => {
-    const on = lightIds.filter((id) => states[id]?.state === 'on').length;
-    const rooms = config.rooms.length;
-    return `${rooms} ${rooms === 1 ? 'room' : 'rooms'}${on ? ` · ${on} lights on` : ''}`;
-  }, lightIds);
-  return <span className="simui-head-glance num">{summary}</span>;
 }

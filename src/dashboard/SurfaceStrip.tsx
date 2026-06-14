@@ -78,12 +78,16 @@ function CountPillBound({ pill }: { pill: Extract<StripPill, { kind: 'count' }> 
   // (no domain filter) get `undefined` deps → compute every tick, as before.
   const source = useHassSource();
   const keysVersion = useEntityKeys();
+  const run = useActions();
   const candidates = useMemo(() => {
     const doms = sourceDomains(pill.source);
     return doms ? keysOfDomains(source.getStates(), doms) : undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keysVersion, pill.source]);
   const count = useAggregate((states) => resolveSource(pill.source, states).length, candidates);
+  // A pill with a `path` taps through to its filtered category surface; without one
+  // it stays a glance-only readout (disabled).
+  const onTap = pill.path ? () => run({ action: 'navigate', path: pill.path! }) : undefined;
   return (
     <CountPill
       label={pill.label}
@@ -91,6 +95,8 @@ function CountPillBound({ pill }: { pill: Extract<StripPill, { kind: 'count' }> 
       iconOn={iconNode(pill.icon)}
       iconOff={iconNode(pill.icon)}
       activeColor={pill.accent}
+      zeroText={pill.zeroText}
+      onTap={onTap}
     />
   );
 }

@@ -452,11 +452,25 @@ button.simui-erow, .simui-erow.as-row { cursor: pointer; }
 /* security on home: borderless rows on the canvas with hairline dividers */
 .simui-home-summary .simui-rows .simui-erow + .simui-erow { border-top: 1px solid var(--faint); }
 
-/* quieter status strip on home — reads as glance, not buttons */
-.simui-home-layer .simui-pill-count,
+/* quieter status strip on home — secondary nav/action/select read as glance */
 .simui-home-layer .simui-pill-nav,
 .simui-home-layer .simui-pill-action,
 .simui-home-layer .simui-pill-select { background: color-mix(in srgb, var(--text) 3%, transparent); border-color: color-mix(in srgb, var(--text) 9%, transparent); }
+
+/* Apple-Home highlights band — the home status strip is the page's hero status,
+   not recessive chrome: larger, opaque, tappable pills that WRAP (never scroll off
+   the phone) and tint to their category accent when active. */
+.simui-home-layer .simui-strip { flex-wrap: wrap; gap: 9px; margin-bottom: 20px; overflow: visible; }
+.simui-home-layer .simui-strip .simui-pill-count {
+  height: 44px; padding: 0 16px; font-size: 14px;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border-color: var(--faint);
+}
+.simui-home-layer .simui-strip .simui-pill-count .simui-pill-num { font-size: 16px; }
+.simui-home-layer .simui-strip .simui-pill-count.is-active {
+  background: color-mix(in srgb, var(--pill-accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--pill-accent) 40%, var(--faint));
+}
 
 /* rooms label sits quietly above the grid */
 .simui-rooms-head { margin: 26px 2px 12px; }

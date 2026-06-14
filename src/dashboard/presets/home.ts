@@ -5,7 +5,6 @@
 // Degradation: the launcher lists only categories with entities. No scenes → drop
 // that block. No energy → drop the metric cluster. No alarm → security becomes a
 // lock tile or is omitted. Minimum viable Home = strip + launcher.
-import type { Condition } from '../types';
 import type { ColorToken } from '../../widgets/tileContract';
 import type { HassEntities, HassEntity } from '../../types';
 import type { PresetContext, StripPill, Surface } from './index';
@@ -54,37 +53,43 @@ export function buildHome(ctx: PresetContext): Surface {
   const { states } = ctx;
   const surface: Surface = { blocks: [] };
 
-  // ── StatusStrip (chrome) ──
+  // ── StatusStrip: Apple-Home category highlights (always-present, tappable) ──
+  // The glance answer to "what's on right now". Each is a live useAggregate that taps
+  // through to its filtered category surface. Matchers key on the active state, so an
+  // unavailable entity never counts (it can't be 'on'/'playing'/'unlocked').
   const strip: StripPill[] = [];
 
-  // CountPills: lights on, fans on.
   if (hasDomain(states, 'light')) {
     strip.push({
-      kind: 'count',
-      icon: 'lightbulb',
-      label: 'lights on',
-      accent: 'warm',
-      source: { include: [{ domain: 'light', state: 'on' }], hideWhenEmpty: false },
+      kind: 'count', icon: 'lightbulb', label: 'lights on', accent: 'warm', path: 'category/lights',
+      source: { include: [{ domain: 'light', state: 'on' }] },
+    });
+  }
+  if (hasDomain(states, 'climate') || hasDomain(states, 'humidifier')) {
+    strip.push({
+      kind: 'count', icon: 'thermostat', label: 'climate on', accent: 'teal', path: 'category/climate',
+      source: { include: [{ domain: 'climate', state: ['cool', 'heat', 'heat_cool', 'auto', 'dry', 'fan_only'] }] },
+    });
+  }
+  if (hasDomain(states, 'lock') || hasDomain(states, 'alarm_control_panel')) {
+    // Always visible: a calm "Secure" when everything is locked, "{n} unlocked" otherwise.
+    strip.push({
+      kind: 'count', icon: 'shield', label: 'unlocked', accent: 'warn', path: 'category/security',
+      zeroText: 'Secure',
+      source: { include: [{ domain: 'lock', state: 'unlocked' }] },
+    });
+  }
+  if (hasDomain(states, 'media_player')) {
+    // Speakers & TVs playing — directly the Apple-Home "Media" status.
+    strip.push({
+      kind: 'count', icon: 'cast', label: 'playing', accent: 'violet', path: 'category/media',
+      source: { include: [{ domain: 'media_player', state: 'playing' }] },
     });
   }
   if (hasDomain(states, 'fan')) {
     strip.push({
-      kind: 'count',
-      icon: 'fan',
-      label: 'fans on',
-      accent: 'accent',
-      source: { include: [{ domain: 'fan', state: 'on' }], hideWhenEmpty: false },
-    });
-  }
-
-  // ConditionalBadges: door unlocked, appliance running — render only while true.
-  if (hasDomain(states, 'lock')) {
-    strip.push({
-      kind: 'conditional',
-      icon: 'lock-open',
-      label: 'Door unlocked',
-      accent: 'warn',
-      visibleWhen: firstStateCondition(states, (e) => domainOf(e.entity_id) === 'lock', 'unlocked'),
+      kind: 'count', icon: 'fan', label: 'fans on', accent: 'accent',
+      source: { include: [{ domain: 'fan', state: 'on' }] },
     });
   }
 
@@ -186,10 +191,4 @@ export function buildHome(ctx: PresetContext): Surface {
   }
 
   return surface;
-}
-
-/** Build a visibleWhen Condition keyed on the first entity matching a predicate. */
-function firstStateCondition(states: HassEntities, pred: (e: HassEntity) => boolean, state: string): Condition {
-  const e = Object.values(states).find(pred);
-  return { entity: e ? e.entity_id : 'unknown.none', state };
 }
